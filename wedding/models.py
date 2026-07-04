@@ -26,6 +26,29 @@ class Invitation(models.Model):
         help_text="Har bir bo'sh qatordan keyin yangi paragraf boshlanadi",
     )
 
+    envelope_title = models.TextField(
+        default="Siz\nTo'yimizga",
+        verbose_name="Konvertdagi qalin matn",
+        help_text="Har bir satr konvertda alohida qatorda, katta harflarda chiqadi",
+    )
+    envelope_script = models.CharField(
+        max_length=120,
+        default="taklif etilgansiz",
+        verbose_name="Konvertdagi yozma matn",
+        help_text="Qalin matn ostidagi kursiv qizil yozuv",
+    )
+    envelope_signature = models.CharField(
+        max_length=120,
+        default="muhabbat ila,",
+        verbose_name="Konvert imzosi",
+        help_text="Konvert pastidagi yozuv - ostida kelin-kuyov ismlari avtomatik chiqadi",
+    )
+    open_button_text = models.CharField(
+        max_length=30,
+        default="Ochish",
+        verbose_name="Ochish tugmasi matni",
+    )
+
     venue_name = models.CharField(max_length=200, default="To'yxona nomi")
     venue_city = models.CharField(max_length=120, default="Shahar")
     venue_landmark = models.CharField(

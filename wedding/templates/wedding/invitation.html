@@ -36,20 +36,20 @@
         <div class="envelope-stage" id="envelope" role="img" aria-label="Muhrlangan qog'oz konvert">
           <div class="flap flap-top">
             <p class="flap-note">
-              <span class="flap-note-top">SIZ</span><span class="flap-note-middle">TO'YIMIZGA</span><span class="flap-note-script">taklif etilgansiz</span>
+              {% for line in envelope_title_lines %}<span class="flap-note-line">{{ line }}</span>{% endfor %}<span class="flap-note-script">{{ invitation.envelope_script }}</span>
             </p>
           </div>
           <div class="flap flap-left"></div>
           <div class="flap flap-right"></div>
           <div class="flap flap-bottom">
             <p class="flap-signature">
-              muhabbat ila,<br />
+              {{ invitation.envelope_signature }}<br />
               <strong>{{ invitation.groom_name }}&nbsp;va&nbsp;{{ invitation.bride_name }}</strong>
             </p>
           </div>
 
           <button class="seal-button" id="openInviteBtn" type="button" aria-expanded="false">
-            <span>ochish</span>
+            <span>{{ invitation.open_button_text }}</span>
           </button>
         </div>
       </section>

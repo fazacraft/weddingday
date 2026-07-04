@@ -69,5 +69,8 @@ class InvitationView(TemplateView):
             context["schedule_flower_index"] = (len(schedule_events) + 1) // 2
 
             context["horns"] = build_horn_fan(invitation.horn_count)
+            context["envelope_title_lines"] = [
+                line.strip() for line in invitation.envelope_title.splitlines() if line.strip()
+            ]
 
         return context

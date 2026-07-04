@@ -20,6 +20,9 @@ class InvitationAdmin(admin.ModelAdmin):
         ("Taklif matni", {
             "fields": ("greeting_heading", "greeting_message"),
         }),
+        ("Konvert (kirish qismi)", {
+            "fields": ("envelope_title", "envelope_script", "envelope_signature", "open_button_text"),
+        }),
         ("To'y manzili", {
             "fields": ("venue_name", "venue_city", "venue_landmark", "yandex_map_url", "google_map_url"),
         }),
