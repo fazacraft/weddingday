@@ -1,0 +1,68 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 70 1000" fill="none">
+  <defs>
+    <path id="leaf" d="M0 0 C 5 -4.5, 13 -4.5, 19 0 C 13 4.5, 5 4.5, 0 0 Z" />
+    <g id="fruit">
+      <circle r="9" fill="#a03636" />
+      <path d="M-4.2 -7.4 L -2.6 -12 L -0.9 -8.6 L 1 -12.6 L 2.9 -8.2 L 4.1 -11.2 L 4.8 -6.8 Z" fill="#6e2323" />
+      <circle cx="-3" cy="-3.2" r="2.6" fill="#cd7361" opacity="0.55" />
+    </g>
+    <circle id="bud" r="2.6" fill="#c9a227" />
+  </defs>
+
+  <!-- Asosiy tana -->
+  <g stroke="#8f7a45" stroke-linecap="round" fill="none">
+    <path stroke-width="2" d="M30 1000
+      C 48 940, 16 880, 32 820
+      C 46 765, 18 705, 33 645
+      C 47 590, 17 530, 32 470
+      C 46 415, 18 355, 33 295
+      C 46 240, 20 180, 34 120
+      C 42 85, 28 40, 36 0" />
+    <!-- Yon novdalar -->
+    <path stroke-width="1.3" d="M32 822 C 42 802, 50 796, 57 783" />
+    <path stroke-width="1.3" d="M33 648 C 24 632, 16 626, 11 613" />
+    <path stroke-width="1.3" d="M32 472 C 42 454, 49 448, 55 437" />
+    <path stroke-width="1.3" d="M33 298 C 24 282, 16 276, 12 263" />
+    <path stroke-width="1.3" d="M34 122 C 41 108, 46 102, 50 92" />
+    <path stroke-width="1.1" d="M38 905 C 46 895, 52 892, 57 884" />
+    <path stroke-width="1.1" d="M27 560 C 19 551, 14 549, 9 542" />
+    <path stroke-width="1.1" d="M39 382 C 47 373, 52 371, 57 364" />
+    <path stroke-width="1.1" d="M28 208 C 20 199, 15 197, 10 190" />
+  </g>
+
+  <!-- Barglar -->
+  <g fill="#87965c">
+    <use href="#leaf" transform="translate(34 952) rotate(-38) scale(0.85)" opacity="0.75" />
+    <use href="#leaf" transform="translate(40 900) rotate(24) scale(0.7)" opacity="0.6" />
+    <use href="#leaf" transform="translate(24 862) rotate(-155) scale(0.8)" opacity="0.7" />
+    <use href="#leaf" transform="translate(41 798) rotate(-30) scale(0.75)" opacity="0.75" />
+    <use href="#leaf" transform="translate(25 720) rotate(-210) scale(0.85)" opacity="0.6" />
+    <use href="#leaf" transform="translate(38 678) rotate(30) scale(0.7)" opacity="0.75" />
+    <use href="#leaf" transform="translate(22 622) rotate(-140) scale(0.75)" opacity="0.7" />
+    <use href="#leaf" transform="translate(24 548) rotate(-195) scale(0.8)" opacity="0.65" />
+    <use href="#leaf" transform="translate(40 508) rotate(28) scale(0.75)" opacity="0.75" />
+    <use href="#leaf" transform="translate(42 450) rotate(-32) scale(0.7)" opacity="0.6" />
+    <use href="#leaf" transform="translate(23 372) rotate(-160) scale(0.85)" opacity="0.7" />
+    <use href="#leaf" transform="translate(44 370) rotate(-18) scale(0.7)" opacity="0.65" />
+    <use href="#leaf" transform="translate(38 328) rotate(35) scale(0.75)" opacity="0.7" />
+    <use href="#leaf" transform="translate(22 272) rotate(-145) scale(0.75)" opacity="0.75" />
+    <use href="#leaf" transform="translate(25 196) rotate(-200) scale(0.8)" opacity="0.6" />
+    <use href="#leaf" transform="translate(40 152) rotate(26) scale(0.7)" opacity="0.7" />
+    <use href="#leaf" transform="translate(28 68) rotate(-130) scale(0.7)" opacity="0.7" />
+    <use href="#leaf" transform="translate(38 30) rotate(40) scale(0.6)" opacity="0.6" />
+  </g>
+
+  <!-- Anorlar -->
+  <use href="#fruit" transform="translate(58 796) scale(1)" />
+  <use href="#fruit" transform="translate(12 626) scale(0.82)" />
+  <use href="#fruit" transform="translate(56 450) scale(0.92)" />
+  <use href="#fruit" transform="translate(13 276) scale(0.85)" />
+  <use href="#fruit" transform="translate(51 104) scale(0.72)" />
+
+  <!-- G'unchalar -->
+  <use href="#bud" transform="translate(58 881)" />
+  <use href="#bud" transform="translate(8 539)" />
+  <use href="#bud" transform="translate(58 361)" />
+  <use href="#bud" transform="translate(9 187)" />
+  <use href="#bud" transform="translate(37 12)" />
+</svg>

@@ -1,0 +1,197 @@
+{% load static %}
+<!doctype html>
+<html lang="uz">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    {% if invitation %}
+      <title>{{ invitation.groom_name }} va {{ invitation.bride_name }} | To'y taklifnomasi</title>
+      <meta name="description" content="{{ invitation.groom_name }} va {{ invitation.bride_name }}ning to'y taklifnomasi." />
+    {% else %}
+      <title>To'y taklifnomasi</title>
+    {% endif %}
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600;700&family=Corinthia:wght@400;700&family=Great+Vibes&family=IBM+Plex+Sans:wght@300;400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="{% static 'wedding/css/style.css' %}" />
+  </head>
+  <body class="intro-active">
+    {% if not invitation %}
+      <main class="empty-state">
+        <p>Taklifnoma hali sozlanmagan.</p>
+        <p>Admin panelga kiring: <a href="/admin/">/admin/</a></p>
+      </main>
+    {% else %}
+      {% if invitation.background_music %}
+        <button class="music-toggle" id="musicToggleBtn" type="button" aria-label="Musiqani yoqish" aria-pressed="false" title="Musiqani yoqish">
+          <span class="music-icon" aria-hidden="true"></span>
+        </button>
+        <audio id="backgroundMusic" src="{{ invitation.background_music.url }}" preload="auto" loop></audio>
+      {% endif %}
+
+      <section class="intro" id="intro" aria-label="Taklifnoma konverti">
+        <div class="envelope-stage" id="envelope" role="img" aria-label="Muhrlangan qog'oz konvert">
+          <div class="flap flap-top">
+            <p class="flap-note">
+              <span class="flap-note-top">SIZ</span><span class="flap-note-middle">TO'YIMIZGA</span><span class="flap-note-script">taklif etilgansiz</span>
+            </p>
+          </div>
+          <div class="flap flap-left"></div>
+          <div class="flap flap-right"></div>
+          <div class="flap flap-bottom">
+            <p class="flap-signature">
+              muhabbat ila,<br />
+              <strong>{{ invitation.groom_name }}&nbsp;va&nbsp;{{ invitation.bride_name }}</strong>
+            </p>
+          </div>
+
+          <button class="seal-button" id="openInviteBtn" type="button" aria-expanded="false">
+            <span>ochish</span>
+          </button>
+        </div>
+      </section>
+
+      <main class="invitation" id="invitation" aria-hidden="true">
+        <img class="pomegranate-vine pomegranate-vine--left" src="{% static 'wedding/img/pomegranate-vine.svg' %}" alt="" aria-hidden="true" />
+        <img class="pomegranate-vine pomegranate-vine--right" src="{% static 'wedding/img/pomegranate-vine.svg' %}" alt="" aria-hidden="true" />
+
+        <section class="letter-hero reveal" id="letterHero">
+          <article class="heritage-hero" aria-label="Yoshlar ismlari tushirilgan an'anaviy sahifa">
+            <img class="heritage-border" src="{% static 'wedding/img/border-ornament.png' %}" alt="" aria-hidden="true" />
+
+            <div class="heritage-names-row">
+              {% for horn in horns %}
+                <img class="heritage-horn heritage-horn--left" style="--fan: {{ horn.angle }}deg; --delay: {{ horn.delay }}s" src="{% static 'wedding/img/karnay.png' %}" alt="" aria-hidden="true" />
+              {% endfor %}
+              <p class="ornament-names">
+                <span class="ornament-name-line">{{ invitation.groom_name }}</span>
+                <span class="ornament-name-amp">va</span>
+                <span class="ornament-name-line">{{ invitation.bride_name }}</span>
+              </p>
+              {% for horn in horns %}
+                <img class="heritage-horn heritage-horn--right" style="--fan: {{ horn.angle }}deg; --delay: {{ horn.delay }}s" src="{% static 'wedding/img/karnay.png' %}" alt="" aria-hidden="true" />
+              {% endfor %}
+            </div>
+
+            {% if invitation.groom_photo and invitation.bride_photo %}
+              <div class="heritage-duo">
+                <figure class="heritage-portrait">
+                  <img src="{{ invitation.bride_photo.url }}" alt="{{ invitation.bride_name }}" />
+                </figure>
+                <figure class="heritage-portrait">
+                  <img src="{{ invitation.groom_photo.url }}" alt="{{ invitation.groom_name }}" />
+                </figure>
+              </div>
+            {% elif invitation.couple_photo %}
+              <img class="heritage-photo" src="{{ invitation.couple_photo.url }}" alt="{{ invitation.groom_name }} va {{ invitation.bride_name }}" />
+            {% else %}
+              <div class="heritage-ornament" aria-hidden="true"><span></span></div>
+            {% endif %}
+          </article>
+
+          <a class="scroll-indicator" href="#letterCard">
+            <span class="scroll-indicator__text">Pastga tushuring</span>
+            <span class="scroll-indicator__arrow" aria-hidden="true">&#8595;</span>
+          </a>
+        </section>
+
+        <section class="letter-card reveal" id="letterCard">
+          <h1 class="hero-title">{{ invitation.greeting_heading }}</h1>
+          <div class="lead">
+            {% for paragraph in greeting_paragraphs %}
+              <p>{{ paragraph }}</p>
+            {% endfor %}
+          </div>
+          {% if invitation.groom_photo and invitation.bride_photo and invitation.couple_photo %}
+            <img class="letter-couple-photo" src="{{ invitation.couple_photo.url }}" alt="{{ invitation.groom_name }} va {{ invitation.bride_name }}" />
+          {% endif %}
+        </section>
+
+        <div class="details-sections">
+          <section class="calendar-section reveal" aria-label="To'y sanasi">
+            <img class="card-sprig card-sprig--top-left" src="{% static 'wedding/img/pomegranate.png' %}" alt="" aria-hidden="true" />
+            <div class="calendar" role="img" aria-label="{{ month_label }} kalendari">
+              <div class="calendar-head"><span>{{ month_label }}</span></div>
+
+              <div class="calendar-grid week-days">
+                {% for wd in weekday_labels %}<span>{{ wd }}</span>{% endfor %}
+              </div>
+
+              {% for week in calendar_weeks %}
+                <div class="calendar-grid days">
+                  {% for cell in week %}
+                    {% if cell.day == 0 %}
+                      <span class="empty-cell"></span>
+                    {% elif cell.is_wedding_day %}
+                      <div class="heart-cell" aria-label="To'y kuni"><span class="heart-day"><span>{{ cell.day }}</span></span></div>
+                    {% else %}
+                      <span>{{ cell.day }}</span>
+                    {% endif %}
+                  {% endfor %}
+                </div>
+              {% endfor %}
+            </div>
+          </section>
+
+          {% if schedule_events %}
+            <section class="schedule-section reveal" aria-label="To'y dasturi">
+              <h2 class="schedule-title">To'y dasturi</h2>
+              <div class="schedule-timeline">
+                {% for event in schedule_events %}
+                  <div class="schedule-item">
+                    <span class="schedule-time">{{ event.time|time:"H:i" }}</span>
+                    <span class="schedule-marker{% if forloop.counter == schedule_flower_index %} schedule-marker--flower{% endif %}" aria-hidden="true">
+                      {% if forloop.counter == schedule_flower_index %}
+                        <img class="schedule-flower" src="{% static 'wedding/img/flower.png' %}" alt="" />
+                      {% endif %}
+                    </span>
+                    <span class="schedule-event-name">{{ event.title }}</span>
+                  </div>
+                {% endfor %}
+              </div>
+            </section>
+          {% endif %}
+
+          <section class="location-section reveal" aria-label="To'y manzili">
+            <img class="card-sprig card-sprig--top-right" src="{% static 'wedding/img/pomegranate.png' %}" alt="" aria-hidden="true" />
+            <h2 class="location-title">To'y manzili</h2>
+            <p class="venue-name">{{ invitation.venue_name }}</p>
+            <p class="venue-address">{{ invitation.venue_city }}</p>
+            {% if invitation.venue_landmark %}
+              <p class="venue-address">Mo'ljal: {{ invitation.venue_landmark }}</p>
+            {% endif %}
+            {% if invitation.yandex_map_url or invitation.google_map_url %}
+              <div class="map-links">
+                {% if invitation.yandex_map_url %}
+                  <a class="map-link" href="{{ invitation.yandex_map_url }}" target="_blank" rel="noopener noreferrer">Yandex xaritasi</a>
+                {% endif %}
+                {% if invitation.google_map_url %}
+                  <a class="map-link" href="{{ invitation.google_map_url }}" target="_blank" rel="noopener noreferrer">Google Maps</a>
+                {% endif %}
+              </div>
+            {% endif %}
+          </section>
+
+          <section class="countdown-section reveal" aria-label="Orqaga sanoq" data-wedding-iso="{{ wedding_datetime_iso }}">
+            <img class="card-sprig card-sprig--bottom-left" src="{% static 'wedding/img/flower.png' %}" alt="" aria-hidden="true" />
+            <h2>Har lahzani sanayapmiz</h2>
+
+            <div class="countdown" id="countdown" role="timer" aria-live="polite">
+              <div class="time-unit"><span id="days">0</span><small>Kun</small></div>
+              <div class="time-unit"><span id="hours">0</span><small>Soat</small></div>
+              <div class="time-unit"><span id="minutes">0</span><small>Daqiqa</small></div>
+              <div class="time-unit"><span id="seconds">0</span><small>Soniya</small></div>
+            </div>
+
+            <p class="countdown-message" id="countdownMessage">Sizni intiqlik bilan kutamiz.</p>
+          </section>
+        </div>
+      </main>
+    {% endif %}
+
+    <script src="{% static 'wedding/js/script.js' %}"></script>
+  </body>
+</html>
