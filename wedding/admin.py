@@ -24,12 +24,16 @@ class ScheduleEventInline(admin.TabularInline):
 @admin.register(Invitation)
 class InvitationAdmin(admin.ModelAdmin):
     form = InvitationAdminForm
-    list_display = ("__str__", "wedding_datetime", "venue_name", "is_active")
+    list_display = ("__str__", "wedding_datetime", "venue_name", "open_count", "is_active")
     list_filter = ("is_active",)
+    readonly_fields = ("open_count",)
     inlines = [ScheduleEventInline]
     fieldsets = (
         ("Kelin-kuyov", {
             "fields": ("groom_name", "bride_name", "wedding_datetime", "is_active"),
+        }),
+        ("Statistika", {
+            "fields": ("open_count",),
         }),
         ("Taklif matni", {
             "fields": ("greeting_heading", "greeting_message"),

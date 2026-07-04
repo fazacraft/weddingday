@@ -140,6 +140,12 @@ class Invitation(models.Model):
         help_text="Ismlar yonidagi karnaylar soni (har tomonda)",
     )
 
+    open_count = models.PositiveIntegerField(
+        default=0,
+        verbose_name="Konvert ochilishlar soni",
+        help_text="OCHISH tugmasi necha marta bosilgani (avtomatik sanaladi)",
+    )
+
     is_active = models.BooleanField(
         default=True,
         help_text="Saytda aynan shu taklifnoma ko'rsatilsin",

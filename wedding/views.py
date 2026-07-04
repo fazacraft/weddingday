@@ -1,6 +1,10 @@
 import calendar
 
+from django.db.models import F
+from django.http import JsonResponse
 from django.utils import timezone
+from django.views.decorators.csrf import csrf_exempt
+from django.views.decorators.http import require_POST
 from django.views.generic import TemplateView
 
 from .models import Invitation
@@ -52,6 +56,16 @@ def build_horn_fan(count):
         {"angle": f"{angle:g}", "delay": f"{0.9 + i * 0.15:g}"}
         for i, angle in enumerate(angles)
     ]
+
+
+@csrf_exempt
+@require_POST
+def count_open(request):
+    """OCHISH tugmasi bosilganda hisoblagichni oshiradi (poyga holatisiz, F() bilan)."""
+    updated = Invitation.objects.filter(is_active=True).update(
+        open_count=F("open_count") + 1
+    )
+    return JsonResponse({"ok": bool(updated)})
 
 
 class InvitationView(TemplateView):

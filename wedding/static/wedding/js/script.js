@@ -52,6 +52,8 @@ function openInvitation() {
   isOpening = true;
 
   playBackgroundMusic();
+  // Konvert nechi marta ochilganini sanaymiz - javobini kutmaymiz
+  fetch("/ochildi/", { method: "POST", keepalive: true }).catch(() => {});
   intro.classList.add("opened");
   openInviteBtn.setAttribute("aria-expanded", "true");
 
