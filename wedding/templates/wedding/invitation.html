@@ -20,11 +20,8 @@
     {% if invitation %}
       <style>
         :root {
-          --ink: {{ invitation.text_color }};
-          --ink-soft: {{ ink_soft_rgba }};
-          --accent: {{ invitation.accent_color }};
-          --accent-deep: {{ invitation.heading_color }};
-          --names: {{ invitation.names_color }};
+          {% for var, value in text_colors.items %}{{ var }}: {{ value }};
+          {% endfor %}
         }
       </style>
     {% endif %}

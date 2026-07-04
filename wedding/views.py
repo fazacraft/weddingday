@@ -24,14 +24,13 @@ def build_month_grid(target_date):
     ]
 
 
-def soft_rgba(hex_color, alpha=0.72):
-    """#rrggbb rangdan yumshoq (shaffof) variantini yasaydi."""
-    value = hex_color.lstrip("#")
-    try:
-        r, g, b = (int(value[i:i + 2], 16) for i in (0, 2, 4))
-    except (ValueError, IndexError):
-        return "rgba(61, 43, 31, 0.72)"
-    return f"rgba({r}, {g}, {b}, {alpha})"
+def text_color_vars(invitation):
+    """Modeldagi c_* rang maydonlarini CSS --c-... o'zgaruvchilariga aylantiradi."""
+    return {
+        f"--{field.name.replace('_', '-')}": getattr(invitation, field.name)
+        for field in invitation._meta.fields
+        if field.name.startswith("c_")
+    }
 
 
 def build_horn_fan(count):
@@ -82,6 +81,6 @@ class InvitationView(TemplateView):
             context["envelope_title_lines"] = [
                 line.strip() for line in invitation.envelope_title.splitlines() if line.strip()
             ]
-            context["ink_soft_rgba"] = soft_rgba(invitation.text_color)
+            context["text_colors"] = text_color_vars(invitation)
 
         return context

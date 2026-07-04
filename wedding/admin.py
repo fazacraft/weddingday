@@ -8,11 +8,11 @@ class InvitationAdminForm(forms.ModelForm):
     class Meta:
         model = Invitation
         fields = "__all__"
+        # Barcha c_* rang maydonlariga brauzerning rang tanlagichi
         widgets = {
-            "names_color": forms.TextInput(attrs={"type": "color"}),
-            "heading_color": forms.TextInput(attrs={"type": "color"}),
-            "accent_color": forms.TextInput(attrs={"type": "color"}),
-            "text_color": forms.TextInput(attrs={"type": "color"}),
+            field.name: forms.TextInput(attrs={"type": "color"})
+            for field in Invitation._meta.fields
+            if field.name.startswith("c_")
         }
 
 
@@ -46,7 +46,32 @@ class InvitationAdmin(admin.ModelAdmin):
         ("Bezaklar", {
             "fields": ("horn_count",),
         }),
-        ("Ranglar", {
-            "fields": ("names_color", "heading_color", "accent_color", "text_color"),
+        ("Ranglar: Konvert", {
+            "classes": ("collapse",),
+            "fields": ("c_env_title", "c_env_script", "c_env_sign", "c_env_sign_names", "c_seal_text"),
+        }),
+        ("Ranglar: Bosh sahifa", {
+            "classes": ("collapse",),
+            "fields": ("c_hero_names", "c_hero_va", "c_scroll_hint"),
+        }),
+        ("Ranglar: Taklif matni", {
+            "classes": ("collapse",),
+            "fields": ("c_greeting_title", "c_greeting_text"),
+        }),
+        ("Ranglar: Kalendar", {
+            "classes": ("collapse",),
+            "fields": ("c_cal_month", "c_cal_weekdays", "c_cal_days", "c_cal_wday_text", "c_cal_wday_bg"),
+        }),
+        ("Ranglar: To'y dasturi", {
+            "classes": ("collapse",),
+            "fields": ("c_sch_title", "c_sch_time", "c_sch_event"),
+        }),
+        ("Ranglar: Manzil", {
+            "classes": ("collapse",),
+            "fields": ("c_loc_title", "c_loc_venue", "c_loc_address", "c_map_link"),
+        }),
+        ("Ranglar: Sanoq", {
+            "classes": ("collapse",),
+            "fields": ("c_cd_title", "c_cd_numbers", "c_cd_labels", "c_cd_message"),
         }),
     )

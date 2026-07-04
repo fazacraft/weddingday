@@ -8,6 +8,16 @@ hex_color_validator = RegexValidator(
 )
 
 
+def color_field(default, label):
+    """Bitta matn elementi uchun rang maydoni."""
+    return models.CharField(
+        max_length=7,
+        default=default,
+        validators=[hex_color_validator],
+        verbose_name=label,
+    )
+
+
 class Invitation(models.Model):
     groom_name = models.CharField(max_length=100, default="Kuyov")
     bride_name = models.CharField(max_length=100, default="Kelin")
@@ -82,33 +92,40 @@ class Invitation(models.Model):
         help_text="Fon musiqasi mp3 fayli (ixtiyoriy, keyinroq qo'shsa ham bo'ladi)",
     )
 
-    names_color = models.CharField(
-        max_length=7,
-        default="#b3242c",
-        validators=[hex_color_validator],
-        verbose_name="Ismlar rangi",
-        help_text="Bosh sahifadagi yozma ismlar va konvertdagi kursiv matn",
-    )
-    heading_color = models.CharField(
-        max_length=7,
-        default="#6e2323",
-        validators=[hex_color_validator],
-        verbose_name="Sarlavhalar rangi",
-        help_text="Bo'lim sarlavhalari, konvertdagi qalin matn",
-    )
-    accent_color = models.CharField(
-        max_length=7,
-        default="#a13d3d",
-        validators=[hex_color_validator],
-        verbose_name="Urg'u rangi",
-        help_text="Kalendardagi to'y kuni, sanoq raqamlari",
-    )
-    text_color = models.CharField(
-        max_length=7,
-        default="#3d2b1f",
-        validators=[hex_color_validator],
-        verbose_name="Asosiy matn rangi",
-    )
+    # Har bir matn elementining rangi ("c_" prefiksli maydonlar avtomatik
+    # ravishda CSS --c-... o'zgaruvchisiga aylanadi, wedding/views.py ga qarang)
+    c_env_title = color_field("#6e2323", "Konvert: qalin matn")
+    c_env_script = color_field("#b3242c", "Konvert: yozma matn")
+    c_env_sign = color_field("#6f5e4e", "Konvert: imzo yozuvi")
+    c_env_sign_names = color_field("#6e2323", "Konvert: imzodagi ismlar")
+    c_seal_text = color_field("#f8ecd4", "Konvert: ochish tugmasi matni")
+
+    c_hero_names = color_field("#b3242c", "Bosh sahifa: katta ismlar")
+    c_hero_va = color_field("#6e2323", "Bosh sahifa: \"va\" so'zi")
+    c_scroll_hint = color_field("#736559", "Bosh sahifa: pastga tushuring yozuvi")
+
+    c_greeting_title = color_field("#6e2323", "Taklif: sarlavha")
+    c_greeting_text = color_field("#736559", "Taklif: matn")
+
+    c_cal_month = color_field("#6e2323", "Kalendar: oy nomi")
+    c_cal_weekdays = color_field("#736559", "Kalendar: hafta kunlari")
+    c_cal_days = color_field("#3d2b1f", "Kalendar: kun raqamlari")
+    c_cal_wday_text = color_field("#fff4ea", "Kalendar: to'y kuni raqami")
+    c_cal_wday_bg = color_field("#a13d3d", "Kalendar: to'y kuni doirasi")
+
+    c_sch_title = color_field("#6e2323", "Dastur: sarlavha")
+    c_sch_time = color_field("#3d2b1f", "Dastur: vaqtlar")
+    c_sch_event = color_field("#736559", "Dastur: tadbir nomlari")
+
+    c_loc_title = color_field("#6e2323", "Manzil: sarlavha")
+    c_loc_venue = color_field("#3d2b1f", "Manzil: to'yxona nomi")
+    c_loc_address = color_field("#736559", "Manzil: manzil matni")
+    c_map_link = color_field("#6e2323", "Manzil: xarita tugmalari")
+
+    c_cd_title = color_field("#6e2323", "Sanoq: sarlavha")
+    c_cd_numbers = color_field("#a13d3d", "Sanoq: raqamlar")
+    c_cd_labels = color_field("#736559", "Sanoq: kun/soat yozuvlari")
+    c_cd_message = color_field("#736559", "Sanoq: pastki xabar")
 
     horn_count = models.PositiveSmallIntegerField(
         default=3,
