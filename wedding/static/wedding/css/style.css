@@ -5,6 +5,7 @@
   --ink-soft: rgba(61, 43, 31, 0.72);
   --accent: #a13d3d;
   --accent-deep: #6e2323;
+  --names: #b3242c;
   --gold: #c9a227;
   --gold-light: #e8cf8a;
   --envelope-start: #7f1d2d;
@@ -197,7 +198,7 @@ a {
   margin-top: 0.1rem;
   font-family: "Great Vibes", cursive;
   font-size: 1.2rem;
-  color: #b3242c;
+  color: var(--names);
 }
 
 .seal-button {
@@ -436,7 +437,7 @@ a {
   font-family: "Corinthia", "Great Vibes", cursive;
   font-weight: 700;
   font-size: clamp(3.4rem, 15vw, 5.4rem);
-  color: #b3242c;
+  color: var(--names);
   line-height: 0.82;
 }
 

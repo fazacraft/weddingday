@@ -17,6 +17,17 @@
       rel="stylesheet"
     />
     <link rel="stylesheet" href="{% static 'wedding/css/style.css' %}" />
+    {% if invitation %}
+      <style>
+        :root {
+          --ink: {{ invitation.text_color }};
+          --ink-soft: {{ ink_soft_rgba }};
+          --accent: {{ invitation.accent_color }};
+          --accent-deep: {{ invitation.heading_color }};
+          --names: {{ invitation.names_color }};
+        }
+      </style>
+    {% endif %}
   </head>
   <body class="intro-active">
     {% if not invitation %}

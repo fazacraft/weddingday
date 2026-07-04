@@ -1,5 +1,11 @@
 from django.core.exceptions import ValidationError
+from django.core.validators import RegexValidator
 from django.db import models
+
+hex_color_validator = RegexValidator(
+    r"^#[0-9a-fA-F]{6}$",
+    "Rang # bilan boshlanadigan 6 xonali kod bo'lishi kerak, masalan #b3242c",
+)
 
 
 class Invitation(models.Model):
@@ -74,6 +80,34 @@ class Invitation(models.Model):
     background_music = models.FileField(
         upload_to="music/", blank=True, null=True,
         help_text="Fon musiqasi mp3 fayli (ixtiyoriy, keyinroq qo'shsa ham bo'ladi)",
+    )
+
+    names_color = models.CharField(
+        max_length=7,
+        default="#b3242c",
+        validators=[hex_color_validator],
+        verbose_name="Ismlar rangi",
+        help_text="Bosh sahifadagi yozma ismlar va konvertdagi kursiv matn",
+    )
+    heading_color = models.CharField(
+        max_length=7,
+        default="#6e2323",
+        validators=[hex_color_validator],
+        verbose_name="Sarlavhalar rangi",
+        help_text="Bo'lim sarlavhalari, konvertdagi qalin matn",
+    )
+    accent_color = models.CharField(
+        max_length=7,
+        default="#a13d3d",
+        validators=[hex_color_validator],
+        verbose_name="Urg'u rangi",
+        help_text="Kalendardagi to'y kuni, sanoq raqamlari",
+    )
+    text_color = models.CharField(
+        max_length=7,
+        default="#3d2b1f",
+        validators=[hex_color_validator],
+        verbose_name="Asosiy matn rangi",
     )
 
     horn_count = models.PositiveSmallIntegerField(

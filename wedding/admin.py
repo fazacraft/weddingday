@@ -1,6 +1,19 @@
+from django import forms
 from django.contrib import admin
 
 from .models import Invitation, ScheduleEvent
+
+
+class InvitationAdminForm(forms.ModelForm):
+    class Meta:
+        model = Invitation
+        fields = "__all__"
+        widgets = {
+            "names_color": forms.TextInput(attrs={"type": "color"}),
+            "heading_color": forms.TextInput(attrs={"type": "color"}),
+            "accent_color": forms.TextInput(attrs={"type": "color"}),
+            "text_color": forms.TextInput(attrs={"type": "color"}),
+        }
 
 
 class ScheduleEventInline(admin.TabularInline):
@@ -10,6 +23,7 @@ class ScheduleEventInline(admin.TabularInline):
 
 @admin.register(Invitation)
 class InvitationAdmin(admin.ModelAdmin):
+    form = InvitationAdminForm
     list_display = ("__str__", "wedding_datetime", "venue_name", "is_active")
     list_filter = ("is_active",)
     inlines = [ScheduleEventInline]
@@ -31,5 +45,8 @@ class InvitationAdmin(admin.ModelAdmin):
         }),
         ("Bezaklar", {
             "fields": ("horn_count",),
+        }),
+        ("Ranglar", {
+            "fields": ("names_color", "heading_color", "accent_color", "text_color"),
         }),
     )
