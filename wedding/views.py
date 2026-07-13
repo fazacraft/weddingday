@@ -1,7 +1,8 @@
 import calendar
 
 from django.db.models import F
-from django.http import JsonResponse
+from django.http import Http404, JsonResponse
+from django.urls import reverse
 from django.utils import timezone
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_POST
@@ -58,13 +59,18 @@ def build_horn_fan(count):
     ]
 
 
+def invitation_queryset(slug):
+    """Slug berilsa o'sha sahifaning, bo'lmasa asosiy (faol) taklifnomani tanlaydi."""
+    if slug:
+        return Invitation.objects.filter(slug=slug)
+    return Invitation.objects.filter(is_active=True)
+
+
 @csrf_exempt
 @require_POST
-def count_open(request):
+def count_open(request, slug=None):
     """OCHISH tugmasi bosilganda hisoblagichni oshiradi (poyga holatisiz, F() bilan)."""
-    updated = Invitation.objects.filter(is_active=True).update(
-        open_count=F("open_count") + 1
-    )
+    updated = invitation_queryset(slug).update(open_count=F("open_count") + 1)
     return JsonResponse({"ok": bool(updated)})
 
 
@@ -73,8 +79,16 @@ class InvitationView(TemplateView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        invitation = Invitation.objects.filter(is_active=True).first()
+        slug = self.kwargs.get("slug")
+        invitation = invitation_queryset(slug).first()
+        if slug and invitation is None:
+            raise Http404("Bunday taklifnoma yo'q")
         context["invitation"] = invitation
+        context["count_open_url"] = (
+            reverse("wedding:count-open-slug", args=[slug])
+            if slug
+            else reverse("wedding:count-open")
+        )
 
         if invitation:
             local_wedding_date = timezone.localtime(invitation.wedding_datetime)

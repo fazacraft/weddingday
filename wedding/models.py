@@ -63,6 +63,17 @@ class Invitation(models.Model):
     groom_name = models.CharField(max_length=100, default="Kuyov")
     bride_name = models.CharField(max_length=100, default="Kelin")
 
+    slug = models.SlugField(
+        unique=True,
+        null=True,
+        blank=True,
+        verbose_name="Sahifa manzili",
+        help_text=(
+            "Masalan 'jasmina' yozilsa, taklifnoma fozilovlar.uz/jasmina "
+            "manzilida ochiladi. Bo'sh qolsa faqat asosiy sahifada (faol bo'lsa) chiqadi."
+        ),
+    )
+
     wedding_datetime = models.DateTimeField(
         help_text="To'y boshlanish sanasi va vaqti"
     )

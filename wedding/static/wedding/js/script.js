@@ -53,7 +53,8 @@ function openInvitation() {
 
   playBackgroundMusic();
   // Konvert nechi marta ochilganini sanaymiz - javobini kutmaymiz
-  fetch("/ochildi/", { method: "POST", keepalive: true }).catch(() => {});
+  const countUrl = openInviteBtn.dataset.countUrl || "/ochildi/";
+  fetch(countUrl, { method: "POST", keepalive: true }).catch(() => {});
   intro.classList.add("opened");
   openInviteBtn.setAttribute("aria-expanded", "true");
 
