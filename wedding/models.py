@@ -1,6 +1,47 @@
+import os
+from io import BytesIO
+
 from django.core.exceptions import ValidationError
+from django.core.files.base import ContentFile
 from django.core.validators import RegexValidator
 from django.db import models
+from PIL import Image, ImageOps
+
+PHOTO_MAX_SIDE = 1600
+PHOTO_WEBP_QUALITY = 80
+PHOTO_SIZE_LIMIT = 400 * 1024
+PHOTO_FIELDS = ("couple_photo", "groom_photo", "bride_photo")
+
+
+def compress_photo(image_field):
+    """Rasmni 1600px gacha kichraytirib WebP'ga siqadi.
+
+    Sekin internetda sahifa tez ochilishi uchun yuklangan har qanday rasm
+    (telefondan olingan ko'p megabaytli PNG/JPG ham) avtomatik siqiladi.
+    O'zgartirilgan bo'lsa True qaytaradi.
+    """
+    old_name = image_field.name or ""
+    if old_name.lower().endswith(".webp") and image_field.size <= PHOTO_SIZE_LIMIT:
+        return False
+
+    image_field.open()
+    with Image.open(image_field) as img:
+        img = ImageOps.exif_transpose(img)
+        img.thumbnail((PHOTO_MAX_SIDE, PHOTO_MAX_SIDE), Image.LANCZOS)
+        if img.mode in ("P", "LA"):
+            img = img.convert("RGBA")
+        elif img.mode not in ("RGB", "RGBA"):
+            img = img.convert("RGB")
+        buffer = BytesIO()
+        img.save(buffer, format="WEBP", quality=PHOTO_WEBP_QUALITY, method=6)
+
+    base = os.path.splitext(os.path.basename(old_name))[0]
+    image_field.save(f"{base}.webp", ContentFile(buffer.getvalue()), save=False)
+    # Eski katta fayl storage'da ortiqcha joy egallamasligi uchun o'chiriladi
+    if old_name.startswith("couple/") and old_name != image_field.name:
+        image_field.storage.delete(old_name)
+    return True
+
 
 hex_color_validator = RegexValidator(
     r"^#[0-9a-fA-F]{6}$",
@@ -160,6 +201,13 @@ class Invitation(models.Model):
 
     def __str__(self):
         return f"{self.groom_name} va {self.bride_name}"
+
+    def save(self, *args, **kwargs):
+        for field_name in PHOTO_FIELDS:
+            photo = getattr(self, field_name)
+            if photo:
+                compress_photo(photo)
+        super().save(*args, **kwargs)
 
     def clean(self):
         if self.is_active:

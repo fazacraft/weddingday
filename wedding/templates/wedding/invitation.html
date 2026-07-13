@@ -63,16 +63,16 @@
       </section>
 
       <main class="invitation" id="invitation" aria-hidden="true">
-        <img class="pomegranate-vine pomegranate-vine--left" src="{% static 'wedding/img/pomegranate-vine.svg' %}" alt="" aria-hidden="true" />
-        <img class="pomegranate-vine pomegranate-vine--right" src="{% static 'wedding/img/pomegranate-vine.svg' %}" alt="" aria-hidden="true" />
+        <img class="pomegranate-vine pomegranate-vine--left" src="{% static 'wedding/img/pomegranate-vine.svg' %}" alt="" aria-hidden="true" loading="lazy" decoding="async" />
+        <img class="pomegranate-vine pomegranate-vine--right" src="{% static 'wedding/img/pomegranate-vine.svg' %}" alt="" aria-hidden="true" loading="lazy" decoding="async" />
 
         <section class="letter-hero reveal" id="letterHero">
           <article class="heritage-hero" aria-label="Yoshlar ismlari tushirilgan an'anaviy sahifa">
-            <img class="heritage-border" src="{% static 'wedding/img/border-ornament.png' %}" alt="" aria-hidden="true" />
+            <img class="heritage-border" src="{% static 'wedding/img/border-ornament.webp' %}" alt="" aria-hidden="true" loading="lazy" decoding="async" />
 
             <div class="heritage-names-row">
               {% for horn in horns %}
-                <img class="heritage-horn heritage-horn--left" style="--fan: {{ horn.angle }}deg; --delay: {{ horn.delay }}s" src="{% static 'wedding/img/karnay.png' %}" alt="" aria-hidden="true" />
+                <img class="heritage-horn heritage-horn--left" style="--fan: {{ horn.angle }}deg; --delay: {{ horn.delay }}s" src="{% static 'wedding/img/karnay.png' %}" alt="" aria-hidden="true" loading="lazy" decoding="async" />
               {% endfor %}
               <p class="ornament-names">
                 <span class="ornament-name-line">{{ invitation.groom_name }}</span>
@@ -80,21 +80,21 @@
                 <span class="ornament-name-line">{{ invitation.bride_name }}</span>
               </p>
               {% for horn in horns %}
-                <img class="heritage-horn heritage-horn--right" style="--fan: {{ horn.angle }}deg; --delay: {{ horn.delay }}s" src="{% static 'wedding/img/karnay.png' %}" alt="" aria-hidden="true" />
+                <img class="heritage-horn heritage-horn--right" style="--fan: {{ horn.angle }}deg; --delay: {{ horn.delay }}s" src="{% static 'wedding/img/karnay.png' %}" alt="" aria-hidden="true" loading="lazy" decoding="async" />
               {% endfor %}
             </div>
 
             {% if invitation.groom_photo and invitation.bride_photo %}
               <div class="heritage-duo">
                 <figure class="heritage-portrait">
-                  <img src="{{ invitation.bride_photo.url }}" alt="{{ invitation.bride_name }}" />
+                  <img src="{{ invitation.bride_photo.url }}" alt="{{ invitation.bride_name }}" loading="lazy" decoding="async" />
                 </figure>
                 <figure class="heritage-portrait">
-                  <img src="{{ invitation.groom_photo.url }}" alt="{{ invitation.groom_name }}" />
+                  <img src="{{ invitation.groom_photo.url }}" alt="{{ invitation.groom_name }}" loading="lazy" decoding="async" />
                 </figure>
               </div>
             {% elif invitation.couple_photo %}
-              <img class="heritage-photo" src="{{ invitation.couple_photo.url }}" alt="{{ invitation.groom_name }} va {{ invitation.bride_name }}" />
+              <img class="heritage-photo" src="{{ invitation.couple_photo.url }}" alt="{{ invitation.groom_name }} va {{ invitation.bride_name }}" loading="lazy" decoding="async" />
             {% else %}
               <div class="heritage-ornament" aria-hidden="true"><span></span></div>
             {% endif %}
@@ -114,13 +114,13 @@
             {% endfor %}
           </div>
           {% if invitation.groom_photo and invitation.bride_photo and invitation.couple_photo %}
-            <img class="letter-couple-photo" src="{{ invitation.couple_photo.url }}" alt="{{ invitation.groom_name }} va {{ invitation.bride_name }}" />
+            <img class="letter-couple-photo" src="{{ invitation.couple_photo.url }}" alt="{{ invitation.groom_name }} va {{ invitation.bride_name }}" loading="lazy" decoding="async" />
           {% endif %}
         </section>
 
         <div class="details-sections">
           <section class="calendar-section reveal" aria-label="To'y sanasi">
-            <img class="card-sprig card-sprig--top-left" src="{% static 'wedding/img/pomegranate.png' %}" alt="" aria-hidden="true" />
+            <img class="card-sprig card-sprig--top-left" src="{% static 'wedding/img/pomegranate.png' %}" alt="" aria-hidden="true" loading="lazy" decoding="async" />
             <div class="calendar" role="img" aria-label="{{ month_label }} kalendari">
               <div class="calendar-head"><span>{{ month_label }}</span></div>
 
@@ -153,7 +153,7 @@
                     <span class="schedule-time">{{ event.time|time:"H:i" }}</span>
                     <span class="schedule-marker{% if forloop.counter == schedule_flower_index %} schedule-marker--flower{% endif %}" aria-hidden="true">
                       {% if forloop.counter == schedule_flower_index %}
-                        <img class="schedule-flower" src="{% static 'wedding/img/flower.png' %}" alt="" />
+                        <img class="schedule-flower" src="{% static 'wedding/img/flower.png' %}" alt="" loading="lazy" decoding="async" />
                       {% endif %}
                     </span>
                     <span class="schedule-event-name">{{ event.title }}</span>
@@ -164,7 +164,7 @@
           {% endif %}
 
           <section class="location-section reveal" aria-label="To'y manzili">
-            <img class="card-sprig card-sprig--top-right" src="{% static 'wedding/img/pomegranate.png' %}" alt="" aria-hidden="true" />
+            <img class="card-sprig card-sprig--top-right" src="{% static 'wedding/img/pomegranate.png' %}" alt="" aria-hidden="true" loading="lazy" decoding="async" />
             <h2 class="location-title">To'y manzili</h2>
             <p class="venue-name">{{ invitation.venue_name }}</p>
             <p class="venue-address">{{ invitation.venue_city }}</p>
@@ -184,7 +184,7 @@
           </section>
 
           <section class="countdown-section reveal" aria-label="Orqaga sanoq" data-wedding-iso="{{ wedding_datetime_iso }}">
-            <img class="card-sprig card-sprig--bottom-left" src="{% static 'wedding/img/flower.png' %}" alt="" aria-hidden="true" />
+            <img class="card-sprig card-sprig--bottom-left" src="{% static 'wedding/img/flower.png' %}" alt="" aria-hidden="true" loading="lazy" decoding="async" />
             <h2>Har lahzani sanayapmiz</h2>
 
             <div class="countdown" id="countdown" role="timer" aria-live="polite">
