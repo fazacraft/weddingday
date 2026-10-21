@@ -24,6 +24,11 @@ export function daysUntil(date: string): number {
   return Math.round((Date.UTC(y, m - 1, d) - today) / 86_400_000);
 }
 
+/** Havola faqat nashr qilingan yoki admin tasdiqlagan taklifnomada ko'rsatiladi. */
+export function linkVisible(inv: { status: string; review?: string }): boolean {
+  return inv.status === "published" || inv.review === "approved";
+}
+
 export function StatusBadge({ status, review }: { status: "draft" | "published"; review?: string }) {
   if (status !== "published" && review === "pending") {
     return (

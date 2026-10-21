@@ -8,7 +8,7 @@ import { TEMPLATES } from "../../templates/registry";
 import { SiteHeader } from "../../platform/SiteChrome";
 import { TemplateThumb } from "../../platform/TemplateThumb";
 import { Notice, PButton, PLink, Spinner } from "../../platform/ui";
-import { CopyButton, StatusBadge, daysUntil, formatDate, formatDateTime } from "./shared";
+import { CopyButton, StatusBadge, daysUntil, formatDate, formatDateTime, linkVisible } from "./shared";
 import { withBase } from "../../lib/base";
 
 type Tab = "umumiy" | "mehmonlar" | "tilaklar" | "ulashish";
@@ -37,6 +37,23 @@ export function ManagePage() {
   }, [id]);
 
   useEffect(reload, [reload]);
+
+  // Tasdiq kutilayotganda holatni har 10 soniyada tekshiramiz — admin
+  // tasdiqlashi bilan havola sahifani yangilamasdan paydo bo'ladi
+  const waiting = inv?.status !== "published" && inv?.review === "pending";
+  useEffect(() => {
+    if (!waiting) return;
+    const t = window.setInterval(reload, 10_000);
+    return () => window.clearInterval(t);
+  }, [waiting, reload]);
+
+  // Kutish paytida tasdiq kelsa — "nashr qilindi" bannerini havola bilan ko'rsatamiz
+  const wasWaiting = useRef(false);
+  const [justApproved, setJustApproved] = useState(false);
+  useEffect(() => {
+    if (waiting) wasWaiting.current = true;
+    else if (wasWaiting.current && inv?.status === "published") setJustApproved(true);
+  }, [waiting, inv?.status]);
 
   const setTab = (key: Tab) => {
     const next = new URLSearchParams(params);
@@ -107,17 +124,9 @@ export function ManagePage() {
       <main className="mx-auto max-w-6xl px-4 py-8 sm:px-6">
         <Link to="/kabinet" className="text-sm font-semibold text-ink/50 hover:text-ink">← Barcha taklifnomalar</Link>
 
-        {isNew && inv.status !== "published" && inv.review === "pending" && (
-          <div className="mt-6 rounded-[1.75rem] bg-amber-50 px-6 py-7 text-amber-900 ring-1 ring-amber-200 sm:px-8">
-            <p className="font-display text-3xl font-semibold">⏳ Taklifnoma tasdiqlashga yuborildi</p>
-            <p className="mt-1 text-sm text-amber-900/75">
-              Admin tasdiqlagach havola ishlay boshlaydi: <b className="font-mono">{inviteLabel(inv.slug)}</b>. Bu odatda tez bo'ladi —
-              sahifani keyinroq yangilab ko'ring.
-            </p>
-          </div>
-        )}
+        {inv.status !== "published" && (inv.review === "pending" || inv.review === "rejected") && <ReviewBanner inv={inv} />}
 
-        {isNew && inv.status === "published" && (
+        {(isNew || justApproved) && inv.status === "published" && (
           <div className="mt-6 overflow-hidden rounded-[1.75rem] bg-rose px-6 py-7 text-ivory sm:px-8">
             <p className="font-display text-3xl font-semibold">🎉 Taklifnomangiz nashr qilindi!</p>
             <p className="mt-1 text-sm text-ivory/80">Havolani nusxalang va mehmonlarga yuboring.</p>
@@ -148,9 +157,11 @@ export function ManagePage() {
             </p>
           </div>
           <div className="flex flex-wrap gap-2">
-            <a href={withBase(inv.slug)} target="_blank" rel="noreferrer" className="inline-flex h-11 items-center rounded-full px-4 text-sm font-semibold text-ink/60 hover:text-ink">
-              Ochish ↗
-            </a>
+            {linkVisible(inv) && (
+              <a href={withBase(inv.slug)} target="_blank" rel="noreferrer" className="inline-flex h-11 items-center rounded-full px-4 text-sm font-semibold text-ink/60 hover:text-ink">
+                Ochish ↗
+              </a>
+            )}
             <PLink to={`/kabinet/${inv.id}/tahrirlash`} variant="secondary">Tahrirlash</PLink>
             <PButton
               variant={inv.status === "published" ? "secondary" : "primary"}
@@ -369,6 +380,63 @@ function WishesTab({ inv, onChange }: { inv: OwnedInvitation; onChange: () => vo
   );
 }
 
+const REMIND_AFTER_MS = 5 * 60_000;
+
+/** Tasdiq kutilmoqda / rad etildi. 5 daqiqadan keyin botga yozishni taklif qiladi. */
+function ReviewBanner({ inv }: { inv: OwnedInvitation }) {
+  const [now, setNow] = useState(() => Date.now());
+  useEffect(() => {
+    const t = window.setInterval(() => setNow(Date.now()), 5_000);
+    return () => window.clearInterval(t);
+  }, []);
+
+  const since = inv.reviewRequestedAt ? new Date(inv.reviewRequestedAt).getTime() : now;
+  const waitedMin = Math.max(0, Math.floor((now - since) / 60_000));
+  const late = now - since >= REMIND_AFTER_MS;
+  const botUrl = inv.supportBot ? `https://t.me/${inv.supportBot}?start=${inv.id}` : null;
+
+  if (inv.review === "rejected") {
+    return (
+      <div className="mt-6 rounded-[1.75rem] bg-rose/5 px-6 py-7 text-ink ring-1 ring-rose/20 sm:px-8">
+        <p className="font-display text-3xl font-semibold text-rose">Taklifnoma rad etildi</p>
+        <p className="mt-1 text-sm text-ink/65">
+          Ma'lumotlarni tekshirib, "Tasdiqlashga yuborish" tugmasi bilan qayta yuboring. Savol bo'lsa, botga yozing.
+        </p>
+        {botUrl && (
+          <a href={botUrl} target="_blank" rel="noreferrer" className="mt-4 inline-flex h-11 items-center gap-2 rounded-full bg-[#229ED9] px-5 text-sm font-semibold text-white hover:opacity-90">
+            Telegram botga yozish
+          </a>
+        )}
+      </div>
+    );
+  }
+
+  return (
+    <div className="mt-6 rounded-[1.75rem] bg-amber-50 px-6 py-7 text-amber-900 ring-1 ring-amber-200 sm:px-8">
+      <p className="font-display text-3xl font-semibold">⏳ Taklifnoma tasdiqlashga yuborildi</p>
+      <p className="mt-1 text-sm text-amber-900/75">
+        Admin tasdiqlashi bilan havolangiz shu yerda paydo bo'ladi — sahifani yangilash shart emas.
+        {waitedMin > 0 && ` Kutilmoqda: ${waitedMin} daqiqa.`}
+      </p>
+      {late && (
+        <div className="mt-4 rounded-2xl bg-white/70 p-4 ring-1 ring-amber-200">
+          <p className="text-sm font-semibold text-amber-900">5 daqiqadan beri javob yo'q.</p>
+          <p className="mt-0.5 text-sm text-amber-900/75">
+            Iltimos, Telegram botimizga murojaat qiling — admin'ga eslatma boradi va tasdiqlangach havolani botda ham olasiz.
+          </p>
+          {botUrl ? (
+            <a href={botUrl} target="_blank" rel="noreferrer" className="mt-3 inline-flex h-11 items-center gap-2 rounded-full bg-[#229ED9] px-5 text-sm font-semibold text-white hover:opacity-90">
+              Telegram botga yozish
+            </a>
+          ) : (
+            <p className="mt-2 text-xs text-amber-900/60">Bot hozircha sozlanmagan — admin bilan bog'laning.</p>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
 function ShareTab({ inv }: { inv: OwnedInvitation }) {
   const [guest, setGuest] = useState("");
   const qrRef = useRef<HTMLDivElement>(null);
@@ -384,6 +452,18 @@ function ShareTab({ inv }: { inv: OwnedInvitation }) {
     a.download = `${inv.slug}-qr.png`;
     a.click();
   };
+
+  if (!linkVisible(inv)) {
+    return (
+      <Notice tone="info">
+        {inv.review === "pending"
+          ? "Havola, ulashish tugmalari va QR kod admin tasdiqlagach shu yerda paydo bo'ladi."
+          : inv.review === "rejected"
+            ? "Taklifnoma rad etilgan. Ma'lumotlarni to'g'irlab, qayta tasdiqlashga yuboring."
+            : "Havola olish uchun avval taklifnomani tasdiqlashga yuboring."}
+      </Notice>
+    );
+  }
 
   return (
     <div className="grid gap-6 lg:grid-cols-[1.3fr_1fr]">

@@ -56,6 +56,9 @@ export type ReviewState = "none" | "pending" | "approved" | "rejected";
 export interface OwnedInvitation extends PublicInvitation {
   /** Nashr uchun admin tasdig'i */
   review?: ReviewState;
+  reviewRequestedAt?: string;
+  /** Tasdiq kechiksa yoziladigan Telegram bot (username) */
+  supportBot?: string;
   openCount: number;
   createdAt: string;
   updatedAt: string;

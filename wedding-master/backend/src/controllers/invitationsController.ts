@@ -83,6 +83,9 @@ function ownerView(inv: IInvitation, stats?: Record<string, number>) {
     cardNumber: inv.cardNumber,
     cardHolder: inv.cardHolder,
     review: inv.review,
+    reviewRequestedAt: inv.reviewRequestedAt,
+    // Tasdiq kechiksa foydalanuvchi shu botga yozadi (t.me/<bot>?start=<id>)
+    supportBot: process.env.TG_BOT_USERNAME || undefined,
     openCount: inv.openCount,
     createdAt: inv.createdAt,
     updatedAt: inv.updatedAt,

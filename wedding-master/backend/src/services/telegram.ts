@@ -59,7 +59,20 @@ export function approvalText(info: ApprovalInfo): string {
   ].join('\n');
 }
 
-export async function sendApprovalRequest(info: ApprovalInfo): Promise<void> {
+export function publicLink(slug: string): string {
+  return PUBLIC_URL ? `${PUBLIC_URL}/${slug}` : `/${slug}`;
+}
+
+export async function sendToChat(chatId: number | string, html: string): Promise<void> {
+  await call('sendMessage', { chat_id: chatId, text: html, parse_mode: 'HTML', disable_web_page_preview: true });
+}
+
+export async function forwardToAdmin(fromChatId: number, messageId: number): Promise<void> {
+  if (!ADMIN_CHAT_ID) return;
+  await call('forwardMessage', { chat_id: ADMIN_CHAT_ID, from_chat_id: fromChatId, message_id: messageId });
+}
+
+export async function sendApprovalRequest(info: ApprovalInfo, reminder = false): Promise<void> {
   if (!telegramEnabled()) return;
   const keyboard: { text: string; callback_data?: string; url?: string }[][] = [
     [
@@ -73,7 +86,9 @@ export async function sendApprovalRequest(info: ApprovalInfo): Promise<void> {
   }
   await call('sendMessage', {
     chat_id: ADMIN_CHAT_ID,
-    text: approvalText(info),
+    text: reminder
+      ? `⏰ <b>Foydalanuvchi botga yozdi — hali tasdiqlanmagan</b>\n\n${approvalText(info)}`
+      : approvalText(info),
     parse_mode: 'HTML',
     disable_web_page_preview: true,
     reply_markup: { inline_keyboard: keyboard },

@@ -7,13 +7,16 @@ import { User, isAdminEmail } from '../models/User';
 import { emitWishCreated } from '../socket';
 
 /**
- * Slug bo'yicha mehmonlarga ochiq taklifnomani topadi. Qoralama faqat egasiga
- * (token bilan) ko'rinadi, boshqalarga 404.
+ * Slug bo'yicha mehmonlarga ochiq taklifnomani topadi. Nashr qilinmagan
+ * taklifnoma faqat adminga (tasdiqlashdan oldin ko'rish uchun) va admin
+ * tasdiqlagan bo'lsa egasiga ko'rinadi — tasdiqsiz havola egasiga ham ochilmaydi.
  */
 async function findVisible(req: AuthedRequest, res: Response): Promise<IInvitation | null> {
   const slug = String(req.params.slug ?? '').toLowerCase();
   const inv = await Invitation.findOne({ slug });
-  let visible = Boolean(inv && (inv.status === 'published' || String(inv.owner) === req.userId));
+  let visible = Boolean(
+    inv && (inv.status === 'published' || (inv.review === 'approved' && String(inv.owner) === req.userId))
+  );
   // Admin tasdiqlashdan oldin qoralamani ko'ra olishi kerak (Telegram'dagi "Ko'rish")
   if (inv && !visible && req.userId) {
     const user = await User.findById(req.userId).select('email');

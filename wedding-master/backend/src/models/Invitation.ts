@@ -38,6 +38,10 @@ export interface IInvitation extends Document {
   template: TemplateKey;
   status: 'draft' | 'published';
   review: ReviewState;
+  /** Oxirgi marta tasdiqlashga yuborilgan vaqt (5 daqiqalik eslatma uchun) */
+  reviewRequestedAt?: Date;
+  /** Egasi botga yozgan bo'lsa — qaror shu chatga yuboriladi */
+  ownerTgChatId?: number;
 
   groomName: string;
   brideName: string;
@@ -75,6 +79,8 @@ const invitationSchema = new Schema<IInvitation>(
     template: { type: String, enum: TEMPLATE_KEYS, default: 'bog' },
     status: { type: String, enum: ['draft', 'published'], default: 'draft' },
     review: { type: String, enum: REVIEW_STATES, default: 'none' },
+    reviewRequestedAt: { type: Date },
+    ownerTgChatId: { type: Number },
 
     groomName: { type: String, required: true, trim: true },
     brideName: { type: String, required: true, trim: true },
