@@ -5,27 +5,77 @@
 
 type Tone = "light" | "mid" | "deep";
 
-const TONES: Record<Tone, { outer: string; mid: string; inner: string; core: string }> = {
-  light: { outer: "#fde1e7", mid: "#f6b8c6", inner: "#e994a9", core: "#c4627c" },
-  mid: { outer: "#f8c4d0", mid: "#ef9fb3", inner: "#d9718c", core: "#a9435f" },
-  deep: { outer: "#f1a6b8", mid: "#e1849c", inner: "#c25775", core: "#8f3050" },
+interface Palette {
+  outer: string;
+  mid: string;
+  inner: string;
+  shade: string;
+  core: string;
+}
+
+const TONES: Record<Tone, Palette> = {
+  light: { outer: "#fde1e7", mid: "#f6b8c6", inner: "#f2a9b9", shade: "#e994a9", core: "#c4627c" },
+  mid: { outer: "#f8c4d0", mid: "#ef9fb3", inner: "#e88aa2", shade: "#d9718c", core: "#a9435f" },
+  deep: { outer: "#f1a6b8", mid: "#e1849c", inner: "#d16d89", shade: "#c25775", core: "#8f3050" },
 };
 
 const LEAF = "#b5c4ab";
 const LEAF_DARK = "#97ab8d";
 const STEM = "#a3b596";
 
-/** Bitta atirgul gul — markazi (x, y), radiusi taxminan 28·s. */
+const round = (n: number) => Math.round(n * 10) / 10;
+
+/** Asosi markazda, uchi tepaga qaragan, uchida yengil chuqurchasi bor gulbarg. */
+function petalPath(length: number, width: number) {
+  const [L, W] = [length, width];
+  return (
+    `M0 0 C${round(-W)} ${round(-L * 0.3)} ${round(-W * 0.8)} ${round(-L * 1.02)} 0 ${round(-L * 0.93)} ` +
+    `C${round(W * 0.8)} ${round(-L * 1.02)} ${round(W)} ${round(-L * 0.3)} 0 0Z`
+  );
+}
+
+/** Markazdagi o'ralgan kurtak — tashqariga ochiluvchi spiral. */
+function spiralPath(turns: number, radius: number, start: number) {
+  const points: string[] = [];
+  const steps = 48;
+  for (let i = 0; i <= steps; i++) {
+    const t = i / steps;
+    const angle = start + t * turns * 2 * Math.PI;
+    const r = 1.2 + t * radius;
+    points.push(`${round(Math.cos(angle) * r)} ${round(Math.sin(angle) * r)}`);
+  }
+  return `M${points.join(" L")}`;
+}
+
+/** Gulbarg qavatlari: tashqaridan ichkariga, har biri oldingisiga nisbatan buriladi. */
+const SIZE_JITTER = [1, 0.94, 1.04, 0.96, 1.02, 0.95];
+const RINGS = [
+  { count: 6, length: 30, width: 18, offset: 0, fill: "outer", stroke: "mid" },
+  { count: 5, length: 23, width: 15, offset: 30, fill: "mid", stroke: "shade" },
+  { count: 5, length: 16, width: 11, offset: 66, fill: "inner", stroke: "shade" },
+].map((ring) => ({
+  ...ring,
+  petals: Array.from({ length: ring.count }, (_, i) => ({
+    d: petalPath(ring.length * SIZE_JITTER[i], ring.width),
+    angle: ring.offset + (360 / ring.count) * i,
+  })),
+})) as { fill: keyof Palette; stroke: keyof Palette; petals: { d: string; angle: number }[] }[];
+const BUD_SPIRAL = spiralPath(1.9, 8, 0.6);
+
+/** Bitta atirgul (tepadan ko'rinish) — markazi (x, y), radiusi taxminan 30·s. */
 function Rose({ x, y, s = 1, tone = "mid", rotate = 0 }: { x: number; y: number; s?: number; tone?: Tone; rotate?: number }) {
   const c = TONES[tone];
   return (
-    <g transform={`translate(${x} ${y}) rotate(${rotate}) scale(${s})`}>
-      <circle r="28" fill={c.outer} />
-      <path d="M-27 5 C-29 -16 -8 -31 9 -25 C-6 -22 -18 -12 -16 5Z" fill={c.mid} opacity="0.85" />
-      <path d="M27 -3 C29 18 10 31 -7 26 C8 24 20 14 18 -3Z" fill={c.mid} opacity="0.85" />
-      <circle r="17" fill={c.mid} />
-      <path d="M-11 0 C-11 -13 6 -17 12 -6 C4 -10 -4 -7 -4 0 C-4 7 5 9 9 3 C8 13 -11 13 -11 0Z" fill={c.inner} />
-      <path d="M-2 -2 C-1 -7 6 -7 6 -1 C6 4 0 5 -1 1" stroke={c.core} strokeWidth="2.2" fill="none" strokeLinecap="round" />
+    <g transform={`translate(${x} ${y}) rotate(${rotate}) scale(${s})`} strokeLinejoin="round">
+      {RINGS.map((ring, ri) => (
+        <g key={ri} fill={c[ring.fill]} stroke={c[ring.stroke]} strokeWidth="0.9">
+          {ring.petals.map((p, pi) => (
+            <path key={pi} d={p.d} transform={`rotate(${p.angle})`} />
+          ))}
+        </g>
+      ))}
+      <circle r="9" fill={c.shade} />
+      <path d={BUD_SPIRAL} fill="none" stroke={c.core} strokeWidth="1.6" strokeLinecap="round" />
     </g>
   );
 }
@@ -113,7 +163,7 @@ export function RoseDivider({ className = "" }: { className?: string }) {
   return (
     <div className={`rose-divider ${className}`} aria-hidden="true">
       <span />
-      <svg viewBox="-32 -32 64 64" width="26" height="26">
+      <svg viewBox="-33 -33 66 66" width="28" height="28">
         <Rose x={0} y={0} s={1} tone="mid" />
       </svg>
       <span />
