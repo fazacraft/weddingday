@@ -34,7 +34,7 @@ tail -n 500 "$LOG" > "$LOG.tmp" && mv "$LOG.tmp" "$LOG"
 prev=$(cat "$STATE" 2>/dev/null || echo up)
 if [ "$code" = "200" ]; then
   if [ "$prev" = "down" ]; then
-    notify "✅ Fozilovlar sayti qayta ishlayapti ($now)
+    notify "✅ Beluga sayti qayta ishlayapti ($now)
 $SITE"
   fi
   echo up > "$STATE"
@@ -43,7 +43,7 @@ else
   if [ "$prev" = "up" ]; then
     echo suspect > "$STATE"
   elif [ "$prev" = "suspect" ]; then
-    notify "⚠️ Fozilovlar sayti javob bermayapti (HTTP $code, $now)
+    notify "⚠️ Beluga sayti javob bermayapti (HTTP $code, $now)
 $URL
 Render: https://dashboard.render.com"
     echo down > "$STATE"

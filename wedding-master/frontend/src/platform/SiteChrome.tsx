@@ -8,9 +8,11 @@ import { withBase } from "../lib/base";
 export function Logo({ className = "" }: { className?: string }) {
   return (
     <Link to="/" className={`inline-flex items-center gap-2.5 ${className}`}>
-      <span className="grid h-9 w-9 place-items-center rounded-full bg-rose text-ivory font-display text-xl leading-none">
-        {SITE_NAME.charAt(0)}
-      </span>
+      <img
+        src={withBase("/brand/beluga-cat.jpg")}
+        alt=""
+        className="h-9 w-9 rounded-full object-cover ring-2 ring-rose/15"
+      />
       <span className="font-display text-2xl font-semibold tracking-tight text-ink">{SITE_NAME}</span>
     </Link>
   );

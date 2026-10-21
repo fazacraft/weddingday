@@ -1,15 +1,15 @@
 import { toLatin } from "./transliterate";
 import { BASE } from "./base";
 
-export const SITE_NAME = import.meta.env.VITE_SITE_NAME || "Fozilovlar";
-export const SITE_DOMAIN = import.meta.env.VITE_SITE_DOMAIN || "fozilovlar.uz";
+export const SITE_NAME = import.meta.env.VITE_SITE_NAME || "Beluga";
+export const SITE_DOMAIN = import.meta.env.VITE_SITE_DOMAIN || "beluga.uz";
 
 /** Mehmonlarga yuboriladigan to'liq havola (joriy origin bo'yicha — lokalda ham ishlaydi). */
 export function inviteUrl(slug: string): string {
   return `${window.location.origin}${BASE}${slug}`;
 }
 
-/** Ko'rsatish uchun qisqa havola: "fozilovlar.uz/feruz-dilfuza" yoki "localhost:5173/...". */
+/** Ko'rsatish uchun qisqa havola: "beluga.uz/feruz-dilfuza" yoki "localhost:5173/...". */
 export function inviteLabel(slug: string): string {
   return `${window.location.host}${BASE}${slug}`;
 }
