@@ -1,0 +1,97 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html {
+    scroll-behavior: smooth;
+  }
+
+  body {
+    @apply bg-ivory text-ink font-sans antialiased;
+  }
+
+  /* Ornament divider reusable class */
+  .ornament-line {
+    @apply flex items-center gap-4 justify-center my-2;
+  }
+
+  .ornament-line::before,
+  .ornament-line::after {
+    content: '';
+    @apply block h-px bg-forest/30 flex-1;
+  }
+}
+
+
+@layer utilities {
+  .text-script {
+    font-family: 'Dancing Script', cursive;
+  }
+
+  .text-formal {
+    font-family: 'Cormorant Garamond', serif;
+  }
+
+  /* Cheksiz karusel — ikki marta takrorlangan trekni chapga surib, uzluksiz
+   * aylanma hosil qiladi. -50% da birinchi nusxa aynan ikkinchisining ustiga
+   * tushadi, shuning uchun sakrashsiz (seamless) qaytadi. */
+  @keyframes marquee {
+    from {
+      transform: translateX(0);
+    }
+    to {
+      transform: translateX(-50%);
+    }
+  }
+
+  /* Chap/o'ng chekkalardagi silliq susayish (fade) niqobi. */
+  .marquee-mask {
+    -webkit-mask-image: linear-gradient(
+      to right,
+      transparent,
+      #000 8%,
+      #000 92%,
+      transparent
+    );
+    mask-image: linear-gradient(
+      to right,
+      transparent,
+      #000 8%,
+      #000 92%,
+      transparent
+    );
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .marquee-track {
+    animation: none !important;
+    transform: none !important;
+  }
+}
+
+/*
+ * Kirill rejimi — lotin shriftlari kiril gliflarini qo'llamaydi, shuning uchun
+ * <html> ga `lang-kirill` klassi qo'shilganda kirillni qo'llaydigan shriftlarga
+ * almashtiramiz. Descendant selektor (0,2,0) Tailwind utilitilaridan (0,1,0)
+ * ustunroq, shuning uchun komponentlarga tegmasdan butun sayt moslashadi.
+ */
+.lang-kirill .font-script,
+.lang-kirill .text-script {
+  font-family: 'Marck Script', 'Dancing Script', cursive;
+}
+
+.lang-kirill .font-formal,
+.lang-kirill .text-formal {
+  font-family: 'EB Garamond', 'Cormorant Garamond', serif;
+}
+
+.lang-kirill .font-body {
+  font-family: 'PT Sans', 'Lato', sans-serif;
+}
+
+.lang-kirill body,
+body.lang-kirill {
+  font-family: 'PT Sans', 'Lato', sans-serif;
+}

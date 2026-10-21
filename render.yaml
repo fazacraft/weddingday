@@ -1,0 +1,24 @@
+# Render Blueprint — "Fozilovlar" taklifnoma platformasi (wedding-master/).
+# Dashboard → New → Blueprint → shu repo. MONGODB_URI so'raladi (MongoDB Atlas).
+services:
+  - type: web
+    name: fozilovlar
+    runtime: node
+    plan: free
+    region: frankfurt
+    rootDir: wedding-master
+    # NODE_ENV=production devDependencies'ni o'tkazib yuboradi, build uchun esa
+    # typescript va vite kerak
+    buildCommand: npm ci --include=dev && npm run build
+    startCommand: npm start
+    healthCheckPath: /health
+    autoDeploy: true
+    envVars:
+      - key: NODE_VERSION
+        value: "22"
+      - key: NODE_ENV
+        value: production
+      - key: JWT_SECRET
+        generateValue: true
+      - key: MONGODB_URI
+        sync: false
