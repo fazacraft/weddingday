@@ -12,7 +12,11 @@ import { errorHandler } from './middleware/errorHandler';
 /** Production'da frontend build'i ham shu serverdan beriladi (bitta Render servisi). */
 const WEB_DIST = path.resolve(__dirname, '../../frontend/dist');
 
+/** Sayt domen ichidagi yo'lda ham ishlay oladi: BASE_PATH=/erbotayev → beluga.uz/erbotayev */
+export const BASE_PATH = (process.env.BASE_PATH ?? '').replace(/\/+$/, '');
+
 const app = express();
+const site = express.Router();
 
 // Render/nginx ortida — haqiqiy protokol va IP X-Forwarded-* dan olinadi
 app.set('trust proxy', 1);
@@ -25,25 +29,25 @@ app.use(
   })
 );
 
-app.use(express.json({ limit: '200kb' }));
+site.use(express.json({ limit: '200kb' }));
 
-app.use('/api/auth', authRouter);
-app.use('/api/invitations', invitationsRouter);
-app.use('/api/public', publicRouter);
-app.use('/api/uploads', uploadsRouter);
-app.use('/api', (_req, res) => {
+site.use('/api/auth', authRouter);
+site.use('/api/invitations', invitationsRouter);
+site.use('/api/public', publicRouter);
+site.use('/api/uploads', uploadsRouter);
+site.use('/api', (_req, res) => {
   res.status(404).json({ error: 'Not found' });
 });
 
-app.get('/uploads/:name', serveUpload);
+site.get('/uploads/:name', serveUpload);
 
-app.get('/health', (_req, res) => {
+site.get('/health', (_req, res) => {
   res.json({ status: 'ok' });
 });
 
 if (fs.existsSync(WEB_DIST)) {
   const indexHtml = path.join(WEB_DIST, 'index.html');
-  app.use(
+  site.use(
     express.static(WEB_DIST, {
       index: false,
       maxAge: '7d',
@@ -56,10 +60,17 @@ if (fs.existsSync(WEB_DIST)) {
     })
   );
   // SPA: /feruz-dilfuza, /kabinet va h.k. — marshrutlash React'da
-  app.get('*', (_req, res) => {
+  site.get('*', (_req, res) => {
     res.setHeader('Cache-Control', 'no-cache');
     res.sendFile(indexHtml);
   });
+}
+
+app.use(BASE_PATH || '/', site);
+
+// Sayt ichki yo'lda bo'lsa, domen ildizi (beluga.uz/) shu yo'lga yo'naltiriladi
+if (BASE_PATH) {
+  app.get('/', (_req, res) => res.redirect(302, `${BASE_PATH}/`));
 }
 
 app.use(errorHandler);

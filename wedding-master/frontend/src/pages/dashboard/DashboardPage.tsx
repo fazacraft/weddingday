@@ -9,6 +9,7 @@ import { SiteHeader } from "../../platform/SiteChrome";
 import { TemplateThumb } from "../../platform/TemplateThumb";
 import { Eyebrow, Notice, PLink, Spinner } from "../../platform/ui";
 import { CopyButton, StatusBadge, daysUntil, formatDate } from "./shared";
+import { withBase } from "../../lib/base";
 
 export function DashboardPage() {
   const { user } = useAuth();
@@ -103,7 +104,7 @@ export function DashboardPage() {
                       </span>
                       <div className="flex gap-2">
                         <a
-                          href={`/${inv.slug}`}
+                          href={withBase(inv.slug)}
                           target="_blank"
                           rel="noreferrer"
                           className="inline-flex h-9 items-center rounded-full px-3 text-[13px] font-semibold text-ink/60 hover:text-ink"

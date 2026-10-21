@@ -9,6 +9,7 @@ const room = (invitationId: string) => `inv:${invitationId}`;
 /** HTTP serverga Socket.io ni ulaydi (server.ts da bir marta chaqiriladi). */
 export function initSocket(httpServer: HttpServer): Server {
   io = new Server(httpServer, {
+    path: `${(process.env.BASE_PATH ?? '').replace(/\/+$/, '')}/socket.io`,
     cors: {
       origin: process.env.FRONTEND_URL ?? 'http://localhost:5173',
       methods: ['GET', 'POST'],

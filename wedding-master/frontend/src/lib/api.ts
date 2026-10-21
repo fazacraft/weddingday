@@ -1,4 +1,7 @@
-const API_URL = import.meta.env.VITE_API_URL ?? "";
+import { BASE } from "./base";
+
+/** API manzili: alohida domen berilmasa, sayt joylashgan yo'l ("" yoki "/erbotayev"). */
+export const API_URL = import.meta.env.VITE_API_URL || BASE.replace(/\/$/, "");
 const TOKEN_KEY = "fz-token";
 
 export class ApiError extends Error {

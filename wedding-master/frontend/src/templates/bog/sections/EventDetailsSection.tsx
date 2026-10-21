@@ -7,6 +7,7 @@ import { OrnamentDivider } from "../Ornament";
 import { useInvitation } from "../../shared/InvitationContext";
 import { useLang } from "../../../context/LanguageContext";
 import dayjs from "dayjs";
+import { withBase } from "../../../lib/base";
 
 interface DetailRowProps {
   label: string;
@@ -56,7 +57,7 @@ export function EventDetailsSection() {
           repeatType: "reverse",
         }}
       >
-        <img src="/assets/airplate.png" alt="" className="w-full h-auto" />
+        <img src={withBase("/assets/airplate.png")} alt="" className="w-full h-auto" />
       </motion.div>
 
       {/* ── Car — subtle sway ── */}
@@ -70,7 +71,7 @@ export function EventDetailsSection() {
           repeatType: "reverse",
         }}
       >
-        <img src="/assets/car.png" alt="" className="w-full h-auto" />
+        <img src={withBase("/assets/car.png")} alt="" className="w-full h-auto" />
       </motion.div>
 
       {/* Pastdan joy — mashina rasmi dastur va xarita tugmalarini yopmasligi uchun */}

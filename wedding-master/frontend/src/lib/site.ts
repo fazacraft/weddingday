@@ -1,16 +1,17 @@
 import { toLatin } from "./transliterate";
+import { BASE } from "./base";
 
 export const SITE_NAME = import.meta.env.VITE_SITE_NAME || "Fozilovlar";
 export const SITE_DOMAIN = import.meta.env.VITE_SITE_DOMAIN || "fozilovlar.uz";
 
 /** Mehmonlarga yuboriladigan to'liq havola (joriy origin bo'yicha — lokalda ham ishlaydi). */
 export function inviteUrl(slug: string): string {
-  return `${window.location.origin}/${slug}`;
+  return `${window.location.origin}${BASE}${slug}`;
 }
 
 /** Ko'rsatish uchun qisqa havola: "fozilovlar.uz/feruz-dilfuza" yoki "localhost:5173/...". */
 export function inviteLabel(slug: string): string {
-  return `${window.location.host}/${slug}`;
+  return `${window.location.host}${BASE}${slug}`;
 }
 
 export const SLUG_RE = /^[a-z0-9](?:[a-z0-9-]{1,58}[a-z0-9])$/;

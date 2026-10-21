@@ -9,6 +9,7 @@ import { SiteHeader } from "../../platform/SiteChrome";
 import { TemplateThumb } from "../../platform/TemplateThumb";
 import { Notice, PButton, PLink, Spinner } from "../../platform/ui";
 import { CopyButton, StatusBadge, daysUntil, formatDate, formatDateTime } from "./shared";
+import { withBase } from "../../lib/base";
 
 type Tab = "umumiy" | "mehmonlar" | "tilaklar" | "ulashish";
 
@@ -137,7 +138,7 @@ export function ManagePage() {
             </p>
           </div>
           <div className="flex flex-wrap gap-2">
-            <a href={`/${inv.slug}`} target="_blank" rel="noreferrer" className="inline-flex h-11 items-center rounded-full px-4 text-sm font-semibold text-ink/60 hover:text-ink">
+            <a href={withBase(inv.slug)} target="_blank" rel="noreferrer" className="inline-flex h-11 items-center rounded-full px-4 text-sm font-semibold text-ink/60 hover:text-ink">
               Ochish ↗
             </a>
             <PLink to={`/kabinet/${inv.id}/tahrirlash`} variant="secondary">Tahrirlash</PLink>

@@ -28,6 +28,7 @@ import {
   type StepProps,
 } from "./steps";
 import type { SlugStatus } from "./SlugField";
+import { withBase } from "../../lib/base";
 
 interface StepDef {
   title: string;
@@ -344,7 +345,7 @@ export function BuilderPage({ mode }: Props) {
             </PButton>
             <div className="flex items-center gap-2">
               <a
-                href={`/korinish?key=${encodeURIComponent(storageKey)}`}
+                href={`${withBase("/korinish")}?key=${encodeURIComponent(storageKey)}`}
                 target="_blank"
                 rel="noreferrer"
                 className="inline-flex h-11 items-center rounded-full px-4 text-sm font-semibold text-ink/60 hover:text-ink lg:hidden"

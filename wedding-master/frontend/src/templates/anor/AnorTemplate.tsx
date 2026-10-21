@@ -2,66 +2,20 @@ import { FormEvent, useEffect, useMemo, useRef, useState } from "react";
 import { useInvitation } from "../shared/InvitationContext";
 import { useCountOpen, useRsvp } from "../shared/useRsvp";
 import { useWishes } from "../shared/useWishes";
+import { UZ_WEEKDAYS, envelopeLines, monthGrid, useCountdown } from "../shared/calendar";
+import { useReveal } from "../shared/useReveal";
+import { withBase } from "../../lib/base";
 import "./anor.css";
 
-const IMG = "/templates/anor";
+const IMG = withBase("/templates/anor");
 const OPENING_DURATION_MS = 1200;
 const FADE_DURATION_MS = 900;
 const MUSIC_VOLUME = 0.16;
-
-const UZ_MONTHS = [
-  "Yanvar", "Fevral", "Mart", "Aprel", "May", "Iyun",
-  "Iyul", "Avgust", "Sentabr", "Oktabr", "Noyabr", "Dekabr",
-];
-const UZ_WEEKDAYS = ["DU", "SE", "CHOR", "PAY", "JU", "SHA", "YA"];
 
 /** Karnaylar yelpig'ichi: markazi 14°, umumiy yoyilish 28° (Django'dagi build_horn_fan). */
 const HORNS = [0, 14, 28].map((angle, i) => ({ angle, delay: 0.9 + i * 0.15 }));
 
 type Phase = "closed" | "opening" | "fading" | "open";
-
-/** Dushanbadan boshlanuvchi oy jadvali; 0 — bo'sh katak. */
-function monthGrid(date: string) {
-  const [y, m, d] = date.split("-").map(Number);
-  if (!y || !m || !d) return null;
-  const first = new Date(Date.UTC(y, m - 1, 1)).getUTCDay();
-  const lead = (first + 6) % 7;
-  const total = new Date(Date.UTC(y, m, 0)).getUTCDate();
-  const cells = [...Array(lead).fill(0), ...Array.from({ length: total }, (_, i) => i + 1)];
-  while (cells.length % 7) cells.push(0);
-  const weeks: number[][] = [];
-  for (let i = 0; i < cells.length; i += 7) weeks.push(cells.slice(i, i + 7));
-  return { label: `${UZ_MONTHS[m - 1]}, ${y}`, weeks, day: d };
-}
-
-function envelopeLines(eventTitle: string): string[] {
-  const title = eventTitle.trim() || "To'yimiz";
-  // "Nikoh to'yi" → "Nikoh to'yimizga", boshqa nomlar → "...ga"
-  const target = /to'yi$/i.test(title) ? `${title}mizga` : `${title}ga`;
-  return ["Sizni", target];
-}
-
-function useCountdown(targetIso: string) {
-  const target = new Date(targetIso).getTime();
-  const calc = () => {
-    const diff = Math.max(0, target - Date.now());
-    return {
-      done: diff === 0,
-      days: Math.floor(diff / 86_400_000),
-      hours: Math.floor((diff % 86_400_000) / 3_600_000),
-      minutes: Math.floor((diff % 3_600_000) / 60_000),
-      seconds: Math.floor((diff % 60_000) / 1000),
-    };
-  };
-  const [left, setLeft] = useState(calc);
-  useEffect(() => {
-    setLeft(calc());
-    const id = window.setInterval(() => setLeft(calc()), 1000);
-    return () => window.clearInterval(id);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [target]);
-  return left;
-}
 
 /** "Anor" shabloni — konvert ochiladi, karnaylar, anor novdalari, qog'oz kartalar. */
 export default function AnorTemplate() {
@@ -85,31 +39,8 @@ export default function AnorTemplate() {
     };
   }, [phase]);
 
-  // Konvert ochilgach bo'limlar ekranga kirganda paydo bo'ladi. Ma'lumot
-  // o'zgarsa (wizard'dagi jonli ko'rinish) yangi bo'limlar ham kuzatiladi.
-  useEffect(() => {
-    if (phase === "closed" || phase === "opening") return;
-    const nodes = rootRef.current?.querySelectorAll<HTMLElement>(".reveal:not(.visible)") ?? [];
-    if (!("IntersectionObserver" in window)) {
-      nodes.forEach((n) => n.classList.add("visible"));
-      return;
-    }
-    const observer = new IntersectionObserver(
-      (entries, obs) => {
-        entries.forEach((entry) => {
-          if (!entry.isIntersecting) return;
-          entry.target.classList.add("visible");
-          obs.unobserve(entry.target);
-        });
-      },
-      { threshold: 0.15, rootMargin: "0px 0px -8% 0px" }
-    );
-    nodes.forEach((node, i) => {
-      node.style.transitionDelay = `${Math.min(i * 90, 360)}ms`;
-      observer.observe(node);
-    });
-    return () => observer.disconnect();
-  }, [phase, data]);
+  // Konvert ochilgach bo'limlar ekranga kirganda paydo bo'ladi.
+  useReveal(rootRef, phase === "fading" || phase === "open", [phase, data]);
 
   const playMusic = () => {
     const audio = audioRef.current;

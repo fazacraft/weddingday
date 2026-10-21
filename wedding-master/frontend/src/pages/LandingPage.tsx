@@ -6,6 +6,7 @@ import { TemplateThumb } from "../platform/TemplateThumb";
 import { Eyebrow, PLink } from "../platform/ui";
 import { TEMPLATE_LIST } from "../templates/registry";
 import { SITE_DOMAIN, SITE_NAME } from "../lib/site";
+import { withBase } from "../lib/base";
 
 const STEPS = [
   { n: "01", title: "Shablonni tanlang", text: "Bog' yoki Anor — ikkalasini ham oldindan jonli ko'rib chiqing." },
@@ -131,14 +132,14 @@ export function LandingPage() {
           <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-end">
             <div>
               <Eyebrow>Shablonlar</Eyebrow>
-              <h2 className="mt-3 font-display text-4xl font-semibold text-ink sm:text-5xl">Ikki xil kayfiyat</h2>
+              <h2 className="mt-3 font-display text-4xl font-semibold text-ink sm:text-5xl">Uch xil kayfiyat</h2>
             </div>
             <p className="max-w-sm text-sm leading-relaxed text-ink/55">
               Har bir shablonni mehmon ko'zi bilan oching — musiqa, animatsiya va barcha bo'limlar bilan.
             </p>
           </div>
 
-          <div className="mt-12 grid gap-6 md:grid-cols-2">
+          <div className="mt-12 grid gap-6 md:grid-cols-2 lg:grid-cols-3">
             {TEMPLATE_LIST.map((tpl) => (
               <article key={tpl.key} className="group overflow-hidden rounded-[2rem] border border-ink/10 bg-white">
                 <Link to={`/shablonlar/${tpl.key}`} className="block">
@@ -218,8 +219,8 @@ export function LandingPage() {
       {/* ── CTA ── */}
       <section className="px-4 pb-20 sm:px-6">
         <div className="relative mx-auto max-w-6xl overflow-hidden rounded-[2.5rem] bg-rose px-6 py-16 text-center text-ivory sm:px-12">
-          <img src="/templates/anor/pomegranate-vine.svg" alt="" className="pointer-events-none absolute -left-10 top-1/2 h-[140%] -translate-y-1/2 opacity-10 invert" />
-          <img src="/templates/anor/pomegranate-vine.svg" alt="" className="pointer-events-none absolute -right-10 top-1/2 h-[140%] -translate-y-1/2 -scale-x-100 opacity-10 invert" />
+          <img src={withBase("/templates/anor/pomegranate-vine.svg")} alt="" className="pointer-events-none absolute -left-10 top-1/2 h-[140%] -translate-y-1/2 opacity-10 invert" />
+          <img src={withBase("/templates/anor/pomegranate-vine.svg")} alt="" className="pointer-events-none absolute -right-10 top-1/2 h-[140%] -translate-y-1/2 -scale-x-100 opacity-10 invert" />
           <h2 className="relative font-display text-4xl font-semibold leading-tight sm:text-5xl">
             Havolangiz 3 daqiqada tayyor.
           </h2>

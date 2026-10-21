@@ -1,6 +1,6 @@
 import { Schema, model, Document, Types } from 'mongoose';
 
-export const TEMPLATE_KEYS = ['bog', 'anor'] as const;
+export const TEMPLATE_KEYS = ['bog', 'anor', 'atirgul'] as const;
 export type TemplateKey = (typeof TEMPLATE_KEYS)[number];
 
 export const SLUG_PATTERN = /^[a-z0-9](?:[a-z0-9-]{1,58}[a-z0-9])$/;

@@ -1,5 +1,6 @@
 import { lazy, type ComponentType, type LazyExoticComponent } from "react";
 import type { TemplateKey } from "../types/invitation";
+import { withBase } from "../lib/base";
 
 export interface TemplateMeta {
   key: TemplateKey;
@@ -20,7 +21,7 @@ export const TEMPLATES: Record<TemplateKey, TemplateMeta> = {
     description:
       "Musiqali kirish ekrani, parallaks arka, uchib yurgan kaptarlar va real vaqtdagi tilaklar devori. Lotin va kirill yozuvida.",
     palette: ["#f0ece3", "#30401c", "#e8c4c0"],
-    defaultMusic: "/leberch-invitation-wedding-375839.mp3",
+    defaultMusic: withBase("/leberch-invitation-wedding-375839.mp3"),
     Component: lazy(() => import("./bog/BogTemplate")),
   },
   anor: {
@@ -30,8 +31,18 @@ export const TEMPLATES: Record<TemplateKey, TemplateMeta> = {
     description:
       "Mehmon avval qizil muhrli konvertni ochadi. Milliy naqshli hoshiya, karnay-surnay, kalendar va qog'oz kartalar.",
     palette: ["#faf5ea", "#6e2323", "#c9a227"],
-    defaultMusic: "/templates/anor/music.mp3",
+    defaultMusic: withBase("/templates/anor/music.mp3"),
     Component: lazy(() => import("./anor/AnorTemplate")),
+  },
+  atirgul: {
+    key: "atirgul",
+    name: "Atirgul",
+    tagline: "Oq-pushti konvert, atirgul novdalari va yaproqlar",
+    description:
+      "Pushti muhrli oq konvert ichidan maktub ko'tariladi. Arka shaklidagi rasm, tushayotgan atirgul yaproqlari, yurakli kalendar va gulli dastur.",
+    palette: ["#fff5f7", "#f2a9b9", "#b84a68"],
+    defaultMusic: withBase("/leberch-invitation-wedding-375839.mp3"),
+    Component: lazy(() => import("./atirgul/AtirgulTemplate")),
   },
 };
 

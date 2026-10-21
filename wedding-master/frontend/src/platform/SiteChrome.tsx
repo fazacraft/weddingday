@@ -3,6 +3,7 @@ import { Link, NavLink, useLocation } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { SITE_NAME } from "../lib/site";
 import { PLink } from "./ui";
+import { withBase } from "../lib/base";
 
 export function Logo({ className = "" }: { className?: string }) {
   return (
@@ -22,9 +23,9 @@ export function SiteHeader() {
   const onLanding = pathname === "/";
 
   const nav = [
-    { href: "/#shablonlar", label: "Shablonlar" },
-    { href: "/#qanday", label: "Qanday ishlaydi" },
-    { href: "/#savollar", label: "Savollar" },
+    { href: withBase("/#shablonlar"), label: "Shablonlar" },
+    { href: withBase("/#qanday"), label: "Qanday ishlaydi" },
+    { href: withBase("/#savollar"), label: "Savollar" },
   ];
 
   return (
@@ -108,7 +109,7 @@ export function SiteFooter() {
       <div className="mx-auto flex max-w-6xl flex-col gap-6 px-4 py-10 sm:flex-row sm:items-center sm:justify-between sm:px-6">
         <Logo />
         <div className="flex flex-wrap gap-x-6 gap-y-2 text-sm text-ink/50">
-          <a href="/#shablonlar" className="hover:text-ink">Shablonlar</a>
+          <a href={withBase("/#shablonlar")} className="hover:text-ink">Shablonlar</a>
           <Link to="/yaratish" className="hover:text-ink">Yaratish</Link>
           <Link to="/kabinet" className="hover:text-ink">Kabinet</Link>
         </div>

@@ -1,6 +1,7 @@
 import { motion, useScroll, useTransform } from "framer-motion";
 import { useInvitation } from "../../shared/InvitationContext";
 import { useLang } from "../../../context/LanguageContext";
+import { withBase } from "../../../lib/base";
 
 /* ── Water-drop reveal positions ───────────────────────────────────── */
 const DROPS = [
@@ -161,7 +162,7 @@ function DoveSVG({
   const scaleX = rtl ? -1 : 1;
   return (
     <img
-      src="/assets/dove.gif"
+      src={withBase("/assets/dove.gif")}
       alt=""
       aria-hidden="true"
       width={size}
@@ -284,7 +285,7 @@ export function HeroSection() {
           </h1>
 
           <motion.img
-            src="/assets/couple.png"
+            src={withBase("/assets/couple.png")}
             alt=""
             aria-hidden="true"
             className="w-auto h-[67dvh] sm:h-[70dvh] xl:h-[74dvh] block object-cover z-[100]"
@@ -471,7 +472,7 @@ function ArchImage() {
   return (
     <>
       <img
-        src="/assets/arc.png"
+        src={withBase("/assets/arc.png")}
         alt=""
         aria-hidden="true"
         className="w-full h-full object-cover"

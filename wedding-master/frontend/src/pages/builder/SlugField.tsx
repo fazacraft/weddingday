@@ -1,6 +1,7 @@
 import { useEffect, useId, useState } from "react";
 import { api } from "../../lib/api";
 import { SLUG_RE } from "../../lib/site";
+import { BASE } from "../../lib/base";
 
 export type SlugStatus = "idle" | "checking" | "available" | "taken" | "invalid" | "error";
 
@@ -66,7 +67,7 @@ export function SlugField({ value, onChange, exceptId, onStatus, serverError }: 
         }`}
       >
         <span className="flex h-full items-center border-r border-ink/10 bg-sand/60 px-3 font-mono text-[13px] text-ink/50">
-          {window.location.host}/
+          {window.location.host}{BASE}
         </span>
         <input
           id={id}

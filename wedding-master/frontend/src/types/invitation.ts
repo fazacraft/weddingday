@@ -1,4 +1,4 @@
-export type TemplateKey = "bog" | "anor";
+export type TemplateKey = "bog" | "anor" | "atirgul";
 
 export interface ScheduleItem {
   time: string;

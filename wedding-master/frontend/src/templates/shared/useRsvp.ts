@@ -1,5 +1,5 @@
 import { useCallback, useState } from "react";
-import { api, ApiError } from "../../lib/api";
+import { api, ApiError, API_URL } from "../../lib/api";
 import { useInvitation } from "./InvitationContext";
 
 export interface RsvpInput {
@@ -43,7 +43,7 @@ export function useCountOpen() {
   const { data, mode } = useInvitation();
   return useCallback(() => {
     if (mode !== "live") return;
-    fetch(`${import.meta.env.VITE_API_URL ?? ""}/api/public/${data.slug}/open`, {
+    fetch(`${API_URL}/api/public/${data.slug}/open`, {
       method: "POST",
       keepalive: true,
     }).catch(() => {});

@@ -1,4 +1,5 @@
 import type { TemplateKey } from "../types/invitation";
+import { withBase } from "../lib/base";
 
 interface Props {
   template: TemplateKey;
@@ -13,6 +14,61 @@ interface Props {
  * kartochkalar uchun. Har bir shablonning asosiy "kirish" ko'rinishini eslatadi.
  */
 export function TemplateThumb({ template, groom = "Bekzod", bride = "Dilnoza", date = "12.06.2027", className = "" }: Props) {
+  if (template === "atirgul") {
+    const monogram = `${groom.trim()[0] ?? ""}&${bride.trim()[0] ?? ""}`.toUpperCase();
+    return (
+      <div
+        className={`relative overflow-hidden ${className}`}
+        style={{ background: "radial-gradient(circle at 50% 30%, #ffffff 0%, #fde6ec 48%, #f5c3cf 100%)" }}
+      >
+        {[
+          "left-[6%] top-[10%] h-3 w-2.5 rotate-12",
+          "right-[12%] top-[18%] h-4 w-3 -rotate-12",
+          "left-[18%] bottom-[16%] h-3.5 w-2.5 rotate-45",
+          "right-[8%] bottom-[28%] h-3 w-2 -rotate-45",
+        ].map((pos) => (
+          <span key={pos} className={`absolute rounded-[0_70%_0_70%] bg-[#f2a9b9]/80 ${pos}`} />
+        ))}
+        <div className="absolute inset-0 flex flex-col items-center justify-center gap-4 px-5">
+          <span className="text-[9px] uppercase tracking-[0.3em] text-[#b84a68]/60">To'y taklifnomasi</span>
+          <div
+            className="relative w-[82%] aspect-[3/2] rounded-[6px] shadow-[0_18px_40px_-12px_rgba(184,74,104,0.45)]"
+            style={{ background: "linear-gradient(180deg,#fbe4ea,#f6d3dc)" }}
+          >
+            <div
+              className="absolute inset-0"
+              style={{
+                background: "linear-gradient(180deg,#ffffff 0%,#fff3f6 70%,#fde7ed 100%)",
+                clipPath: "polygon(0 0,100% 0,50% 68%)",
+              }}
+            />
+            <div
+              className="absolute inset-0 flex items-end justify-center pb-[4%]"
+              style={{
+                background: "linear-gradient(180deg,#fffafb 0%,#fdeef2 60%,#fbe2e9 100%)",
+                clipPath: "polygon(0 100%,100% 100%,100% 35%,50% 62%,0 35%)",
+              }}
+            >
+              <span style={{ fontFamily: '"Parisienne", cursive' }} className="text-[#a63c5a] text-base leading-none">
+                {groom} & {bride}
+              </span>
+            </div>
+            <span
+              className="absolute left-1/2 top-[55%] grid h-11 w-11 -translate-x-1/2 -translate-y-1/2 place-items-center rounded-full text-[12px] text-white"
+              style={{
+                background: "radial-gradient(circle at 35% 30%,#ec9fb2,#c75a78 60%,#9c3555 100%)",
+                fontFamily: '"Parisienne", cursive',
+              }}
+            >
+              {monogram}
+            </span>
+          </div>
+          <p className="text-[10px] uppercase tracking-[0.3em] text-[#b84a68]/70">{date}</p>
+        </div>
+      </div>
+    );
+  }
+
   if (template === "anor") {
     return (
       <div
@@ -20,12 +76,12 @@ export function TemplateThumb({ template, groom = "Bekzod", bride = "Dilnoza", d
         style={{ background: "radial-gradient(circle at 50% 32%, #8f2436 0%, #5a1526 58%, #3c0d1b 100%)" }}
       >
         <img
-          src="/templates/anor/pomegranate-vine.svg"
+          src={withBase("/templates/anor/pomegranate-vine.svg")}
           alt=""
           className="absolute -left-6 top-1/2 h-[110%] -translate-y-1/2 opacity-25"
         />
         <img
-          src="/templates/anor/pomegranate-vine.svg"
+          src={withBase("/templates/anor/pomegranate-vine.svg")}
           alt=""
           className="absolute -right-6 top-1/2 h-[110%] -translate-y-1/2 -scale-x-100 opacity-25"
         />
@@ -67,9 +123,9 @@ export function TemplateThumb({ template, groom = "Bekzod", bride = "Dilnoza", d
 
   return (
     <div className={`relative overflow-hidden bg-cream ${className}`}>
-      <img src="/assets/arc.png" alt="" className="absolute inset-0 h-full w-full object-cover opacity-30" />
+      <img src={withBase("/assets/arc.png")} alt="" className="absolute inset-0 h-full w-full object-cover opacity-30" />
       <img
-        src="/assets/couple.png"
+        src={withBase("/assets/couple.png")}
         alt=""
         className="absolute bottom-0 left-1/2 h-[72%] -translate-x-1/2 object-contain"
       />

@@ -1,4 +1,5 @@
 import { ReactNode } from "react";
+import { withBase } from "../lib/base";
 
 /** Telefon ramkasi — ichida taklifnomaning jonli ko'rinishi (iframe) yoki miniatyura. */
 export function PhoneFrame({ children, className = "" }: { children: ReactNode; className?: string }) {
@@ -18,7 +19,7 @@ export function LivePreview({ storageKey, className = "" }: { storageKey: string
     <PhoneFrame className={className}>
       <iframe
         title="Taklifnoma ko'rinishi"
-        src={`/korinish?key=${encodeURIComponent(storageKey)}`}
+        src={`${withBase("/korinish")}?key=${encodeURIComponent(storageKey)}`}
         className="h-full w-full border-0"
       />
     </PhoneFrame>
