@@ -36,6 +36,17 @@ export async function saveUpload(buffer: Buffer, contentType: string, name?: str
   return `/uploads/${filename}`;
 }
 
+/** /uploads/<nom> yo'llari bo'yicha fayllarni o'chiradi (boshqa manzillar e'tiborsiz qoldiriladi). */
+export async function deleteUploads(urls: string[]): Promise<void> {
+  const names = urls
+    .filter((u) => u.startsWith('/uploads/'))
+    .map((u) => u.slice('/uploads/'.length));
+  if (names.length === 0) return;
+  const b = bucket();
+  const files = await b.find({ filename: { $in: names } }).toArray();
+  await Promise.all(files.map((f) => b.delete(f._id)));
+}
+
 export async function uploadExists(filename: string): Promise<boolean> {
   return (await bucket().find({ filename }).limit(1).toArray()).length > 0;
 }

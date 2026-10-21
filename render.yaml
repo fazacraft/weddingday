@@ -30,3 +30,6 @@ services:
         generateValue: true
       - key: MONGODB_URI
         sync: false
+      # /admin paneliga kira oladigan email'lar (vergul bilan) — dashboard'da kiritiladi
+      - key: ADMIN_EMAILS
+        sync: false

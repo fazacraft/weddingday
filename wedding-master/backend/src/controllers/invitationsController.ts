@@ -10,6 +10,7 @@ import {
 import { Wish } from '../models/Wish';
 import { Rsvp } from '../models/Rsvp';
 import { AuthedRequest } from '../middleware/auth';
+import { removeInvitation } from '../services/invitations';
 
 /** Klientdan qabul qilinadigan maydonlar — owner, openCount kabilarni o'zgartirib bo'lmaydi. */
 const EDITABLE_FIELDS = [
@@ -182,11 +183,7 @@ export async function deleteInvitation(req: AuthedRequest, res: Response, next: 
   try {
     const inv = await findOwned(req, res);
     if (!inv) return;
-    await Promise.all([
-      Wish.deleteMany({ invitation: inv._id }),
-      Rsvp.deleteMany({ invitation: inv._id }),
-      inv.deleteOne(),
-    ]);
+    await removeInvitation(inv);
     res.status(204).end();
   } catch (err) {
     next(err);

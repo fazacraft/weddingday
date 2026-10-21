@@ -46,6 +46,16 @@ export function SiteHeader() {
         <div className="hidden sm:flex items-center gap-2">
           {user ? (
             <>
+              {user.isAdmin && (
+                <NavLink
+                  to="/admin"
+                  className={({ isActive }) =>
+                    `px-3 text-sm font-semibold ${isActive ? "text-rose" : "text-rose/70 hover:text-rose"}`
+                  }
+                >
+                  Admin
+                </NavLink>
+              )}
               <NavLink
                 to="/kabinet"
                 className={({ isActive }) =>
@@ -90,6 +100,7 @@ export function SiteHeader() {
             ))}
           {user ? (
             <>
+              {user.isAdmin && <Link to="/admin" className="py-2.5 text-[15px] font-semibold text-rose">Admin</Link>}
               <Link to="/kabinet" className="py-2.5 text-[15px] font-semibold text-ink">Kabinet</Link>
               <button onClick={logout} className="py-2.5 text-left text-[15px] text-ink/50">Chiqish</button>
             </>

@@ -6,6 +6,7 @@ import { AuthPage } from "./pages/AuthPage";
 import { BuilderPage } from "./pages/builder/BuilderPage";
 import { DashboardPage } from "./pages/dashboard/DashboardPage";
 import { ManagePage } from "./pages/dashboard/ManagePage";
+import { AdminPage } from "./pages/admin/AdminPage";
 import {
   NotFoundPage,
   PreviewPage,
@@ -24,6 +25,15 @@ function RequireAuth({ children }: { children: ReactNode }) {
     const next = encodeURIComponent(location.pathname + location.search);
     return <Navigate to={`/kirish?next=${next}`} replace />;
   }
+  return <>{children}</>;
+}
+
+/** /admin — faqat backend'dagi ADMIN_EMAILS ro'yxatidagilar uchun. */
+function RequireAdmin({ children }: { children: ReactNode }) {
+  const { user, loading } = useAuth();
+  if (loading) return <FullPageLoader />;
+  if (!user) return <Navigate to={`/kirish?next=${encodeURIComponent("/admin")}`} replace />;
+  if (!user.isAdmin) return <NotFoundPage message="Bu bo'lim faqat adminlar uchun" />;
   return <>{children}</>;
 }
 
@@ -53,6 +63,7 @@ export default function App() {
           path="/kabinet/:id/tahrirlash"
           element={<RequireAuth><BuilderPage key="edit" mode="edit" /></RequireAuth>}
         />
+        <Route path="/admin" element={<RequireAdmin><AdminPage /></RequireAdmin>} />
         <Route path="/:slug/*" element={<PublicInvitationPage />} />
         <Route path="*" element={<NotFoundPage />} />
       </Routes>
