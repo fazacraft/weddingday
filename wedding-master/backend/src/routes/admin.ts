@@ -3,6 +3,7 @@ import {
   stats,
   listInvitations,
   setInvitationStatus,
+  reviewInvitation,
   deleteInvitation,
   listUsers,
   deleteUser,
@@ -16,6 +17,7 @@ router.use(requireAdmin);
 router.get('/stats', stats);
 router.get('/invitations', listInvitations);
 router.patch('/invitations/:id', setInvitationStatus);
+router.post('/invitations/:id/review', reviewInvitation);
 router.delete('/invitations/:id', deleteInvitation);
 router.get('/users', listUsers);
 router.delete('/users/:id', deleteUser);

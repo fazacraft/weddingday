@@ -12,6 +12,7 @@ interface AdminStats {
   users: number;
   invitations: number;
   published: number;
+  pending: number;
   wishes: number;
   rsvps: number;
 }
@@ -21,6 +22,7 @@ interface AdminInvitation {
   slug: string;
   template: TemplateKey;
   status: "draft" | "published";
+  review?: string;
   groomName: string;
   brideName: string;
   date: string;
@@ -73,11 +75,12 @@ export function AdminPage() {
         <Eyebrow>Admin</Eyebrow>
         <h1 className="mt-2 font-display text-4xl font-semibold text-ink sm:text-5xl">Boshqaruv paneli</h1>
 
-        <div className="mt-8 grid grid-cols-2 gap-3 sm:grid-cols-5">
+        <div className="mt-8 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6">
           {[
             ["Foydalanuvchi", stats?.users],
             ["Taklifnoma", stats?.invitations],
             ["Nashrda", stats?.published],
+            ["Tasdiq kutmoqda", stats?.pending],
             ["Tilak", stats?.wishes],
             ["Javob (RSVP)", stats?.rsvps],
           ].map(([label, value]) => (
@@ -178,7 +181,7 @@ function InvitationsTab({ ownerFilter, onChange }: { ownerFilter: string | null;
   const [busyId, setBusyId] = useState<string | null>(null);
   const [actionError, setActionError] = useState<string | null>(null);
 
-  const act = async (inv: AdminInvitation, kind: "toggle" | "delete") => {
+  const act = async (inv: AdminInvitation, kind: "toggle" | "delete" | "approve" | "reject") => {
     if (kind === "delete") {
       const ok = window.confirm(
         `"${inv.groomName} & ${inv.brideName}" (/${inv.slug}) butunlay o'chirilsinmi?\nTilaklar, javoblar va yuklangan rasm/musiqa ham o'chadi. Qaytarib bo'lmaydi.`
@@ -190,6 +193,8 @@ function InvitationsTab({ ownerFilter, onChange }: { ownerFilter: string | null;
     try {
       if (kind === "delete") {
         await api(`/admin/invitations/${inv.id}`, { method: "DELETE" });
+      } else if (kind === "approve" || kind === "reject") {
+        await api(`/admin/invitations/${inv.id}/review`, { method: "POST", body: { decision: kind } });
       } else {
         await api(`/admin/invitations/${inv.id}`, {
           method: "PATCH",
@@ -227,6 +232,7 @@ function InvitationsTab({ ownerFilter, onChange }: { ownerFilter: string | null;
           className="h-11 rounded-xl border border-ink/15 bg-white px-3 text-sm"
         >
           <option value="">Hammasi</option>
+          <option value="pending">Tasdiq kutmoqda</option>
           <option value="published">Nashrda</option>
           <option value="draft">Qoralama</option>
         </select>
@@ -279,13 +285,31 @@ function InvitationsTab({ ownerFilter, onChange }: { ownerFilter: string | null;
                       <span className="text-xs text-ink/40">o'chirilgan</span>
                     )}
                   </td>
-                  <td className="px-4 py-3"><StatusBadge status={inv.status} /></td>
+                  <td className="px-4 py-3"><StatusBadge status={inv.status} review={inv.review} /></td>
                   <td className="px-4 py-3 text-xs text-ink/55">
                     {inv.openCount} ochildi · {inv.replies} javob · {inv.wishes} tilak
                   </td>
                   <td className="px-4 py-3 text-xs text-ink/45">{formatDateTime(inv.createdAt)}</td>
                   <td className="px-4 py-3">
                     <div className="flex justify-end gap-1.5">
+                      {inv.review === "pending" && inv.status !== "published" && (
+                        <>
+                          <button
+                            disabled={busyId === inv.id}
+                            onClick={() => void act(inv, "approve")}
+                            className="h-8 rounded-lg bg-emerald-600 px-2.5 text-xs font-semibold text-white hover:bg-emerald-700"
+                          >
+                            ✓ Tasdiqlash
+                          </button>
+                          <button
+                            disabled={busyId === inv.id}
+                            onClick={() => void act(inv, "reject")}
+                            className="h-8 rounded-lg px-2.5 text-xs font-semibold text-ink/60 ring-1 ring-ink/10 hover:text-ink"
+                          >
+                            Rad etish
+                          </button>
+                        </>
+                      )}
                       <a
                         href={withBase(inv.slug)}
                         target="_blank"

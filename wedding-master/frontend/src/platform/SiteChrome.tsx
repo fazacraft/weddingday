@@ -119,15 +119,9 @@ export function SiteHeader() {
 export function SiteFooter() {
   return (
     <footer className="border-t border-ink/10 bg-ivory">
-      <div className="mx-auto flex max-w-6xl flex-col gap-6 px-4 py-10 sm:flex-row sm:items-center sm:justify-between sm:px-6">
-        <Logo />
-        <div className="flex flex-wrap gap-x-6 gap-y-2 text-sm text-ink/50">
-          <a href={withBase("/#shablonlar")} className="hover:text-ink">Shablonlar</a>
-          <Link to="/yaratish" className="hover:text-ink">Yaratish</Link>
-          <Link to="/kabinet" className="hover:text-ink">Kabinet</Link>
-        </div>
-        <p className="text-xs text-ink/40">© {new Date().getFullYear()} {SITE_NAME} · Toshkent</p>
-      </div>
+      <p className="mx-auto max-w-6xl px-4 py-8 text-center text-sm text-ink/45 sm:px-6">
+        {SITE_NAME} · Toshkent
+      </p>
     </footer>
   );
 }

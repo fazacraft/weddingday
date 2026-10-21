@@ -30,3 +30,12 @@ services:
       # /admin paneliga kira oladigan email'lar (vergul bilan) — dashboard'da kiritiladi
       - key: ADMIN_EMAILS
         sync: false
+      # Nashrni Telegram orqali tasdiqlash — dashboard'da kiritiladi
+      - key: TG_BOT_TOKEN
+        sync: false
+      - key: TG_ADMIN_CHAT_ID
+        sync: false
+      - key: TG_WEBHOOK_SECRET
+        generateValue: true
+      - key: PUBLIC_URL
+        value: https://beluga.uz

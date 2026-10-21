@@ -6,6 +6,7 @@ import { Wish } from '../models/Wish';
 import { Rsvp } from '../models/Rsvp';
 import { AuthedRequest } from '../middleware/auth';
 import { removeInvitation } from '../services/invitations';
+import { decideReview } from '../services/review';
 
 const PAGE_SIZE = 25;
 
@@ -30,14 +31,15 @@ async function countsFor(ids: Types.ObjectId[]) {
 
 export async function stats(_req: AuthedRequest, res: Response, next: NextFunction): Promise<void> {
   try {
-    const [users, invitations, published, wishes, rsvps] = await Promise.all([
+    const [users, invitations, published, pending, wishes, rsvps] = await Promise.all([
       User.countDocuments(),
       Invitation.countDocuments(),
       Invitation.countDocuments({ status: 'published' }),
+      Invitation.countDocuments({ review: 'pending' }),
       Wish.countDocuments(),
       Rsvp.countDocuments(),
     ]);
-    res.json({ users, invitations, published, wishes, rsvps });
+    res.json({ users, invitations, published, pending, wishes, rsvps });
   } catch (err) {
     next(err);
   }
@@ -48,6 +50,7 @@ export async function listInvitations(req: AuthedRequest, res: Response, next: N
     const q = String(req.query.q ?? '').trim();
     const filter: Record<string, unknown> = {};
     if (req.query.status === 'published' || req.query.status === 'draft') filter.status = req.query.status;
+    if (req.query.status === 'pending') filter.review = 'pending';
     if (q) {
       const re = new RegExp(escapeRegex(q), 'i');
       const owners = await User.find({ $or: [{ email: re }, { name: re }] }).select('_id');
@@ -80,6 +83,7 @@ export async function listInvitations(req: AuthedRequest, res: Response, next: N
         slug: inv.slug,
         template: inv.template,
         status: inv.status,
+        review: inv.review,
         groomName: inv.groomName,
         brideName: inv.brideName,
         date: inv.date,
@@ -102,12 +106,32 @@ export async function setInvitationStatus(req: AuthedRequest, res: Response, nex
       res.status(422).json({ error: "Noto'g'ri so'rov" });
       return;
     }
-    const inv = await Invitation.findByIdAndUpdate(req.params.id, { status }, { new: true });
+    // Admin nashr qilsa, bu tasdiq hisoblanadi
+    const update = status === 'published' ? { status, review: 'approved' } : { status };
+    const inv = await Invitation.findByIdAndUpdate(req.params.id, update, { new: true });
     if (!inv) {
       res.status(404).json({ error: 'Taklifnoma topilmadi' });
       return;
     }
-    res.json({ id: String(inv._id), status: inv.status });
+    res.json({ id: String(inv._id), status: inv.status, review: inv.review });
+  } catch (err) {
+    next(err);
+  }
+}
+
+export async function reviewInvitation(req: AuthedRequest, res: Response, next: NextFunction): Promise<void> {
+  try {
+    const decision = (req.body as { decision?: string }).decision;
+    if (decision !== 'approve' && decision !== 'reject') {
+      res.status(422).json({ error: "Noto'g'ri so'rov" });
+      return;
+    }
+    const inv = await decideReview(String(req.params.id), decision);
+    if (!inv) {
+      res.status(404).json({ error: 'Taklifnoma topilmadi' });
+      return;
+    }
+    res.json({ id: String(inv._id), status: inv.status, review: inv.review });
   } catch (err) {
     next(err);
   }

@@ -11,6 +11,8 @@ import { Wish } from '../models/Wish';
 import { Rsvp } from '../models/Rsvp';
 import { AuthedRequest } from '../middleware/auth';
 import { removeInvitation } from '../services/invitations';
+import { applyPublishRequest, notifyApprovalNeeded } from '../services/review';
+import { User, isAdminEmail } from '../models/User';
 
 /** Klientdan qabul qilinadigan maydonlar — owner, openCount kabilarni o'zgartirib bo'lmaydi. */
 const EDITABLE_FIELDS = [
@@ -61,11 +63,26 @@ async function findOwned(req: AuthedRequest, res: Response): Promise<IInvitation
   return inv;
 }
 
+async function requesterIsAdmin(req: AuthedRequest): Promise<boolean> {
+  const user = await User.findById(req.userId).select('email');
+  return Boolean(user && isAdminEmail(user.email));
+}
+
+/**
+ * status=published so'ralsa, tasdiq qoidasini qo'llaydi (status va review'ni
+ * o'zi o'rnatadi). Admin'ga Telegram xabari kerak bo'lsa true qaytaradi.
+ */
+async function handlePublish(req: AuthedRequest, inv: IInvitation, wantsPublish: boolean): Promise<boolean> {
+  if (!wantsPublish) return false;
+  return applyPublishRequest(inv, await requesterIsAdmin(req));
+}
+
 function ownerView(inv: IInvitation, stats?: Record<string, number>) {
   return {
     ...publicInvitation(inv),
     cardNumber: inv.cardNumber,
     cardHolder: inv.cardHolder,
+    review: inv.review,
     openCount: inv.openCount,
     createdAt: inv.createdAt,
     updatedAt: inv.updatedAt,
@@ -147,7 +164,11 @@ export async function createInvitation(req: AuthedRequest, res: Response, next: 
       res.status(409).json({ error: 'Bu manzil band. Boshqasini tanlang.', field: 'slug' });
       return;
     }
-    const inv = await Invitation.create({ ...data, owner: req.userId });
+    const { status, ...rest } = data;
+    const inv = new Invitation({ ...rest, owner: req.userId, status: 'draft' });
+    const notify = await handlePublish(req, inv, status === 'published');
+    await inv.save();
+    if (notify) void notifyApprovalNeeded(inv);
     res.status(201).json(ownerView(inv));
   } catch (err) {
     next(err);
@@ -170,8 +191,12 @@ export async function updateInvitation(req: AuthedRequest, res: Response, next: 
         return;
       }
     }
-    inv.set(data);
+    const { status, ...rest } = data;
+    inv.set(rest);
+    if (status === 'draft') inv.status = 'draft';
+    const notify = await handlePublish(req, inv, status === 'published');
     await inv.save();
+    if (notify) void notifyApprovalNeeded(inv);
     const stats = await statsFor([inv._id]);
     res.json(ownerView(inv, stats.get(String(inv._id))));
   } catch (err) {

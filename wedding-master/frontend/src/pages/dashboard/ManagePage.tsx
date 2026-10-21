@@ -107,7 +107,17 @@ export function ManagePage() {
       <main className="mx-auto max-w-6xl px-4 py-8 sm:px-6">
         <Link to="/kabinet" className="text-sm font-semibold text-ink/50 hover:text-ink">← Barcha taklifnomalar</Link>
 
-        {isNew && (
+        {isNew && inv.status !== "published" && inv.review === "pending" && (
+          <div className="mt-6 rounded-[1.75rem] bg-amber-50 px-6 py-7 text-amber-900 ring-1 ring-amber-200 sm:px-8">
+            <p className="font-display text-3xl font-semibold">⏳ Taklifnoma tasdiqlashga yuborildi</p>
+            <p className="mt-1 text-sm text-amber-900/75">
+              Admin tasdiqlagach havola ishlay boshlaydi: <b className="font-mono">{inviteLabel(inv.slug)}</b>. Bu odatda tez bo'ladi —
+              sahifani keyinroq yangilab ko'ring.
+            </p>
+          </div>
+        )}
+
+        {isNew && inv.status === "published" && (
           <div className="mt-6 overflow-hidden rounded-[1.75rem] bg-rose px-6 py-7 text-ivory sm:px-8">
             <p className="font-display text-3xl font-semibold">🎉 Taklifnomangiz nashr qilindi!</p>
             <p className="mt-1 text-sm text-ivory/80">Havolani nusxalang va mehmonlarga yuboring.</p>
@@ -131,7 +141,7 @@ export function ManagePage() {
               <h1 className="font-display text-4xl font-semibold text-ink">
                 {inv.groomName} & {inv.brideName}
               </h1>
-              <StatusBadge status={inv.status} />
+              <StatusBadge status={inv.status} review={inv.review} />
             </div>
             <p className="mt-1 text-sm text-ink/55">
               {inv.eventTitle} · {formatDate(inv.date)}, {inv.time} · {inv.venueName} · «{TEMPLATES[inv.template]?.name}» shabloni
@@ -142,8 +152,19 @@ export function ManagePage() {
               Ochish ↗
             </a>
             <PLink to={`/kabinet/${inv.id}/tahrirlash`} variant="secondary">Tahrirlash</PLink>
-            <PButton variant={inv.status === "published" ? "secondary" : "primary"} loading={busy} onClick={() => void toggleStatus()}>
-              {inv.status === "published" ? "Nashrdan olish" : "Nashr qilish"}
+            <PButton
+              variant={inv.status === "published" ? "secondary" : "primary"}
+              loading={busy}
+              disabled={inv.status !== "published" && inv.review === "pending"}
+              onClick={() => void toggleStatus()}
+            >
+              {inv.status === "published"
+                ? "Nashrdan olish"
+                : inv.review === "pending"
+                  ? "Tasdiq kutilmoqda"
+                  : inv.review === "approved"
+                    ? "Nashr qilish"
+                    : "Tasdiqlashga yuborish"}
             </PButton>
           </div>
         </div>
@@ -368,7 +389,13 @@ function ShareTab({ inv }: { inv: OwnedInvitation }) {
     <div className="grid gap-6 lg:grid-cols-[1.3fr_1fr]">
       <div className="flex flex-col gap-6">
         {inv.status === "draft" && (
-          <Notice tone="info">Taklifnoma hozir qoralama — mehmonlar havolani ochsa "topilmadi" ko'radi. Avval nashr qiling.</Notice>
+          <Notice tone="info">
+            {inv.review === "pending"
+              ? "Taklifnoma admin tasdig'ini kutyapti — tasdiqlangach mehmonlar havolani ocha oladi."
+              : inv.review === "rejected"
+                ? "Taklifnoma admin tomonidan rad etilgan. Ma'lumotlarni to'g'irlab, qayta tasdiqlashga yuboring."
+                : "Taklifnoma hozir qoralama — mehmonlar havolani ochsa \"topilmadi\" ko'radi. Avval nashr qiling."}
+          </Notice>
         )}
 
         <section className="rounded-3xl border border-ink/10 bg-white p-6">

@@ -3,6 +3,7 @@ import { Invitation, IInvitation, publicInvitation } from '../models/Invitation'
 import { Wish } from '../models/Wish';
 import { Rsvp } from '../models/Rsvp';
 import { AuthedRequest } from '../middleware/auth';
+import { User, isAdminEmail } from '../models/User';
 import { emitWishCreated } from '../socket';
 
 /**
@@ -12,7 +13,12 @@ import { emitWishCreated } from '../socket';
 async function findVisible(req: AuthedRequest, res: Response): Promise<IInvitation | null> {
   const slug = String(req.params.slug ?? '').toLowerCase();
   const inv = await Invitation.findOne({ slug });
-  const visible = inv && (inv.status === 'published' || String(inv.owner) === req.userId);
+  let visible = Boolean(inv && (inv.status === 'published' || String(inv.owner) === req.userId));
+  // Admin tasdiqlashdan oldin qoralamani ko'ra olishi kerak (Telegram'dagi "Ko'rish")
+  if (inv && !visible && req.userId) {
+    const user = await User.findById(req.userId).select('email');
+    visible = Boolean(user && isAdminEmail(user.email));
+  }
   if (!visible) {
     res.status(404).json({ error: 'Taklifnoma topilmadi' });
     return null;

@@ -13,6 +13,14 @@ export const RESERVED_SLUGS = new Set([
   'socket-io', 'static', 'about', 'help', 'yordam', 'narxlar', 'pricing',
 ]);
 
+/**
+ * Nashr qilish uchun admin tasdig'i (Telegram yoki /admin orqali):
+ * none — hali so'ralmagan, pending — kutilmoqda, approved — ruxsat berilgan
+ * (keyin egasi o'zi nashrga qo'yib/olib turishi mumkin), rejected — rad etilgan.
+ */
+export const REVIEW_STATES = ['none', 'pending', 'approved', 'rejected'] as const;
+export type ReviewState = (typeof REVIEW_STATES)[number];
+
 export interface ScheduleItem {
   time: string;
   title: string;
@@ -29,6 +37,7 @@ export interface IInvitation extends Document {
   slug: string;
   template: TemplateKey;
   status: 'draft' | 'published';
+  review: ReviewState;
 
   groomName: string;
   brideName: string;
@@ -65,6 +74,7 @@ const invitationSchema = new Schema<IInvitation>(
     slug: { type: String, required: true, unique: true, lowercase: true, trim: true },
     template: { type: String, enum: TEMPLATE_KEYS, default: 'bog' },
     status: { type: String, enum: ['draft', 'published'], default: 'draft' },
+    review: { type: String, enum: REVIEW_STATES, default: 'none' },
 
     groomName: { type: String, required: true, trim: true },
     brideName: { type: String, required: true, trim: true },

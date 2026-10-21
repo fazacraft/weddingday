@@ -77,7 +77,7 @@ export function DashboardPage() {
                           {formatDate(inv.date)} · {inv.time} · {TEMPLATES[inv.template]?.name}
                         </p>
                       </div>
-                      <StatusBadge status={inv.status} />
+                      <StatusBadge status={inv.status} review={inv.review} />
                     </div>
 
                     <div className="mt-3 flex items-center gap-2 rounded-xl bg-sand/50 py-1.5 pl-3 pr-1.5">

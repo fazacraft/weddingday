@@ -51,7 +51,11 @@ export interface InvitationStats {
   declined: number;
 }
 
+export type ReviewState = "none" | "pending" | "approved" | "rejected";
+
 export interface OwnedInvitation extends PublicInvitation {
+  /** Nashr uchun admin tasdig'i */
+  review?: ReviewState;
   openCount: number;
   createdAt: string;
   updatedAt: string;

@@ -24,7 +24,23 @@ export function daysUntil(date: string): number {
   return Math.round((Date.UTC(y, m - 1, d) - today) / 86_400_000);
 }
 
-export function StatusBadge({ status }: { status: "draft" | "published" }) {
+export function StatusBadge({ status, review }: { status: "draft" | "published"; review?: string }) {
+  if (status !== "published" && review === "pending") {
+    return (
+      <span className="inline-flex shrink-0 items-center gap-1.5 rounded-full bg-amber-50 px-2.5 py-1 text-[11px] font-bold uppercase tracking-wider text-amber-700">
+        <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-amber-500" />
+        Tasdiq kutilmoqda
+      </span>
+    );
+  }
+  if (status !== "published" && review === "rejected") {
+    return (
+      <span className="inline-flex shrink-0 items-center gap-1.5 rounded-full bg-rose/10 px-2.5 py-1 text-[11px] font-bold uppercase tracking-wider text-rose">
+        <span className="h-1.5 w-1.5 rounded-full bg-rose" />
+        Rad etilgan
+      </span>
+    );
+  }
   return status === "published" ? (
     <span className="inline-flex shrink-0 items-center gap-1.5 rounded-full bg-emerald-50 px-2.5 py-1 text-[11px] font-bold uppercase tracking-wider text-emerald-700">
       <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
