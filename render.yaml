@@ -1,10 +1,10 @@
 # Render Blueprint — "Fozilovlar" taklifnoma platformasi (wedding-master/).
 # Dashboard → New → Blueprint → shu repo. MONGODB_URI so'raladi (MongoDB Atlas).
-# Sayt BASE_PATH ostida ochiladi: https://beluga.uz/erbotayev (custom domen),
-# ildiz "/" shu yo'lga yo'naltiriladi.
+# Sayt domen ildizida ishlaydi: https://beluga.uz/<havola> (Render: wedding-we9g.onrender.com).
+# Ichki yo'lda kerak bo'lsa BASE_PATH (masalan /erbotayev) qo'shiladi.
 services:
   - type: web
-    name: fozilovlar
+    name: wedding
     runtime: node
     plan: free
     region: frankfurt
@@ -13,7 +13,7 @@ services:
     # typescript va vite kerak
     buildCommand: npm ci --include=dev && npm run build
     startCommand: npm start
-    healthCheckPath: /erbotayev/health
+    healthCheckPath: /health
     autoDeploy: true
     domains:
       - beluga.uz
@@ -23,9 +23,6 @@ services:
         value: "22"
       - key: NODE_ENV
         value: production
-      # Build (vite base) va server marshrutlari uchun bitta qiymat
-      - key: BASE_PATH
-        value: /erbotayev
       - key: JWT_SECRET
         generateValue: true
       - key: MONGODB_URI

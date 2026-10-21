@@ -7,8 +7,8 @@
 # bo'lsa, sayt ishlamay qolganda va qayta tiklanganda xabar yuboriladi
 # (har tekshiruvda emas — faqat holat o'zgarganda).
 
-URL="${KEEPAWAKE_URL:-https://fozilovlar.onrender.com/erbotayev/health}"
-SITE="https://beluga.uz/erbotayev/"
+URL="${KEEPAWAKE_URL:-https://wedding-we9g.onrender.com/health}"
+SITE="https://beluga.uz/"
 LOG="$HOME/Library/Logs/fozilovlar-keepawake.log"
 STATE="$HOME/Library/Logs/fozilovlar-keepawake.state"
 CONFIG="$HOME/.config/fozilovlar-keepawake.env"
