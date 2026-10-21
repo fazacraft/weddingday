@@ -1,5 +1,5 @@
 import { lazy, type ComponentType, type LazyExoticComponent } from "react";
-import type { TemplateKey } from "../types/invitation";
+import type { InvitationData, TemplateKey } from "../types/invitation";
 import { withBase } from "../lib/base";
 
 export interface TemplateMeta {
@@ -10,6 +10,8 @@ export interface TemplateMeta {
   /** Kartochka va tanlash tugmalari uchun asosiy ranglar */
   palette: [string, string, string];
   defaultMusic: string;
+  /** Namuna sahifasida umumiy demo ma'lumotlar ustidan yoziladigan maydonlar */
+  demo?: Partial<InvitationData>;
   Component: LazyExoticComponent<ComponentType>;
 }
 
@@ -43,6 +45,18 @@ export const TEMPLATES: Record<TemplateKey, TemplateMeta> = {
     palette: ["#fff5f7", "#f2a9b9", "#b84a68"],
     defaultMusic: withBase("/leberch-invitation-wedding-375839.mp3"),
     Component: lazy(() => import("./atirgul/AtirgulTemplate")),
+  },
+  kuz: {
+    key: "kuz",
+    name: "Oltin kuz",
+    tagline: "Kanop ip bilan bog'langan kraft karta va kuz barglari",
+    description:
+      "Mehmon muhrni bosadi — ip yechilib, kraft karta ikki tomonga ochiladi va ichidan barglar uchib chiqadi. Aylanib tushayotgan chinor barglari, gulchambarli oval rasm, chinor bargli kalendar va eman yong'oqli dastur.",
+    palette: ["#fbf4e8", "#e2a23a", "#bb5226"],
+    defaultMusic: withBase("/leberch-invitation-wedding-375839.mp3"),
+    // Kuz shabloni namunasi kuz sanasida ko'rsatiladi ("oltin kuz faslida" belgisi chiqadi)
+    demo: { date: "2027-10-16" },
+    Component: lazy(() => import("./kuz/KuzTemplate")),
   },
 };
 

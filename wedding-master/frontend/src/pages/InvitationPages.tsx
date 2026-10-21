@@ -46,7 +46,7 @@ export function PublicInvitationPage() {
 export function TemplateDemoPage() {
   const { key } = useParams();
   if (!isTemplateKey(key)) return <NotFoundPage message="Bunday shablon yo'q" />;
-  const data: InvitationData = { ...DEMO_INVITATION, template: key };
+  const data: InvitationData = { ...DEMO_INVITATION, ...TEMPLATES[key].demo, template: key };
   return (
     <>
       <InvitationRenderer data={data} mode="demo" basePath={`/shablonlar/${key}`} />

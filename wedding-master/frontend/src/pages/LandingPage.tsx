@@ -139,12 +139,13 @@ export function LandingPage() {
             </p>
           </div>
 
-          <div className="mt-12 grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+          <div className="mt-12 grid gap-6 md:grid-cols-2">
             {TEMPLATE_LIST.map((tpl) => (
               <article key={tpl.key} className="group overflow-hidden rounded-[2rem] border border-ink/10 bg-white">
                 <Link to={`/shablonlar/${tpl.key}`} className="block">
                   <TemplateThumb
                     template={tpl.key}
+                    date={tpl.demo?.date?.split("-").reverse().join(".")}
                     className="h-[340px] w-full transition-transform duration-500 group-hover:scale-[1.02]"
                   />
                 </Link>

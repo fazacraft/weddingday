@@ -14,6 +14,76 @@ interface Props {
  * kartochkalar uchun. Har bir shablonning asosiy "kirish" ko'rinishini eslatadi.
  */
 export function TemplateThumb({ template, groom = "Bekzod", bride = "Dilnoza", date = "12.06.2027", className = "" }: Props) {
+  if (template === "kuz") {
+    const monogram = (
+      <>
+        {(groom.trim()[0] ?? "").toUpperCase()}
+        <span style={{ fontFamily: '"Playfair Display", serif' }} className="mx-px align-[0.15em] text-[0.6em] italic">&amp;</span>
+        {(bride.trim()[0] ?? "").toUpperCase()}
+      </>
+    );
+    return (
+      <div
+        className={`relative overflow-hidden ${className}`}
+        style={{ background: "radial-gradient(circle at 50% 38%, #fff3dc 0%, #f4cf91 34%, #d88a45 68%, #8c3c1c 100%)" }}
+      >
+        {[
+          { pos: "left-[7%] top-[12%] rotate-[25deg]", kind: "maple", color: "#bb5226", size: "h-5 w-5" },
+          { pos: "right-[10%] top-[20%] -rotate-[30deg]", kind: "oak", color: "#8d8a42", size: "h-6 w-4" },
+          { pos: "left-[14%] bottom-[14%] rotate-[60deg]", kind: "oak", color: "#d8792f", size: "h-5 w-3" },
+          { pos: "right-[7%] bottom-[24%] rotate-[10deg]", kind: "maple", color: "#e2a23a", size: "h-4 w-4" },
+        ].map((leaf) => (
+          <svg
+            key={leaf.pos}
+            viewBox={leaf.kind === "maple" ? "0 0 100 100" : "0 0 60 100"}
+            className={`absolute ${leaf.pos} ${leaf.size}`}
+            aria-hidden="true"
+          >
+            <path
+              fill={leaf.color}
+              d={
+                leaf.kind === "maple"
+                  ? "M50 2 L56 14 L61 12 L58 34 L67 29 L72 23 L76 28 L93 21 L85 36 L91 40 L80 48 L64 52 L77 60 L88 63 L79 69 L69 70 L53 66 L52 97 L48 97 L47 66 L31 70 L21 69 L12 63 L23 60 L36 52 L20 48 L9 40 L15 36 L7 21 L24 28 L28 23 L33 29 L42 34 L39 12 L44 14 Z"
+                  : "M30 98 L30 86 C24 86 20 82 22 77 C14 78 10 72 14 67 C6 66 4 58 11 54 C4 50 4 42 12 40 C6 34 8 26 16 26 C14 18 20 12 26 14 C26 8 28 4 30 2 C32 4 34 8 34 14 C40 12 46 18 44 26 C52 26 54 34 48 40 C56 42 56 50 49 54 C56 58 54 66 46 67 C50 72 46 78 38 77 C40 82 36 86 30 86 Z"
+              }
+            />
+          </svg>
+        ))}
+        <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 px-5">
+          <span className="text-[9px] font-semibold uppercase tracking-[0.3em] text-[#7a2a1a]/70">To'y taklifnomasi</span>
+          <div className="relative h-[66%] aspect-[3/4] shadow-[0_18px_40px_-12px_rgba(80,25,8,0.6)]">
+            {["left-0 rounded-l-[6px]", "right-0 rounded-r-[6px]"].map((side) => (
+              <div
+                key={side}
+                className={`absolute inset-y-0 w-1/2 ${side}`}
+                style={{ background: "linear-gradient(165deg,#e9cb98 0%,#dbb47a 55%,#cfa266 100%)" }}
+              />
+            ))}
+            <div className="absolute inset-x-[16%] bottom-1/2 rounded-[4px] bg-[#fffaf0] px-1 pb-2 pt-1.5 text-center shadow-[0_6px_14px_-6px_rgba(70,30,10,0.6)] -rotate-2">
+              <span style={{ fontFamily: '"Pinyon Script", cursive' }} className="block text-[13px] leading-tight text-[#bb5226]">
+                {groom} <span style={{ fontFamily: '"Playfair Display", serif' }} className="text-[0.75em] italic text-[#e2a23a]">&amp;</span> {bride}
+              </span>
+            </div>
+            <span
+              className="absolute inset-x-0 top-[60%] h-[3px] -translate-y-1/2"
+              style={{ background: "repeating-linear-gradient(-55deg,#a98250 0 2px,#7f5b30 2px 4px)" }}
+            />
+            <span
+              className="absolute left-1/2 top-[60%] grid h-10 w-10 -translate-x-1/2 -translate-y-1/2 place-items-center rounded-full text-[12px] text-[#fff3e2]"
+              style={{
+                background: "radial-gradient(circle at 35% 30%,#d66b3d,#a63b1d 58%,#6c2210 100%)",
+                fontFamily: '"Pinyon Script", cursive',
+              }}
+            >
+              {monogram}
+            </span>
+          </div>
+          <p className="text-[10px] font-semibold uppercase tracking-[0.3em] text-[#fff3e2]/90">{date}</p>
+        </div>
+      </div>
+    );
+  }
+
   if (template === "atirgul") {
     const monogram = `${groom.trim()[0] ?? ""}&${bride.trim()[0] ?? ""}`.toUpperCase();
     return (
