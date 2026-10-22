@@ -7,7 +7,7 @@
 # bo'lsa, sayt ishlamay qolganda va qayta tiklanganda xabar yuboriladi
 # (har tekshiruvda emas — faqat holat o'zgarganda).
 
-URL="${KEEPAWAKE_URL:-https://wedding-we9g.onrender.com/health}"
+URL="${KEEPAWAKE_URL:-https://beluga.uz/health}"
 SITE="https://beluga.uz/"
 LOG="$HOME/Library/Logs/fozilovlar-keepawake.log"
 STATE="$HOME/Library/Logs/fozilovlar-keepawake.state"
