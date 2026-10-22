@@ -9,8 +9,12 @@ import {
   deleteUser,
 } from '../controllers/adminController';
 import { requireAdmin } from '../middleware/auth';
+import { adminLogin } from '../controllers/adminAuthController';
 
 const router = Router();
+
+// Login himoyadan oldin — qolgan hamma admin marshrutlari token talab qiladi
+router.post('/login', adminLogin);
 
 router.use(requireAdmin);
 

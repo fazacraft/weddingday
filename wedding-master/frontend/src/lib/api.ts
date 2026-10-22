@@ -39,10 +39,11 @@ export function mediaUrl(path: string): string {
 
 export async function api<T>(
   path: string,
-  options: { method?: string; body?: unknown } = {}
+  /** token: berilsa foydalanuvchi tokeni o'rniga ishlatiladi ("" — tokensiz) */
+  options: { method?: string; body?: unknown; token?: string } = {}
 ): Promise<T> {
   const headers: Record<string, string> = {};
-  const token = getToken();
+  const token = options.token !== undefined ? options.token : getToken();
   if (token) headers.Authorization = `Bearer ${token}`;
   if (options.body !== undefined) headers["Content-Type"] = "application/json";
 

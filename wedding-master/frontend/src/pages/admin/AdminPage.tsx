@@ -1,6 +1,7 @@
 import { FormEvent, useCallback, useEffect, useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
-import { api, ApiError } from "../../lib/api";
+import { ApiError } from "../../lib/api";
+import { adminApi } from "../../lib/adminAuth";
 import { withBase } from "../../lib/base";
 import { TEMPLATES } from "../../templates/registry";
 import type { TemplateKey } from "../../types/invitation";
@@ -52,13 +53,13 @@ interface Paged<T> {
 
 type Tab = "taklifnomalar" | "foydalanuvchilar";
 
-export function AdminPage() {
+export function AdminPage({ onLogout }: { onLogout?: () => void } = {}) {
   const [params, setParams] = useSearchParams();
   const tab: Tab = params.get("tab") === "foydalanuvchilar" ? "foydalanuvchilar" : "taklifnomalar";
   const [stats, setStats] = useState<AdminStats | null>(null);
 
   const loadStats = useCallback(() => {
-    api<AdminStats>("/admin/stats").then(setStats).catch(() => setStats(null));
+    adminApi<AdminStats>("/admin/stats").then(setStats).catch(() => setStats(null));
   }, []);
   useEffect(loadStats, [loadStats]);
 
@@ -72,8 +73,17 @@ export function AdminPage() {
     <div className="min-h-screen bg-ivory">
       <SiteHeader />
       <main className="mx-auto max-w-6xl px-4 py-10 sm:px-6">
-        <Eyebrow>Admin</Eyebrow>
-        <h1 className="mt-2 font-display text-4xl font-semibold text-ink sm:text-5xl">Boshqaruv paneli</h1>
+        <div className="flex items-start justify-between gap-4">
+          <div>
+            <Eyebrow>Admin</Eyebrow>
+            <h1 className="mt-2 font-display text-4xl font-semibold text-ink sm:text-5xl">Boshqaruv paneli</h1>
+          </div>
+          {onLogout && (
+            <PButton variant="secondary" size="sm" onClick={onLogout}>
+              Admin paneldan chiqish
+            </PButton>
+          )}
+        </div>
 
         <div className="mt-8 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6">
           {[
@@ -124,7 +134,7 @@ function useAdminList<T>(path: string, query: Record<string, string>) {
 
   const load = useCallback(() => {
     setError(null);
-    api<Paged<T>>(`${path}${qs ? `?${qs}` : ""}`)
+    adminApi<Paged<T>>(`${path}${qs ? `?${qs}` : ""}`)
       .then(setData)
       .catch((err) => setError(err instanceof ApiError ? err.message : "Yuklab bo'lmadi"));
   }, [path, qs]);
@@ -192,11 +202,11 @@ function InvitationsTab({ ownerFilter, onChange }: { ownerFilter: string | null;
     setActionError(null);
     try {
       if (kind === "delete") {
-        await api(`/admin/invitations/${inv.id}`, { method: "DELETE" });
+        await adminApi(`/admin/invitations/${inv.id}`, { method: "DELETE" });
       } else if (kind === "approve" || kind === "reject") {
-        await api(`/admin/invitations/${inv.id}/review`, { method: "POST", body: { decision: kind } });
+        await adminApi(`/admin/invitations/${inv.id}/review`, { method: "POST", body: { decision: kind } });
       } else {
-        await api(`/admin/invitations/${inv.id}`, {
+        await adminApi(`/admin/invitations/${inv.id}`, {
           method: "PATCH",
           body: { status: inv.status === "published" ? "draft" : "published" },
         });
@@ -360,7 +370,7 @@ function UsersTab({ onChange }: { onChange: () => void }) {
     setBusyId(user.id);
     setActionError(null);
     try {
-      await api(`/admin/users/${user.id}`, { method: "DELETE" });
+      await adminApi(`/admin/users/${user.id}`, { method: "DELETE" });
       reload();
       onChange();
     } catch (err) {

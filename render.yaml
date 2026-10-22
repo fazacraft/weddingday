@@ -30,6 +30,11 @@ services:
       # /admin paneliga kira oladigan email'lar (vergul bilan) — dashboard'da kiritiladi
       - key: ADMIN_EMAILS
         sync: false
+      # /admin panelining alohida login/paroli — dashboard'da kiritiladi (repo ochiq)
+      - key: ADMIN_USERNAME
+        sync: false
+      - key: ADMIN_PASSWORD
+        sync: false
       # Nashrni Telegram orqali tasdiqlash — dashboard'da kiritiladi
       - key: TG_BOT_TOKEN
         sync: false
