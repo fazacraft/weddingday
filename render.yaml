@@ -41,3 +41,8 @@ services:
         generateValue: true
       - key: PUBLIC_URL
         value: https://beluga.uz
+      # To'lov: karta raqami botda ko'rsatiladi, chek shu kontaktga ham yuborilishi mumkin
+      - key: PAYMENT_CARD
+        sync: false
+      - key: PAYMENT_CONTACT
+        value: belugadotenv

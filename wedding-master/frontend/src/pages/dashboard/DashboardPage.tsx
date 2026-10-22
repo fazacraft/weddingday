@@ -87,7 +87,7 @@ export function DashboardPage() {
                       </div>
                     ) : (
                       <p className="mt-3 rounded-xl bg-sand/50 px-3 py-2.5 text-xs text-ink/55">
-                        Havola admin tasdiqlagach ko'rinadi
+                        Havola to'lov tasdiqlangach ko'rinadi
                       </p>
                     )}
 

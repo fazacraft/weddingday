@@ -2,7 +2,7 @@ import { isValidObjectId } from 'mongoose';
 import { Invitation, IInvitation } from '../models/Invitation';
 import { User } from '../models/User';
 import { TEMPLATE_NAMES } from './templateNames';
-import { sendApprovalRequest, sendToChat, escapeHtml, publicLink } from './telegram';
+import { sendApprovalRequest, sendToChat, escapeHtml, publicLink, type ApprovalKind } from './telegram';
 
 /**
  * Egasi taklifnomani nashr qilmoqchi bo'lganda chaqiriladi (saqlashdan oldin).
@@ -26,7 +26,7 @@ export function applyPublishRequest(inv: IInvitation, isAdmin: boolean): boolean
   return !alreadyPending;
 }
 
-export async function notifyApprovalNeeded(inv: IInvitation, reminder = false): Promise<void> {
+export async function notifyApprovalNeeded(inv: IInvitation, kind: ApprovalKind = 'new'): Promise<void> {
   const owner = await User.findById(inv.owner).select('name email');
   await sendApprovalRequest({
     id: String(inv._id),
@@ -40,7 +40,7 @@ export async function notifyApprovalNeeded(inv: IInvitation, reminder = false): 
     template: TEMPLATE_NAMES[inv.template] ?? inv.template,
     ownerName: owner?.name ?? '—',
     ownerEmail: owner?.email ?? '—',
-  }, reminder);
+  }, kind);
 }
 
 /** Admin qarori: tasdiqlash → nashr, rad etish → qoralama. Topilmasa null. */

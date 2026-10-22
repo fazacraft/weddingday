@@ -6,8 +6,19 @@
  * Sozlanmagan bo'lsa, tasdiqlash faqat /admin panelida qilinadi.
  */
 const TOKEN = process.env.TG_BOT_TOKEN ?? '';
+/** Sinov uchun almashtirish mumkin (lokal soxta Telegram server) */
+const API_BASE = (process.env.TG_API_BASE ?? 'https://api.telegram.org').replace(/\/+$/, '');
 export const ADMIN_CHAT_ID = process.env.TG_ADMIN_CHAT_ID ?? '';
 const PUBLIC_URL = (process.env.PUBLIC_URL ?? '').replace(/\/+$/, '');
+
+/** To'lov: karta raqami botda ko'rsatiladi, chek botga yoki shu kontaktga yuboriladi. */
+export const PAYMENT_CARD = (process.env.PAYMENT_CARD ?? '9860160141174617').replace(/\s/g, '');
+export const PAYMENT_CONTACT = (process.env.PAYMENT_CONTACT ?? 'belugadotenv').replace(/^@/, '');
+
+/** "9860160141174617" → "9860 1601 4117 4617" */
+export function formattedCard(): string {
+  return PAYMENT_CARD.replace(/(\d{4})(?=\d)/g, '$1 ');
+}
 
 export function telegramEnabled(): boolean {
   return Boolean(TOKEN && ADMIN_CHAT_ID);
@@ -16,7 +27,7 @@ export function telegramEnabled(): boolean {
 async function call(method: string, body: Record<string, unknown>): Promise<void> {
   if (!TOKEN) return;
   try {
-    const res = await fetch(`https://api.telegram.org/bot${TOKEN}/${method}`, {
+    const res = await fetch(`${API_BASE}/bot${TOKEN}/${method}`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(body),
@@ -46,11 +57,10 @@ export interface ApprovalInfo {
   ownerEmail: string;
 }
 
-export function approvalText(info: ApprovalInfo): string {
+export function approvalText(info: ApprovalInfo, withHeader = true): string {
   const [y, m, d] = info.date.split('-');
   return [
-    '🆕 <b>Yangi taklifnoma tasdiqlashni kutyapti</b>',
-    '',
+    ...(withHeader ? ['🆕 <b>Yangi taklifnoma — to\'lov va tasdiq kutilmoqda</b>', ''] : []),
     `💍 <b>${escapeHtml(info.groomName)} &amp; ${escapeHtml(info.brideName)}</b> — ${escapeHtml(info.eventTitle)}`,
     `📅 ${d}.${m}.${y}, ${escapeHtml(info.time)} · ${escapeHtml(info.venueName)}`,
     `🔗 ${escapeHtml(PUBLIC_URL ? `${PUBLIC_URL}/${info.slug}` : `/${info.slug}`)}`,
@@ -72,7 +82,14 @@ export async function forwardToAdmin(fromChatId: number, messageId: number): Pro
   await call('forwardMessage', { chat_id: ADMIN_CHAT_ID, from_chat_id: fromChatId, message_id: messageId });
 }
 
-export async function sendApprovalRequest(info: ApprovalInfo, reminder = false): Promise<void> {
+export type ApprovalKind = 'new' | 'reminder' | 'receipt';
+
+const APPROVAL_HEADERS: Record<Exclude<ApprovalKind, 'new'>, string> = {
+  reminder: '⏰ <b>Foydalanuvchi botga kirdi — to\'lov kutilmoqda</b>',
+  receipt: '🧾 <b>To\'lov cheki keldi (yuqoridagi xabar)</b>',
+};
+
+export async function sendApprovalRequest(info: ApprovalInfo, kind: ApprovalKind = 'new'): Promise<void> {
   if (!telegramEnabled()) return;
   const keyboard: { text: string; callback_data?: string; url?: string }[][] = [
     [
@@ -86,9 +103,7 @@ export async function sendApprovalRequest(info: ApprovalInfo, reminder = false):
   }
   await call('sendMessage', {
     chat_id: ADMIN_CHAT_ID,
-    text: reminder
-      ? `⏰ <b>Foydalanuvchi botga yozdi — hali tasdiqlanmagan</b>\n\n${approvalText(info)}`
-      : approvalText(info),
+    text: kind === 'new' ? approvalText(info) : `${APPROVAL_HEADERS[kind]}\n\n${approvalText(info, false)}`,
     parse_mode: 'HTML',
     disable_web_page_preview: true,
     reply_markup: { inline_keyboard: keyboard },

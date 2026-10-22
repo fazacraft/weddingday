@@ -27,6 +27,7 @@ export function SiteHeader() {
   const nav = [
     { href: withBase("/#shablonlar"), label: "Shablonlar" },
     { href: withBase("/#qanday"), label: "Qanday ishlaydi" },
+    { href: withBase("/#tolov"), label: "To'lov" },
     { href: withBase("/#savollar"), label: "Savollar" },
   ];
 

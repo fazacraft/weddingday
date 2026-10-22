@@ -334,12 +334,12 @@ export function BuilderPage({ mode }: Props) {
             {mode === "create" && step === LAST && !user && (
               <Notice tone="info">
                 Nashr qilish uchun email bilan kirish kerak bo'ladi. Qoralamangiz saqlanib qoladi. Nashrdan so'ng
-                taklifnoma admin tasdig'iga yuboriladi.
+                to'lov Telegram bot orqali qilinadi.
               </Notice>
             )}
             {mode === "create" && step === LAST && user && !user.isAdmin && (
               <Notice tone="info">
-                Nashr qilgach, taklifnoma admin tasdig'iga yuboriladi — tasdiqlanishi bilan havola mehmonlar uchun ochiladi.
+                Nashr qilgach, to'lov Telegram bot orqali qilinadi: karta raqami botda chiqadi, chekni yuborasiz — tasdiqlangach havola mehmonlar uchun ochiladi.
               </Notice>
             )}
             {mode === "edit" && saved && <Notice tone="success">O'zgarishlar saqlandi — mehmonlar darhol yangisini ko'radi.</Notice>}

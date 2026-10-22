@@ -5,14 +5,14 @@ import { PhoneFrame } from "../platform/PhoneFrame";
 import { TemplateThumb } from "../platform/TemplateThumb";
 import { Eyebrow, PLink } from "../platform/ui";
 import { TEMPLATE_LIST } from "../templates/registry";
-import { SITE_DOMAIN, SITE_NAME } from "../lib/site";
+import { PAYMENT_CONTACT, SITE_DOMAIN, SITE_NAME, SUPPORT_BOT } from "../lib/site";
 import { withBase } from "../lib/base";
 
 const STEPS = [
-  { n: "01", title: "Shablonni tanlang", text: "Bog' yoki Anor — ikkalasini ham oldindan jonli ko'rib chiqing." },
+  { n: "01", title: "Shablonni tanlang", text: "Har bir shablonni oldindan mehmon ko'zi bilan jonli ko'rib chiqing." },
   { n: "02", title: "Ma'lumotlarni kiriting", text: "Ismlar, sana, to'yxona, dastur, rasm va musiqa. Hammasi o'ng tomonda jonli ko'rinadi." },
-  { n: "03", title: "Havolangizni oling", text: `${SITE_DOMAIN}/sizning-ismingiz — qisqa, chiroyli va faqat sizniki.` },
-  { n: "04", title: "Mehmonlarga yuboring", text: "Telegram, Instagram yoki QR kod orqali. Javoblar va tilaklar kabinetingizga tushadi." },
+  { n: "03", title: "To'lovni qiling", text: "Telegram botimizda karta raqami chiqadi. To'lov chekini yuborasiz — taklifnoma faollashtiriladi." },
+  { n: "04", title: "Havolani yuboring", text: `${SITE_DOMAIN}/sizning-ismingiz — Telegram, Instagram yoki QR kod orqali mehmonlarga.` },
 ];
 
 const FEATURES = [
@@ -26,8 +26,12 @@ const FEATURES = [
 
 const FAQ = [
   {
-    q: "Bu pullikmi?",
-    a: "Yo'q. Taklifnoma yaratish, havola olish, tilaklar va javoblarni yig'ish bepul.",
+    q: "To'lov qanday qilinadi?",
+    a: `Taklifnomani to'ldirib "Nashr qilish"ni bosgach, @${SUPPORT_BOT} Telegram botiga yo'naltirilasiz. Botda karta raqami chiqadi. To'lovdan so'ng chekni (skrinshot) botga yoki @${PAYMENT_CONTACT} ga yuborish majburiy — chek tekshirilgach havolangiz faollashtiriladi.`,
+  },
+  {
+    q: "To'lovdan oldin ko'rib chiqsa bo'ladimi?",
+    a: "Ha. Shablonlarni va o'z taklifnomangizni yaratish jarayonida jonli ko'rasiz. Mehmonlarga ochiladigan havola esa to'lov tasdiqlangach ishlaydi.",
   },
   {
     q: "Havolani keyin o'zgartirsa bo'ladimi?",
@@ -66,7 +70,7 @@ export function LandingPage() {
             </p>
             <div className="mt-8 flex flex-col gap-3 sm:flex-row">
               <PLink to="/yaratish" size="lg">
-                Bepul yaratish
+                Taklifnoma yaratish
                 <span aria-hidden="true">→</span>
               </PLink>
               <a href="#shablonlar" className="inline-flex h-14 items-center justify-center rounded-full px-7 text-base font-semibold text-ink/70 hover:text-ink">
@@ -195,6 +199,37 @@ export function LandingPage() {
       </section>
 
       {/* ── Savollar ── */}
+      {/* ── To'lov ── */}
+      <section id="tolov" className="scroll-mt-20 px-4 pt-20 sm:px-6">
+        <div className="mx-auto grid max-w-6xl items-center gap-8 rounded-[2rem] border border-ink/10 bg-white p-7 sm:p-10 lg:grid-cols-[1.2fr_1fr]">
+          <div>
+            <Eyebrow>To'lov</Eyebrow>
+            <h2 className="mt-3 font-display text-4xl font-semibold leading-tight text-ink sm:text-5xl">
+              To'lov Telegram bot orqali
+            </h2>
+            <ol className="mt-6 flex flex-col gap-3 text-[15px] leading-relaxed text-ink/70">
+              <li><b className="text-ink">1.</b> Taklifnomani to'ldirib, "Nashr qilish"ni bosing.</li>
+              <li><b className="text-ink">2.</b> <b className="text-ink">@{SUPPORT_BOT}</b> botini oching — u yerda karta raqami chiqadi.</li>
+              <li><b className="text-ink">3.</b> To'lov chekini botga yoki <b className="text-ink">@{PAYMENT_CONTACT}</b> ga yuboring — <b className="text-ink">bu majburiy</b>.</li>
+              <li><b className="text-ink">4.</b> Chek tekshirilgach taklifnoma faollashtiriladi va havola botda ham keladi.</li>
+            </ol>
+          </div>
+          <div className="flex flex-col items-start gap-3 rounded-3xl bg-sand/50 p-6 lg:items-center lg:text-center">
+            <span className="grid h-14 w-14 place-items-center rounded-2xl bg-[#229ED9] text-2xl text-white">✈</span>
+            <p className="font-display text-2xl font-semibold text-ink">@{SUPPORT_BOT}</p>
+            <p className="text-sm text-ink/55">To'lov, chek va savollar uchun</p>
+            <a
+              href={`https://t.me/${SUPPORT_BOT}`}
+              target="_blank"
+              rel="noreferrer"
+              className="mt-2 inline-flex h-12 items-center rounded-full bg-[#229ED9] px-6 text-sm font-semibold text-white hover:opacity-90"
+            >
+              Telegram botni ochish
+            </a>
+          </div>
+        </div>
+      </section>
+
       <section id="savollar" className="scroll-mt-20">
         <div className="mx-auto grid max-w-6xl gap-10 px-4 py-20 sm:px-6 lg:grid-cols-[0.8fr_1.2fr]">
           <div>

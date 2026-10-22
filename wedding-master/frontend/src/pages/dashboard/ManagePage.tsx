@@ -2,7 +2,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { Link, useNavigate, useParams, useSearchParams } from "react-router-dom";
 import { QRCodeCanvas } from "qrcode.react";
 import { api, ApiError } from "../../lib/api";
-import { inviteLabel, inviteUrl } from "../../lib/site";
+import { PAYMENT_CONTACT, SUPPORT_BOT, inviteLabel, inviteUrl } from "../../lib/site";
 import type { OwnedInvitation, Rsvp, Wish } from "../../types/invitation";
 import { TEMPLATES } from "../../templates/registry";
 import { SiteHeader } from "../../platform/SiteChrome";
@@ -172,10 +172,10 @@ export function ManagePage() {
               {inv.status === "published"
                 ? "Nashrdan olish"
                 : inv.review === "pending"
-                  ? "Tasdiq kutilmoqda"
+                  ? "To'lov kutilmoqda"
                   : inv.review === "approved"
                     ? "Nashr qilish"
-                    : "Tasdiqlashga yuborish"}
+                    : "Faollashtirish"}
             </PButton>
           </div>
         </div>
@@ -382,7 +382,7 @@ function WishesTab({ inv, onChange }: { inv: OwnedInvitation; onChange: () => vo
 
 const REMIND_AFTER_MS = 5 * 60_000;
 
-/** Tasdiq kutilmoqda / rad etildi. 5 daqiqadan keyin botga yozishni taklif qiladi. */
+/** To'lov kutilmoqda (bot orqali to'lov va chek) yoki rad etildi. */
 function ReviewBanner({ inv }: { inv: OwnedInvitation }) {
   const [now, setNow] = useState(() => Date.now());
   useEffect(() => {
@@ -400,7 +400,7 @@ function ReviewBanner({ inv }: { inv: OwnedInvitation }) {
       <div className="mt-6 rounded-[1.75rem] bg-rose/5 px-6 py-7 text-ink ring-1 ring-rose/20 sm:px-8">
         <p className="font-display text-3xl font-semibold text-rose">Taklifnoma rad etildi</p>
         <p className="mt-1 text-sm text-ink/65">
-          Ma'lumotlarni tekshirib, "Tasdiqlashga yuborish" tugmasi bilan qayta yuboring. Savol bo'lsa, botga yozing.
+          Ma'lumotlarni tekshirib, "Faollashtirish" tugmasi bilan qayta yuboring. Savol bo'lsa, botga yozing.
         </p>
         {botUrl && (
           <a href={botUrl} target="_blank" rel="noreferrer" className="mt-4 inline-flex h-11 items-center gap-2 rounded-full bg-[#229ED9] px-5 text-sm font-semibold text-white hover:opacity-90">
@@ -411,27 +411,46 @@ function ReviewBanner({ inv }: { inv: OwnedInvitation }) {
     );
   }
 
+  const fallbackBot = `https://t.me/${SUPPORT_BOT}?start=${inv.id}`;
   return (
     <div className="mt-6 rounded-[1.75rem] bg-amber-50 px-6 py-7 text-amber-900 ring-1 ring-amber-200 sm:px-8">
-      <p className="font-display text-3xl font-semibold">⏳ Taklifnoma tasdiqlashga yuborildi</p>
+      <p className="font-display text-3xl font-semibold">💳 Faollashtirish uchun to'lov qiling</p>
       <p className="mt-1 text-sm text-amber-900/75">
-        Admin tasdiqlashi bilan havolangiz shu yerda paydo bo'ladi — sahifani yangilash shart emas.
-        {waitedMin > 0 && ` Kutilmoqda: ${waitedMin} daqiqa.`}
+        Taklifnomangiz tayyor. Havola to'lov tasdiqlangach ishlaydi va shu yerda o'zi paydo bo'ladi — sahifani yangilash
+        shart emas.
       </p>
+      <ol className="mt-4 flex flex-col gap-1.5 text-sm text-amber-900/85">
+        <li><b>1.</b> Pastdagi tugma bilan Telegram botimizni oching — u yerda karta raqami chiqadi.</li>
+        <li><b>2.</b> To'lovni amalga oshiring.</li>
+        <li>
+          <b>3.</b> To'lov chekini (skrinshot) botga yoki <b>@{PAYMENT_CONTACT}</b> ga yuboring —{" "}
+          <b>chek yuborish majburiy</b>.
+        </li>
+      </ol>
+      <div className="mt-5 flex flex-wrap items-center gap-3">
+        <a
+          href={botUrl ?? fallbackBot}
+          target="_blank"
+          rel="noreferrer"
+          className="inline-flex h-11 items-center gap-2 rounded-full bg-[#229ED9] px-5 text-sm font-semibold text-white hover:opacity-90"
+        >
+          Telegram botni ochish
+        </a>
+        <a
+          href={`https://t.me/${PAYMENT_CONTACT}`}
+          target="_blank"
+          rel="noreferrer"
+          className="inline-flex h-11 items-center rounded-full px-4 text-sm font-semibold text-amber-900/70 ring-1 ring-amber-300 hover:text-amber-900"
+        >
+          @{PAYMENT_CONTACT}
+        </a>
+        {waitedMin > 0 && <span className="text-xs text-amber-900/60">Kutilmoqda: {waitedMin} daqiqa</span>}
+      </div>
       {late && (
-        <div className="mt-4 rounded-2xl bg-white/70 p-4 ring-1 ring-amber-200">
-          <p className="text-sm font-semibold text-amber-900">5 daqiqadan beri javob yo'q.</p>
-          <p className="mt-0.5 text-sm text-amber-900/75">
-            Iltimos, Telegram botimizga murojaat qiling — admin'ga eslatma boradi va tasdiqlangach havolani botda ham olasiz.
-          </p>
-          {botUrl ? (
-            <a href={botUrl} target="_blank" rel="noreferrer" className="mt-3 inline-flex h-11 items-center gap-2 rounded-full bg-[#229ED9] px-5 text-sm font-semibold text-white hover:opacity-90">
-              Telegram botga yozish
-            </a>
-          ) : (
-            <p className="mt-2 text-xs text-amber-900/60">Bot hozircha sozlanmagan — admin bilan bog'laning.</p>
-          )}
-        </div>
+        <p className="mt-4 rounded-2xl bg-white/70 p-4 text-sm text-amber-900/80 ring-1 ring-amber-200">
+          Chekni yuborganingizga 5 daqiqadan oshgan bo'lsa, botga yana yozing yoki <b>@{PAYMENT_CONTACT}</b> ga murojaat
+          qiling.
+        </p>
       )}
     </div>
   );
@@ -457,7 +476,7 @@ function ShareTab({ inv }: { inv: OwnedInvitation }) {
     return (
       <Notice tone="info">
         {inv.review === "pending"
-          ? "Havola, ulashish tugmalari va QR kod admin tasdiqlagach shu yerda paydo bo'ladi."
+          ? "Havola, ulashish tugmalari va QR kod to'lov tasdiqlangach shu yerda paydo bo'ladi."
           : inv.review === "rejected"
             ? "Taklifnoma rad etilgan. Ma'lumotlarni to'g'irlab, qayta tasdiqlashga yuboring."
             : "Havola olish uchun avval taklifnomani tasdiqlashga yuboring."}
@@ -471,7 +490,7 @@ function ShareTab({ inv }: { inv: OwnedInvitation }) {
         {inv.status === "draft" && (
           <Notice tone="info">
             {inv.review === "pending"
-              ? "Taklifnoma admin tasdig'ini kutyapti — tasdiqlangach mehmonlar havolani ocha oladi."
+              ? "Taklifnoma to'lov tasdig'ini kutyapti — tasdiqlangach mehmonlar havolani ocha oladi."
               : inv.review === "rejected"
                 ? "Taklifnoma admin tomonidan rad etilgan. Ma'lumotlarni to'g'irlab, qayta tasdiqlashga yuboring."
                 : "Taklifnoma hozir qoralama — mehmonlar havolani ochsa \"topilmadi\" ko'radi. Avval nashr qiling."}
