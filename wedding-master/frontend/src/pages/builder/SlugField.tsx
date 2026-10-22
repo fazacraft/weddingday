@@ -74,7 +74,7 @@ export function SlugField({ value, onChange, exceptId, onStatus, serverError }: 
           value={value}
           onChange={(e) => onChange(e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, "-").replace(/-{2,}/g, "-"))}
           className="h-full min-w-0 flex-1 bg-transparent px-3 font-mono text-[15px] font-semibold text-ink focus:outline-none"
-          placeholder="dilnoza-bekzod"
+          placeholder="mirodil-jasmina"
           maxLength={60}
           spellCheck={false}
           autoCapitalize="off"

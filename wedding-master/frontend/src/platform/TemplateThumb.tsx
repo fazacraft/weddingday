@@ -13,7 +13,7 @@ interface Props {
  * Shablonning yengil miniatyurasi (iframe'siz) — landing, wizard va kabinetdagi
  * kartochkalar uchun. Har bir shablonning asosiy "kirish" ko'rinishini eslatadi.
  */
-export function TemplateThumb({ template, groom = "Bekzod", bride = "Dilnoza", date = "12.06.2027", className = "" }: Props) {
+export function TemplateThumb({ template, groom = "Mirodil", bride = "Jasmina", date = "12.06.2027", className = "" }: Props) {
   if (template === "kuz") {
     const monogram = (
       <>

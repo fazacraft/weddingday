@@ -43,7 +43,7 @@ const FAQ = [
   },
   {
     q: "Mehmon ismini qanday qo'shaman?",
-    a: `Havolaning oxiriga ?name= va ismni qo'shing: ${SITE_DOMAIN}/dilnoza-bekzod?name=Akmal aka.`,
+    a: `Havolaning oxiriga ?name= va ismni qo'shing: ${SITE_DOMAIN}/mirodil-jasmina?name=Akmal aka.`,
   },
 ];
 
@@ -81,7 +81,7 @@ export function LandingPage() {
             <div className="mt-10 inline-flex items-center gap-3 rounded-full border border-ink/10 bg-white py-2 pl-2 pr-5 shadow-sm">
               <span className="grid h-8 w-8 place-items-center rounded-full bg-sand text-sm">🔗</span>
               <span className="font-mono text-[13px] text-ink/50 sm:text-sm">
-                {SITE_DOMAIN}/<span className="font-semibold text-ink">dilnoza-bekzod</span>
+                {SITE_DOMAIN}/<span className="font-semibold text-ink">mirodil-jasmina</span>
               </span>
             </div>
           </div>

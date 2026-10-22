@@ -18,8 +18,8 @@ export function NamesStep({ data, update }: StepProps) {
   return (
     <div className="flex flex-col gap-5">
       <div className="grid gap-4 sm:grid-cols-2">
-        <Field label="Kuyov ismi" placeholder="Bekzod" value={data.groomName} onChange={(e) => update({ groomName: e.target.value })} autoFocus />
-        <Field label="Kelin ismi" placeholder="Dilnoza" value={data.brideName} onChange={(e) => update({ brideName: e.target.value })} />
+        <Field label="Kuyov ismi" placeholder="Mirodil" value={data.groomName} onChange={(e) => update({ groomName: e.target.value })} autoFocus />
+        <Field label="Kelin ismi" placeholder="Jasmina" value={data.brideName} onChange={(e) => update({ brideName: e.target.value })} />
       </div>
 
       <div className="flex flex-col gap-2">
@@ -301,7 +301,7 @@ export function PublishStep({ data, update, exceptId, onSlugStatus, slugError }:
             />
             <Field
               label="Karta egasi"
-              placeholder="BEKZOD RAHMONOV"
+              placeholder="MIRODIL RAHMONOV"
               value={data.cardHolder}
               onChange={(e) => update({ cardHolder: e.target.value.toUpperCase() })}
             />

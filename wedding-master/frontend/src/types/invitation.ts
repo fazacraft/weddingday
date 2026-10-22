@@ -110,9 +110,9 @@ export const EMPTY_INVITATION: InvitationData = {
 /** Shablon demolari va bo'sh wizard ko'rinishi uchun namunaviy ma'lumot. */
 export const DEMO_INVITATION: InvitationData = {
   ...EMPTY_INVITATION,
-  slug: "dilnoza-bekzod",
-  groomName: "Bekzod",
-  brideName: "Dilnoza",
+  slug: "mirodil-jasmina",
+  groomName: "Mirodil",
+  brideName: "Jasmina",
   date: "2027-06-12",
   time: "18:00",
   venueName: "Atlas to'yxonasi",
@@ -127,7 +127,7 @@ export const DEMO_INVITATION: InvitationData = {
   ],
   dressCode: "Milliy kiyim",
   cardNumber: "8600 1234 5678 9012",
-  cardHolder: "BEKZOD RAHMONOV",
+  cardHolder: "MIRODIL RAHMONOV",
   features: { wishes: true, rsvp: true, gift: true },
 };
 
