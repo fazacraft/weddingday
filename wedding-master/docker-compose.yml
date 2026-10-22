@@ -1,0 +1,31 @@
+# Serverda: cd /opt/beluga/wedding-master && docker compose up -d --build
+# Sirlar (MONGODB_URI, JWT_SECRET, TG_*, ADMIN_*, PAYMENT_*) shu papkadagi .env faylda —
+# u repoga kirmaydi (.gitignore).
+
+services:
+  app:
+    build: .
+    restart: unless-stopped
+    env_file: .env
+    environment:
+      NODE_ENV: production
+      PORT: "5050"
+
+  # HTTPS (Let's Encrypt sertifikatini o'zi oladi va yangilaydi) + reverse proxy
+  caddy:
+    image: caddy:2-alpine
+    restart: unless-stopped
+    depends_on:
+      - app
+    ports:
+      - "80:80"
+      - "443:443"
+      - "443:443/udp"
+    volumes:
+      - ./deploy/Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+
+volumes:
+  caddy_data:
+  caddy_config:

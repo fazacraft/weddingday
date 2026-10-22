@@ -1,0 +1,14 @@
+beluga.uz {
+	encode zstd gzip
+	reverse_proxy app:5050
+}
+
+www.beluga.uz {
+	redir https://beluga.uz{uri} permanent
+}
+
+# Boshqa har qanday host (masalan server IP manzili) — DNS o'tkazilishidan
+# oldin sinash uchun oddiy HTTP orqali
+http:// {
+	reverse_proxy app:5050
+}
