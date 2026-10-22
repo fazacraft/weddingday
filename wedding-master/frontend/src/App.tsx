@@ -1,5 +1,5 @@
 import { ReactNode, useEffect } from "react";
-import { Navigate, Route, Routes, useLocation } from "react-router-dom";
+import { Navigate, Route, Routes, useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "./context/AuthContext";
 import { LandingPage } from "./pages/LandingPage";
 import { AuthPage } from "./pages/AuthPage";
@@ -15,6 +15,7 @@ import {
 } from "./pages/InvitationPages";
 import { FullPageLoader } from "./templates/InvitationRenderer";
 import { SITE_NAME } from "./lib/site";
+import { buttonClass } from "./platform/ui";
 
 /** Kabinet sahifalari — kirmagan foydalanuvchi kirish sahifasiga yo'naltiriladi. */
 function RequireAuth({ children }: { children: ReactNode }) {
@@ -30,10 +31,30 @@ function RequireAuth({ children }: { children: ReactNode }) {
 
 /** /admin — faqat backend'dagi ADMIN_EMAILS ro'yxatidagilar uchun. */
 function RequireAdmin({ children }: { children: ReactNode }) {
-  const { user, loading } = useAuth();
+  const { user, loading, logout } = useAuth();
+  const navigate = useNavigate();
   if (loading) return <FullPageLoader />;
   if (!user) return <Navigate to={`/kirish?next=${encodeURIComponent("/admin")}`} replace />;
-  if (!user.isAdmin) return <NotFoundPage message="Bu bo'lim faqat adminlar uchun" />;
+  if (!user.isAdmin) {
+    // Odatda boshqa (admin bo'lmagan) hisob bilan kirilgan bo'ladi — qaysi hisobligini ko'rsatamiz
+    return (
+      <div className="flex min-h-screen flex-col items-center justify-center gap-4 bg-ivory px-6 text-center">
+        <p className="font-display text-4xl font-semibold text-ink">Bu bo'lim faqat adminlar uchun</p>
+        <p className="max-w-md text-ink/60">
+          Siz <b className="text-ink">{user.email}</b> hisobi bilan kirgansiz — u admin emas.
+        </p>
+        <button
+          onClick={() => {
+            logout();
+            navigate(`/kirish?next=${encodeURIComponent("/admin")}`, { replace: true });
+          }}
+          className={buttonClass("primary")}
+        >
+          Chiqish va admin hisobi bilan kirish
+        </button>
+      </div>
+    );
+  }
   return <>{children}</>;
 }
 

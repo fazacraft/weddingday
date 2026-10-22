@@ -43,7 +43,7 @@ const FAQ = [
   },
   {
     q: "Mehmon ismini qanday qo'shaman?",
-    a: `Havolaning oxiriga ?name= va ismni qo'shing: ${SITE_DOMAIN}/dilnoza-bekzod?name=Akmal aka. Kabinetda buning uchun tayyor generator bor.`,
+    a: `Havolaning oxiriga ?name= va ismni qo'shing: ${SITE_DOMAIN}/dilnoza-bekzod?name=Akmal aka.`,
   },
 ];
 

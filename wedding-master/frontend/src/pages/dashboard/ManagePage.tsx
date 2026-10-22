@@ -457,10 +457,8 @@ function ReviewBanner({ inv }: { inv: OwnedInvitation }) {
 }
 
 function ShareTab({ inv }: { inv: OwnedInvitation }) {
-  const [guest, setGuest] = useState("");
   const qrRef = useRef<HTMLDivElement>(null);
   const url = inviteUrl(inv.slug);
-  const personal = guest.trim() ? `${url}?name=${encodeURIComponent(guest.trim())}` : url;
   const text = `${inv.groomName} va ${inv.brideName}ning ${inv.eventTitle.toLowerCase()}ga taklif etamiz!`;
 
   const downloadQr = () => {
@@ -523,29 +521,13 @@ function ShareTab({ inv }: { inv: OwnedInvitation }) {
           </div>
         </section>
 
-        <section className="rounded-3xl border border-ink/10 bg-white p-6">
-          <p className="text-sm font-bold text-ink">Mehmon ismi bilan havola</p>
-          <p className="mt-1 text-sm text-ink/55">
-            Taklifnoma ochilganda "Assalomu alaykum, hurmatli Akmal aka" deb murojaat qiladi va javob formasida ism tayyor turadi.
-          </p>
-          <input
-            value={guest}
-            onChange={(e) => setGuest(e.target.value)}
-            placeholder="Masalan: Akmal aka"
-            className="mt-4 h-12 w-full rounded-xl border border-ink/15 bg-white px-4 text-[15px] focus:border-rose/60 focus:outline-none"
-          />
-          <div className="mt-3 flex items-center gap-2 rounded-xl bg-sand/50 py-1.5 pl-4 pr-1.5">
-            <span className="min-w-0 flex-1 truncate font-mono text-xs text-ink/70">{personal}</span>
-            <CopyButton text={personal} />
-          </div>
-        </section>
       </div>
 
       <section className="flex flex-col items-center rounded-3xl border border-ink/10 bg-white p-6 text-center">
         <p className="text-sm font-bold text-ink">QR kod</p>
         <p className="mt-1 text-sm text-ink/55">Bosma taklifnomaga yoki stol kartochkasiga qo'ying.</p>
         <div ref={qrRef} className="mt-5 rounded-2xl border border-ink/10 p-4">
-          <QRCodeCanvas value={personal} size={220} level="M" fgColor="#1f1a17" bgColor="#ffffff" marginSize={1} />
+          <QRCodeCanvas value={url} size={220} level="M" fgColor="#1f1a17" bgColor="#ffffff" marginSize={1} />
         </div>
         <PButton variant="secondary" size="sm" className="mt-5" onClick={downloadQr}>
           PNG yuklab olish
