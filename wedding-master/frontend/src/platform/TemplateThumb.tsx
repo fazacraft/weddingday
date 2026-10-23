@@ -227,9 +227,9 @@ export function TemplateThumb({ template, groom = "Mirodil", bride = "Jasmina", 
 
   return (
     <div className={`relative overflow-hidden bg-cream ${className}`}>
-      <img src={withBase("/assets/arc.png")} alt="" className="absolute inset-0 h-full w-full object-cover opacity-30" />
+      <img src={withBase("/assets/arc.webp")} alt="" className="absolute inset-0 h-full w-full object-cover opacity-30" />
       <img
-        src={withBase("/assets/couple.png")}
+        src={withBase("/assets/couple.webp")}
         alt=""
         className="absolute bottom-0 left-1/2 h-[72%] -translate-x-1/2 object-contain"
       />

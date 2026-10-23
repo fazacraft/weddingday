@@ -285,7 +285,7 @@ export function HeroSection() {
           </h1>
 
           <motion.img
-            src={withBase("/assets/couple.png")}
+            src={withBase("/assets/couple.webp")}
             alt=""
             aria-hidden="true"
             className="w-auto h-[67dvh] sm:h-[70dvh] xl:h-[74dvh] block object-cover z-[100]"
@@ -472,7 +472,7 @@ function ArchImage() {
   return (
     <>
       <img
-        src={withBase("/assets/arc.png")}
+        src={withBase("/assets/arc.webp")}
         alt=""
         aria-hidden="true"
         className="w-full h-full object-cover"
