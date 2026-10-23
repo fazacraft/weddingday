@@ -7,6 +7,7 @@ import invitationsRouter from './routes/invitations';
 import publicRouter from './routes/public';
 import uploadsRouter from './routes/uploads';
 import adminRouter from './routes/admin';
+import { listApprovedMusic } from './controllers/musicController';
 import telegramRouter from './routes/telegram';
 import { serveUpload } from './storage';
 import { createInvitationPageRenderer } from './services/invitationPage';
@@ -40,6 +41,7 @@ site.use('/api/public', publicRouter);
 site.use('/api/uploads', uploadsRouter);
 site.use('/api/admin', adminRouter);
 site.use('/api/telegram', telegramRouter);
+site.get('/api/music', listApprovedMusic);
 site.use('/api', (_req, res) => {
   res.status(404).json({ error: 'Not found' });
 });

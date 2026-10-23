@@ -1,11 +1,30 @@
 import { useEffect, useRef, useState } from "react";
-import { mediaUrl } from "../../lib/api";
+import { api, mediaUrl } from "../../lib/api";
 import { withBase } from "../../lib/base";
 import { MUSIC_LIBRARY } from "../../lib/music";
 import { TEMPLATES } from "../../templates/registry";
 import type { InvitationData } from "../../types/invitation";
 import { PButton } from "../../platform/ui";
 import { AUDIO_ACCEPT, useUpload } from "./UploadField";
+
+/** Admin tasdiqlagan, foydalanuvchilar yuklagan musiqa (GET /api/music). */
+interface SharedTrack {
+  id: string;
+  url: string;
+  title: string;
+  artist: string;
+  durationSec: number;
+}
+
+function formatDuration(seconds: number): string | undefined {
+  if (!seconds) return undefined;
+  return `${Math.floor(seconds / 60)}:${String(Math.round(seconds % 60)).padStart(2, "0")}`;
+}
+
+/** "Mening_qoshigim.mp3" → "Mening qoshigim" */
+function titleFromFile(name: string): string {
+  return name.replace(/\.[^.]+$/, "").replace(/[_]+/g, " ").trim().slice(0, 120);
+}
 
 interface Option {
   /** musicUrl'ga yoziladigan qiymat ("" — shablonning o'z musiqasi) */
@@ -53,11 +72,18 @@ function usePlayer() {
 /** "Fon musiqasi": kutubxonadan eshitib ko'rib tanlash yoki o'z faylini yuklash. */
 export function MusicPicker({ data, update }: { data: InvitationData; update: (patch: Partial<InvitationData>) => void }) {
   const { current, progress, toggle } = usePlayer();
-  const { inputRef, busy, error, onFiles, pick } = useUpload(([url]) => update({ musicUrl: url }));
+  const { inputRef, busy, error, onFiles, pick } = useUpload(([url], [file]) =>
+    update({ musicUrl: url, musicTitle: file ? titleFromFile(file.name) : "" })
+  );
+  const [shared, setShared] = useState<SharedTrack[]>([]);
+  useEffect(() => {
+    api<SharedTrack[]>("/music").then(setShared).catch(() => {});
+  }, []);
 
   const template = TEMPLATES[data.template] ?? TEMPLATES.bog;
   const templateTrack = MUSIC_LIBRARY.find((t) => withBase(t.url) === template.defaultMusic);
-  const custom = data.musicUrl.startsWith("/uploads/") ? data.musicUrl : "";
+  // O'zi yuklagan va hali umumiy ro'yxatda bo'lmagan musiqa
+  const custom = data.musicUrl.startsWith("/uploads/") && !shared.some((t) => t.url === data.musicUrl) ? data.musicUrl : "";
 
   const options: Option[] = [
     {
@@ -68,7 +94,16 @@ export function MusicPicker({ data, update }: { data: InvitationData; update: (p
       duration: templateTrack?.duration,
     },
     ...MUSIC_LIBRARY.map((t) => ({ value: t.url, src: mediaUrl(t.url), title: t.title, note: t.note, duration: t.duration })),
-    ...(custom ? [{ value: custom, src: mediaUrl(custom), title: "O'zingiz yuklagan musiqa", note: "Faqat sizning taklifnomangizda" }] : []),
+    ...shared.map((t) => ({
+      value: t.url,
+      src: mediaUrl(t.url),
+      title: t.title,
+      note: t.artist || "Foydalanuvchilar qo'shgan",
+      duration: formatDuration(t.durationSec),
+    })),
+    ...(custom
+      ? [{ value: custom, src: mediaUrl(custom), title: data.musicTitle || "O'zingiz yuklagan musiqa", note: "Siz yuklagan musiqa" }]
+      : []),
   ];
 
   return (
@@ -134,12 +169,28 @@ export function MusicPicker({ data, update }: { data: InvitationData; update: (p
         })}
       </ul>
 
+      {custom && (
+        <label className="mt-3 flex flex-col gap-1.5">
+          <span className="text-[13px] font-semibold text-ink/80">Qo'shiq nomi</span>
+          <input
+            value={data.musicTitle}
+            onChange={(e) => update({ musicTitle: e.target.value.slice(0, 120) })}
+            placeholder="Masalan: Yulduz Usmonova — Seni osmonimga olib ketaman"
+            maxLength={120}
+            className="h-11 rounded-xl border border-ink/15 bg-white px-3.5 text-sm focus:border-rose/60 focus:outline-none"
+          />
+        </label>
+      )}
+
       <div className="mt-3 flex flex-wrap items-center gap-2">
         <PButton type="button" variant="secondary" size="sm" loading={busy} onClick={pick}>
           {custom ? "Boshqa fayl yuklash" : "＋ O'z musiqangizni yuklash"}
         </PButton>
         <span className="text-xs text-ink/40">MP3 yoki M4A, 12MB gacha</span>
       </div>
+      <p className="mt-2 text-xs leading-relaxed text-ink/45">
+        Yuklagan qo'shig'ingiz admin tasdiqlasa, shu ro'yxatga qo'shiladi va boshqalar ham tanlay oladi.
+      </p>
       {error && <p className="mt-2 text-xs text-rose">{error}</p>}
 
       <input ref={inputRef} type="file" hidden accept={AUDIO_ACCEPT} onChange={(e) => void onFiles(e)} />

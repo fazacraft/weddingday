@@ -81,6 +81,8 @@ export interface IInvitation extends Document {
   venuePhoto: string;
   gallery: string[];
   musicUrl: string;
+  /** Foydalanuvchi yuklagan qo'shiqning nomi (musiqa kutubxonasiga taklif uchun) */
+  musicTitle: string;
 
   cardNumber: string;
   cardHolder: string;
@@ -126,6 +128,7 @@ const invitationSchema = new Schema<IInvitation>(
     venuePhoto: { type: String, default: '' },
     gallery: { type: [String], default: [] },
     musicUrl: { type: String, default: '' },
+    musicTitle: { type: String, default: '', trim: true, maxlength: 120 },
 
     cardNumber: { type: String, default: '', trim: true },
     cardHolder: { type: String, default: '', trim: true },

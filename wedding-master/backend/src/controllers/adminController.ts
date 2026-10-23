@@ -7,6 +7,8 @@ import { Rsvp } from '../models/Rsvp';
 import { AuthedRequest } from '../middleware/auth';
 import { removeInvitation } from '../services/invitations';
 import { decideReview } from '../services/review';
+import { syncUploadedMusic } from '../services/musicLibrary';
+import { Track } from '../models/Track';
 
 const PAGE_SIZE = 25;
 
@@ -31,15 +33,17 @@ async function countsFor(ids: Types.ObjectId[]) {
 
 export async function stats(_req: AuthedRequest, res: Response, next: NextFunction): Promise<void> {
   try {
-    const [users, invitations, published, pending, wishes, rsvps] = await Promise.all([
+    await syncUploadedMusic();
+    const [users, invitations, published, pending, wishes, rsvps, musicPending] = await Promise.all([
       User.countDocuments(),
       Invitation.countDocuments(),
       Invitation.countDocuments({ status: 'published' }),
       Invitation.countDocuments({ review: 'pending' }),
       Wish.countDocuments(),
       Rsvp.countDocuments(),
+      Track.countDocuments({ status: 'pending' }),
     ]);
-    res.json({ users, invitations, published, pending, wishes, rsvps });
+    res.json({ users, invitations, published, pending, wishes, rsvps, musicPending });
   } catch (err) {
     next(err);
   }

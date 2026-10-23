@@ -8,6 +8,7 @@ import {
   SLUG_PATTERN,
   publicInvitation,
 } from '../models/Invitation';
+import { rememberUploadedMusic } from '../services/musicLibrary';
 import { Wish } from '../models/Wish';
 import { Rsvp } from '../models/Rsvp';
 import { AuthedRequest } from '../middleware/auth';
@@ -21,7 +22,7 @@ const EDITABLE_FIELDS = [
   'groomName', 'brideName', 'date', 'time', 'eventTitle', 'inviteText',
   'greetingHeading', 'greetingMessage',
   'venueName', 'venueAddress', 'venueLandmark', 'googleMapUrl', 'yandexMapUrl',
-  'schedule', 'couplePhoto', 'coverPhoto', 'venuePhoto', 'gallery', 'musicUrl',
+  'schedule', 'couplePhoto', 'coverPhoto', 'venuePhoto', 'gallery', 'musicUrl', 'musicTitle',
   'cardNumber', 'cardHolder', 'dressCode', 'features',
 ] as const;
 
@@ -86,6 +87,7 @@ function ownerView(inv: IInvitation, stats?: Record<string, number>) {
     ...publicInvitation(inv),
     cardNumber: inv.cardNumber,
     cardHolder: inv.cardHolder,
+    musicTitle: inv.musicTitle,
     review: inv.review,
     reviewRequestedAt: inv.reviewRequestedAt,
     // Tasdiq kechiksa foydalanuvchi shu botga yozadi (t.me/<bot>?start=<id>)
@@ -175,6 +177,8 @@ export async function createInvitation(req: AuthedRequest, res: Response, next: 
     const inv = new Invitation({ ...rest, owner: req.userId, status: 'draft' });
     const notify = await handlePublish(req, inv, status === 'published');
     await inv.save();
+    // O'z musiqasi bo'lsa — kutubxonaga nomzod (admin tasdiqlasa hammaga ko'rinadi)
+    rememberUploadedMusic(inv).catch((err) => console.warn('Music library:', (err as Error).message));
     if (notify) void notifyApprovalNeeded(inv);
     res.status(201).json(ownerView(inv));
   } catch (err) {
@@ -207,6 +211,8 @@ export async function updateInvitation(req: AuthedRequest, res: Response, next: 
     if (status === 'draft') inv.status = 'draft';
     const notify = await handlePublish(req, inv, status === 'published');
     await inv.save();
+    // O'z musiqasi bo'lsa — kutubxonaga nomzod (admin tasdiqlasa hammaga ko'rinadi)
+    rememberUploadedMusic(inv).catch((err) => console.warn('Music library:', (err as Error).message));
     if (notify) void notifyApprovalNeeded(inv);
     const stats = await statsFor([inv._id]);
     res.json(ownerView(inv, stats.get(String(inv._id))));

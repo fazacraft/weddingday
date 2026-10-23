@@ -5,8 +5,11 @@ import { PButton } from "../../platform/ui";
 const IMAGE_ACCEPT = "image/jpeg,image/png,image/webp";
 export const AUDIO_ACCEPT = "audio/mpeg,audio/mp4,audio/x-m4a,.mp3,.m4a";
 
-/** Tanlangan fayllarni ketma-ket yuklaydi; yuklash holati va xatoni boshqaradi. */
-export function useUpload(onUploaded: (urls: string[]) => void) {
+/**
+ * Tanlangan fayllarni ketma-ket yuklaydi; yuklash holati va xatoni boshqaradi.
+ * onUploaded'ga yuklangan manzillar va ularga mos fayllar (muvaffaqiyatlilari) beriladi.
+ */
+export function useUpload(onUploaded: (urls: string[], files: File[]) => void) {
   const inputRef = useRef<HTMLInputElement>(null);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -18,13 +21,17 @@ export function useUpload(onUploaded: (urls: string[]) => void) {
     setError(null);
     setBusy(true);
     const urls: string[] = [];
+    const uploaded: File[] = [];
     try {
-      for (const file of files) urls.push(await uploadFile(file));
+      for (const file of files) {
+        urls.push(await uploadFile(file));
+        uploaded.push(file);
+      }
     } catch (err) {
       setError(err instanceof ApiError ? err.message : "Faylni yuklab bo'lmadi");
     } finally {
       // Xato bo'lsa ham, muvaffaqiyatli yuklanganlari saqlanadi
-      if (urls.length) onUploaded(urls);
+      if (urls.length) onUploaded(urls, uploaded);
       setBusy(false);
     }
   };

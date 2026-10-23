@@ -10,6 +10,7 @@ import {
 } from '../controllers/adminController';
 import { requireAdmin } from '../middleware/auth';
 import { adminLogin } from '../controllers/adminAuthController';
+import { adminDeleteTrack, adminListMusic, adminUpdateTrack } from '../controllers/musicController';
 
 const router = Router();
 
@@ -25,5 +26,8 @@ router.post('/invitations/:id/review', reviewInvitation);
 router.delete('/invitations/:id', deleteInvitation);
 router.get('/users', listUsers);
 router.delete('/users/:id', deleteUser);
+router.get('/music', adminListMusic);
+router.patch('/music/:id', adminUpdateTrack);
+router.delete('/music/:id', adminDeleteTrack);
 
 export default router;

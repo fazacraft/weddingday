@@ -41,6 +41,8 @@ export interface InvitationData {
   /** Fotogalereya, ko'pi bilan GALLERY_MAX ta */
   gallery: string[];
   musicUrl: string;
+  /** O'zi yuklagan qo'shiqning nomi — admin tasdiqlasa umumiy ro'yxatda shu nom bilan chiqadi */
+  musicTitle: string;
   cardNumber: string;
   cardHolder: string;
   dressCode: string;
@@ -112,6 +114,7 @@ export const EMPTY_INVITATION: InvitationData = {
   venuePhoto: "",
   gallery: [],
   musicUrl: "",
+  musicTitle: "",
   cardNumber: "",
   cardHolder: "",
   dressCode: "",

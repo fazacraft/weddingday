@@ -40,6 +40,7 @@ function invitationRules(partial: boolean) {
     body('yandexMapUrl').optional({ values: 'falsy' }).isURL().withMessage("Yandex xarita havolasi noto'g'ri"),
     body('greetingMessage').optional().isLength({ max: 3000 }),
     body(['couplePhoto', 'coverPhoto', 'venuePhoto', 'musicUrl']).optional().isString().isLength({ max: 500 }),
+    body('musicTitle').optional().isString().isLength({ max: 120 }),
     body('gallery').optional().isArray({ max: GALLERY_MAX }).withMessage(`Galereyaga ko'pi bilan ${GALLERY_MAX} ta rasm`),
     body('gallery.*').isString().isLength({ max: 500 }),
     body('features.wishes').optional().isBoolean(),

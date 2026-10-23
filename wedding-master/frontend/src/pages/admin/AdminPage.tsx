@@ -1,6 +1,6 @@
 import { FormEvent, useCallback, useEffect, useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
-import { ApiError } from "../../lib/api";
+import { ApiError, mediaUrl } from "../../lib/api";
 import { adminApi } from "../../lib/adminAuth";
 import { withBase } from "../../lib/base";
 import { TEMPLATES } from "../../templates/registry";
@@ -16,6 +16,7 @@ interface AdminStats {
   pending: number;
   wishes: number;
   rsvps: number;
+  musicPending?: number;
 }
 
 interface AdminInvitation {
@@ -51,11 +52,12 @@ interface Paged<T> {
   items: T[];
 }
 
-type Tab = "taklifnomalar" | "foydalanuvchilar";
+type Tab = "taklifnomalar" | "foydalanuvchilar" | "musiqalar";
+const TABS: Tab[] = ["taklifnomalar", "foydalanuvchilar", "musiqalar"];
 
 export function AdminPage({ onLogout }: { onLogout?: () => void } = {}) {
   const [params, setParams] = useSearchParams();
-  const tab: Tab = params.get("tab") === "foydalanuvchilar" ? "foydalanuvchilar" : "taklifnomalar";
+  const tab: Tab = TABS.find((key) => key === params.get("tab")) ?? "taklifnomalar";
   const [stats, setStats] = useState<AdminStats | null>(null);
 
   const loadStats = useCallback(() => {
@@ -102,7 +104,7 @@ export function AdminPage({ onLogout }: { onLogout?: () => void } = {}) {
         </div>
 
         <div className="mt-8 flex gap-1 border-b border-ink/10">
-          {(["taklifnomalar", "foydalanuvchilar"] as Tab[]).map((key) => (
+          {TABS.map((key) => (
             <button
               key={key}
               onClick={() => setTab(key)}
@@ -111,6 +113,9 @@ export function AdminPage({ onLogout }: { onLogout?: () => void } = {}) {
               }`}
             >
               {key}
+              {key === "musiqalar" && !!stats?.musicPending && (
+                <span className="ml-1.5 rounded-full bg-rose px-1.5 py-0.5 text-[10px] font-bold text-white">{stats.musicPending}</span>
+              )}
             </button>
           ))}
         </div>
@@ -118,6 +123,8 @@ export function AdminPage({ onLogout }: { onLogout?: () => void } = {}) {
         <div className="py-6">
           {tab === "taklifnomalar" ? (
             <InvitationsTab ownerFilter={params.get("owner")} onChange={loadStats} />
+          ) : tab === "musiqalar" ? (
+            <MusicTab onChange={loadStats} />
           ) : (
             <UsersTab onChange={loadStats} />
           )}
@@ -448,6 +455,179 @@ function UsersTab({ onChange }: { onChange: () => void }) {
         </div>
       )}
       {data && <Pager page={data.page} total={data.total} pageSize={data.pageSize} onPage={setPage} />}
+    </div>
+  );
+}
+
+interface AdminTrack {
+  id: string;
+  url: string;
+  title: string;
+  artist: string;
+  durationSec: number;
+  status: "pending" | "approved" | "rejected";
+  createdAt: string;
+  usedBy: number;
+  submittedBy: { name: string; email: string } | null;
+}
+
+const TRACK_STATUS: Record<AdminTrack["status"], { label: string; className: string }> = {
+  pending: { label: "Kutmoqda", className: "bg-amber-100 text-amber-800" },
+  approved: { label: "Ro'yxatda", className: "bg-emerald-100 text-emerald-800" },
+  rejected: { label: "Rad etilgan", className: "bg-ink/10 text-ink/60" },
+};
+
+/**
+ * Foydalanuvchilar yuklagan musiqalar: admin eshitib, nomini tuzatib, umumiy
+ * ro'yxatga qo'shadi (wizard'dagi "Fon musiqasi" ro'yxatida hammaga chiqadi).
+ */
+function MusicTab({ onChange }: { onChange: () => void }) {
+  const [status, setStatus] = useState("pending");
+  const [tracks, setTracks] = useState<AdminTrack[] | null>(null);
+  const [error, setError] = useState<string | null>(null);
+
+  const load = useCallback(() => {
+    setError(null);
+    adminApi<AdminTrack[]>(`/admin/music${status ? `?status=${status}` : ""}`)
+      .then(setTracks)
+      .catch((err) => setError(err instanceof ApiError ? err.message : "Yuklab bo'lmadi"));
+  }, [status]);
+  useEffect(load, [load]);
+
+  return (
+    <div className="flex flex-col gap-4">
+      <div className="flex flex-col justify-between gap-3 sm:flex-row sm:items-center">
+        <p className="max-w-xl text-sm leading-relaxed text-ink/55">
+          Foydalanuvchilar o'z taklifnomasiga yuklagan musiqalar. Eshitib ko'ring, nomini tuzating va ro'yxatga qo'shing —
+          shundan keyin u hammaga «Fon musiqasi» ro'yxatida chiqadi.
+        </p>
+        <select value={status} onChange={(e) => setStatus(e.target.value)} className="h-11 rounded-xl border border-ink/15 bg-white px-3 text-sm">
+          <option value="pending">Kutmoqda</option>
+          <option value="approved">Ro'yxatda</option>
+          <option value="rejected">Rad etilgan</option>
+          <option value="">Hammasi</option>
+        </select>
+      </div>
+      {error && <Notice>{error}</Notice>}
+
+      {!tracks ? (
+        <div className="flex justify-center py-10 text-ink/40"><Spinner className="h-6 w-6" /></div>
+      ) : tracks.length === 0 ? (
+        <p className="py-10 text-center text-sm text-ink/45">Bu bo'limda musiqa yo'q.</p>
+      ) : (
+        <div className="grid gap-3 lg:grid-cols-2">
+          {tracks.map((track) => (
+            <TrackCard
+              key={track.id}
+              track={track}
+              onDone={() => {
+                load();
+                onChange();
+              }}
+            />
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function TrackCard({ track, onDone }: { track: AdminTrack; onDone: () => void }) {
+  const [title, setTitle] = useState(track.title);
+  const [artist, setArtist] = useState(track.artist);
+  const [duration, setDuration] = useState(track.durationSec);
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const status = TRACK_STATUS[track.status];
+  const edited = title !== track.title || artist !== track.artist;
+
+  const save = async (nextStatus?: AdminTrack["status"]) => {
+    setBusy(true);
+    setError(null);
+    try {
+      await adminApi(`/admin/music/${track.id}`, {
+        method: "PATCH",
+        body: { title, artist, durationSec: duration, ...(nextStatus ? { status: nextStatus } : {}) },
+      });
+      onDone();
+    } catch (err) {
+      setError(err instanceof ApiError ? err.message : "Xatolik yuz berdi");
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const remove = async () => {
+    const used = track.usedBy ? ` U ${track.usedBy} ta taklifnomada ishlatilmoqda — fayl ular uchun saqlanib qoladi.` : "";
+    if (!window.confirm(`«${title || "Nomsiz"}» musiqalar ro'yxatidan butunlay olib tashlansinmi?${used}`)) return;
+    setBusy(true);
+    try {
+      await adminApi(`/admin/music/${track.id}`, { method: "DELETE" });
+      onDone();
+    } catch (err) {
+      setError(err instanceof ApiError ? err.message : "Xatolik yuz berdi");
+      setBusy(false);
+    }
+  };
+
+  const input = "h-10 w-full rounded-xl border border-ink/15 bg-white px-3 text-sm focus:border-rose/60 focus:outline-none";
+  const ghost = "h-9 rounded-lg px-3 text-xs font-semibold text-ink/60 ring-1 ring-ink/10 hover:text-ink disabled:opacity-50";
+
+  return (
+    <div className={`rounded-2xl border border-ink/10 bg-white p-4 ${busy ? "opacity-60" : ""}`}>
+      <div className="flex items-center justify-between gap-3">
+        <span className={`rounded-full px-2.5 py-1 text-[11px] font-bold ${status.className}`}>{status.label}</span>
+        <span className="text-xs text-ink/45">
+          {track.submittedBy ? track.submittedBy.email : "foydalanuvchi o'chirilgan"} · {formatDateTime(track.createdAt)}
+        </span>
+      </div>
+
+      <audio
+        controls
+        preload="metadata"
+        src={mediaUrl(track.url)}
+        className="mt-3 w-full"
+        onLoadedMetadata={(e) => Number.isFinite(e.currentTarget.duration) && setDuration(Math.round(e.currentTarget.duration))}
+        onPlay={(e) => document.querySelectorAll("audio").forEach((a) => a !== e.currentTarget && a.pause())}
+      />
+
+      <div className="mt-3 grid gap-2 sm:grid-cols-2">
+        <input value={title} onChange={(e) => setTitle(e.target.value)} placeholder="Qo'shiq nomi" maxLength={120} className={input} />
+        <input value={artist} onChange={(e) => setArtist(e.target.value)} placeholder="Ijrochi (ixtiyoriy)" maxLength={120} className={input} />
+      </div>
+      <p className="mt-2 text-xs text-ink/45">
+        {track.usedBy} ta taklifnomada ishlatilmoqda{duration ? ` · ${Math.floor(duration / 60)}:${String(duration % 60).padStart(2, "0")}` : ""}
+      </p>
+      {error && <p className="mt-2 text-xs text-rose">{error}</p>}
+
+      <div className="mt-3 flex flex-wrap gap-2">
+        {track.status !== "approved" && (
+          <button
+            disabled={busy || !title.trim()}
+            onClick={() => void save("approved")}
+            className="h-9 rounded-lg bg-emerald-600 px-3 text-xs font-semibold text-white hover:bg-emerald-700 disabled:opacity-50"
+            title={title.trim() ? undefined : "Avval qo'shiq nomini yozing"}
+          >
+            ✓ Ro'yxatga qo'shish
+          </button>
+        )}
+        {track.status === "approved" && edited && (
+          <button disabled={busy} onClick={() => void save()} className={ghost}>Saqlash</button>
+        )}
+        {track.status === "pending" && (
+          <button disabled={busy} onClick={() => void save("rejected")} className={ghost}>Rad etish</button>
+        )}
+        {track.status === "approved" && (
+          <button disabled={busy} onClick={() => void save("pending")} className={ghost}>Ro'yxatdan olish</button>
+        )}
+        <button
+          disabled={busy}
+          onClick={() => void remove()}
+          className="ml-auto h-9 rounded-lg px-3 text-xs font-semibold text-rose ring-1 ring-rose/25 hover:bg-rose hover:text-white disabled:opacity-50"
+        >
+          O'chirish
+        </button>
+      </div>
     </div>
   );
 }
