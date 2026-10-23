@@ -25,6 +25,10 @@ COPY --from=build /app/node_modules node_modules
 COPY --from=build /app/backend/package.json backend/
 COPY --from=build /app/backend/dist backend/dist
 COPY --from=build /app/frontend/dist frontend/dist
+# Yuklangan fayllar (GridFS) va ularning kichraytirilgan variantlari uchun disk keshi;
+# docker-compose'da volume — deploy'lar orasida saqlanadi
+ENV UPLOAD_CACHE_DIR=/app/cache/uploads
+RUN mkdir -p /app/cache/uploads && chown -R node:node /app/cache
 USER node
 EXPOSE 5050
 HEALTHCHECK --interval=30s --timeout=5s --start-period=20s CMD wget -qO- http://127.0.0.1:5050/health >/dev/null || exit 1

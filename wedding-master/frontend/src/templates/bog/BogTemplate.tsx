@@ -9,6 +9,7 @@ import { FloatingControls } from "./FloatingControls";
 import { useInvitation } from "../shared/InvitationContext";
 import { useCountOpen } from "../shared/useRsvp";
 import { useSlotFocus } from "../shared/useSlotFocus";
+import { useDeferredAudioPreload } from "../shared/useDeferredAudioPreload";
 import "dayjs/locale/uz-latn";
 
 /** "Bog'" shabloni — yashil-krem ranglar, arka, kaptarlar va musiqali kirish ekrani. */
@@ -19,9 +20,13 @@ export default function BogTemplate() {
   const [isPlaying, setIsPlaying] = useState(false);
   const audioRef = useRef<HTMLAudioElement | null>(null);
   useSlotFocus(() => setHasEntered(true));
+  useDeferredAudioPreload(audioRef);
 
   useEffect(() => {
-    const audio = new Audio(musicUrl);
+    const audio = new Audio();
+    // Rasmlar yuklangach fonda yuklanadi (useDeferredAudioPreload)
+    audio.preload = "none";
+    audio.src = musicUrl;
     audio.loop = true;
     audio.volume = 0.4;
     audioRef.current = audio;

@@ -1,4 +1,5 @@
 import { Schema, model, Document, Types } from 'mongoose';
+import { invalidatePublic } from '../services/publicCache';
 
 export const TEMPLATE_KEYS = ['bog', 'anor', 'atirgul', 'kuz', 'osmon'] as const;
 export type TemplateKey = (typeof TEMPLATE_KEYS)[number];
@@ -176,5 +177,24 @@ export function publicInvitation(inv: IInvitation) {
     },
   };
 }
+
+/*
+ * Ommaviy sahifa keshini (services/publicCache) har qanday o'zgarishda tozalaymiz —
+ * wizard, admin, Telegram tasdig'i qaysi yo'l bilan saqlamasin. Manzil (slug)
+ * o'zgarsa, eskisi ham tozalanadi: u endi 404 bo'lishi kerak.
+ */
+invitationSchema.post('init', function (doc) {
+  doc.$locals.loadedSlug = doc.slug;
+});
+invitationSchema.post('save', function (doc) {
+  invalidatePublic(doc.slug, doc.$locals.loadedSlug as string | undefined);
+  doc.$locals.loadedSlug = doc.slug;
+});
+invitationSchema.post('deleteOne', { document: true, query: false }, function (doc) {
+  invalidatePublic(doc.slug, doc.$locals.loadedSlug as string | undefined);
+});
+invitationSchema.post('findOneAndUpdate', function (doc: IInvitation | null) {
+  if (doc) invalidatePublic(doc.slug);
+});
 
 export const Invitation = model<IInvitation>('Invitation', invitationSchema);

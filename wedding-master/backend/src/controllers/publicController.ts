@@ -5,6 +5,7 @@ import { Rsvp } from '../models/Rsvp';
 import { AuthedRequest } from '../middleware/auth';
 import { User, isAdminEmail } from '../models/User';
 import { emitWishCreated } from '../socket';
+import { getPublishedSnapshot } from '../services/publicInvitations';
 
 /**
  * Slug bo'yicha mehmonlarga ochiq taklifnomani topadi. Nashr qilinmagan
@@ -31,6 +32,12 @@ async function findVisible(req: AuthedRequest, res: Response): Promise<IInvitati
 
 export async function getPublicInvitation(req: AuthedRequest, res: Response, next: NextFunction): Promise<void> {
   try {
+    // Nashr qilingan — keshdan (mehmonlarning aksariyati shu yo'ldan keladi)
+    const snapshot = await getPublishedSnapshot(String(req.params.slug ?? ''));
+    if (snapshot) {
+      res.json(snapshot);
+      return;
+    }
     const inv = await findVisible(req, res);
     if (!inv) return;
     res.json(publicInvitation(inv));
@@ -52,9 +59,10 @@ export async function countOpen(req: AuthedRequest, res: Response, next: NextFun
 
 export async function getWishes(req: AuthedRequest, res: Response, next: NextFunction): Promise<void> {
   try {
-    const inv = await findVisible(req, res);
-    if (!inv) return;
-    const wishes = await Wish.find({ invitation: inv._id })
+    const snapshot = await getPublishedSnapshot(String(req.params.slug ?? ''));
+    const invitationId = snapshot ? snapshot.id : (await findVisible(req, res))?._id;
+    if (!invitationId) return;
+    const wishes = await Wish.find({ invitation: invitationId })
       .select('name message createdAt')
       .sort({ createdAt: -1 })
       .lean();

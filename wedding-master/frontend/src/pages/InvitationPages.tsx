@@ -8,14 +8,34 @@ import { isSelectableTemplate, TEMPLATES } from "../templates/registry";
 import { useAuth } from "../context/AuthContext";
 import { buttonClass } from "../platform/ui";
 
+declare global {
+  interface Window {
+    /** Server nashr qilingan taklifnomani HTML'ga oldindan joylaydi (backend services/invitationPage) */
+    __INVITATION__?: PublicInvitation;
+  }
+}
+
+/** HTML'ga joylangan ma'lumot — faqat aynan shu manzil uchun bo'lsa. */
+function inlineInvitation(slug: string): PublicInvitation | null {
+  const inline = window.__INVITATION__;
+  return inline && inline.slug === slug.toLowerCase() ? inline : null;
+}
+
 /** Mehmon ochadigan sahifa: /:slug va /:slug/tilaklar */
 export function PublicInvitationPage() {
   const { slug = "" } = useParams();
   const { user, loading: authLoading } = useAuth();
-  const [invitation, setInvitation] = useState<PublicInvitation | null>(null);
+  const [invitation, setInvitation] = useState<PublicInvitation | null>(() => inlineInvitation(slug));
   const [error, setError] = useState<number | null>(null);
 
   useEffect(() => {
+    // Nashr qilingan taklifnoma HTML bilan keldi — API'ni kutmasdan chizamiz
+    const inline = inlineInvitation(slug);
+    if (inline) {
+      setInvitation(inline);
+      document.title = `${inline.groomName} va ${inline.brideName} | To'y taklifnomasi`;
+      return;
+    }
     // Qoralama egasiga ko'rinadi — token tekshirilguncha kutamiz
     if (authLoading) return;
     setError(null);

@@ -5,6 +5,7 @@ import { useWishes } from "../shared/useWishes";
 import { UZ_MONTHS, UZ_WEEKDAYS, envelopeLines, monthGrid, useCountdown } from "../shared/calendar";
 import { useReveal } from "../shared/useReveal";
 import { useSlotFocus } from "../shared/useSlotFocus";
+import { useDeferredAudioPreload } from "../shared/useDeferredAudioPreload";
 import {
   AcornMark,
   AutumnGarland,
@@ -103,6 +104,7 @@ export default function KuzTemplate() {
 
   useReveal(rootRef, phase === "fading" || phase === "open", [phase, data]);
   useSlotFocus(() => setPhase("open"));
+  useDeferredAudioPreload(audioRef);
 
   const playMusic = () => {
     const audio = audioRef.current;
@@ -185,7 +187,8 @@ export default function KuzTemplate() {
           )}
         </button>
       )}
-      <audio ref={audioRef} src={musicUrl} preload="auto" loop />
+      {/* Rasmlar yuklangach fonda yuklanadi (useDeferredAudioPreload) */}
+      <audio ref={audioRef} src={musicUrl} preload="none" loop />
 
       {phase !== "open" && (
         <section

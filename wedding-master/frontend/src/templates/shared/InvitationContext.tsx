@@ -4,7 +4,7 @@ import {
   greetingParagraphs,
   weddingIso,
 } from "../../types/invitation";
-import { mediaUrl } from "../../lib/api";
+import { mediaUrl, PHOTO_WIDTHS } from "../../lib/api";
 
 /**
  * live    — haqiqiy mehmon sahifasi (API, socket, ochilish hisobi)
@@ -55,7 +55,8 @@ export function InvitationProvider({
       basePath,
       weddingAt: weddingIso(data),
       paragraphs: greetingParagraphs(data.greetingMessage),
-      couplePhoto: mediaUrl(data.couplePhoto),
+      // Barcha shablonlarda surat ko'pi bilan ~500 px kenglikda chiqadi — 1000 px yetarli
+      couplePhoto: mediaUrl(data.couplePhoto, PHOTO_WIDTHS.card),
       musicUrl: mediaUrl(data.musicUrl) || defaultMusic,
       guestName,
     };

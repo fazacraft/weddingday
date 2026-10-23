@@ -9,6 +9,11 @@ const BASE_PATH = (process.env.BASE_PATH ?? '').replace(/\/+$/, '');
 export default defineConfig({
   base: `${BASE_PATH}/`,
   plugins: [react()],
+  build: {
+    // dist/.vite/manifest.json — backend taklifnoma sahifasida shablon kodini
+    // oldindan (modulepreload) e'lon qilish uchun fayl nomlarini shundan oladi
+    manifest: true,
+  },
   server: {
     port: 5173,
     // Frontend va backend bir origin'da ko'rinadi: telefondan (LAN) ochganda

@@ -9,6 +9,7 @@ import uploadsRouter from './routes/uploads';
 import adminRouter from './routes/admin';
 import telegramRouter from './routes/telegram';
 import { serveUpload } from './storage';
+import { createInvitationPageRenderer } from './services/invitationPage';
 import { errorHandler } from './middleware/errorHandler';
 
 /** Production'da frontend build'i ham shu serverdan beriladi (bitta Render servisi). */
@@ -63,9 +64,22 @@ if (fs.existsSync(WEB_DIST)) {
       },
     })
   );
-  // SPA: /feruz-dilfuza, /kabinet va h.k. — marshrutlash React'da
-  site.get('*', (_req, res) => {
+  const renderInvitationPage = createInvitationPageRenderer(WEB_DIST, BASE_PATH);
+  // SPA: /feruz-dilfuza, /kabinet va h.k. — marshrutlash React'da. Nashr qilingan
+  // taklifnoma sahifasiga ma'lumot, shablon kodi va rasm oldindan qo'shiladi.
+  site.get('*', async (req, res) => {
     res.setHeader('Cache-Control', 'no-cache');
+    try {
+      const origin = process.env.PUBLIC_URL?.replace(/\/+$/, '') || `${req.protocol}://${req.get('host')}`;
+      const html = await renderInvitationPage(req.path, origin);
+      if (html) {
+        res.type('html').send(html);
+        return;
+      }
+    } catch (err) {
+      // Baza vaqtincha javob bermasa ham sahifa ochilsin — frontend o'zi so'raydi
+      console.warn('Invitation page prerender failed:', (err as Error).message);
+    }
     res.sendFile(indexHtml);
   });
 }

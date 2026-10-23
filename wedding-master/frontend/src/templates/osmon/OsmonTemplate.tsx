@@ -5,7 +5,8 @@ import { useWishes } from "../shared/useWishes";
 import { UZ_MONTHS, useCountdown } from "../shared/calendar";
 import { useReveal } from "../shared/useReveal";
 import { useSlotFocus } from "../shared/useSlotFocus";
-import { mediaUrl } from "../../lib/api";
+import { useDeferredAudioPreload } from "../shared/useDeferredAudioPreload";
+import { mediaUrl, PHOTO_WIDTHS } from "../../lib/api";
 import { Cloud, DoodleHeart, EnvelopeDoodle, GoldSeal, HeartPin, HeartShape } from "./ornaments";
 import { resolveOsmonPhotos } from "./photos";
 import "./osmon.css";
@@ -38,23 +39,25 @@ function dateParts(date: string) {
 
 /** "Osmon" shabloni — chang-ko'k va krem ranglar, oltin muhrli qog'oz konvert, artib ochiladigan sana. */
 export default function OsmonTemplate() {
-  const { data, weddingAt, paragraphs, couplePhoto, musicUrl, guestName } = useInvitation();
+  const { data, weddingAt, paragraphs, musicUrl, guestName } = useInvitation();
   const countOpen = useCountOpen();
   const [phase, setPhase] = useState<Phase>("closed");
   const [playing, setPlaying] = useState(false);
   const audioRef = useRef<HTMLAudioElement>(null);
   const rootRef = useRef<HTMLDivElement>(null);
   const parts = useMemo(() => dateParts(data.date), [data.date]);
-  const photos = useMemo(
-    () =>
-      resolveOsmonPhotos(
-        mediaUrl(data.coverPhoto ?? ""),
-        couplePhoto,
-        mediaUrl(data.venuePhoto ?? ""),
-        (data.gallery ?? []).map(mediaUrl)
-      ),
-    [data.coverPhoto, data.venuePhoto, data.gallery, couplePhoto]
-  );
+  // Xom yo'llar bo'yicha tanlab, so'ng har bir joyga kerakli o'lchamni so'raymiz
+  // (server bilan kelishilgan: hero/lightbox 1600, kartalar 1000, galereya 640)
+  const photos = useMemo(() => {
+    const raw = resolveOsmonPhotos(data.coverPhoto ?? "", data.couplePhoto, data.venuePhoto ?? "", data.gallery ?? []);
+    return {
+      hero: mediaUrl(raw.hero, PHOTO_WIDTHS.hero),
+      card: mediaUrl(raw.card, PHOTO_WIDTHS.card),
+      venue: mediaUrl(raw.venue, PHOTO_WIDTHS.card),
+      gallery: raw.gallery.map((src) => ({ thumb: mediaUrl(src, PHOTO_WIDTHS.thumb), full: mediaUrl(src, PHOTO_WIDTHS.hero) })),
+    };
+  }, [data.coverPhoto, data.couplePhoto, data.venuePhoto, data.gallery]);
+  useDeferredAudioPreload(audioRef);
 
   // Konvert yopiq turganda sahifa aylantirilmaydi
   useEffect(() => {
@@ -128,7 +131,8 @@ export default function OsmonTemplate() {
           )}
         </button>
       )}
-      <audio ref={audioRef} src={musicUrl} preload="auto" loop />
+      {/* Rasmlar yuklangach fonda yuklanadi (useDeferredAudioPreload) */}
+      <audio ref={audioRef} src={musicUrl} preload="none" loop />
 
       {phase !== "open" && (
         <section
@@ -451,7 +455,7 @@ function ScratchDate({ label, weekday, time }: { label: string; weekday: string;
 }
 
 /** Rasmlar to'ri; bosilgan rasm butun ekranda ochiladi (strelkalar va Esc bilan). */
-function OsmonGallery({ photos }: { photos: string[] }) {
+function OsmonGallery({ photos }: { photos: { thumb: string; full: string }[] }) {
   const [open, setOpen] = useState<number | null>(null);
   const step = useCallback(
     (delta: number) => setOpen((i) => (i === null ? i : (i + delta + photos.length) % photos.length)),
@@ -473,16 +477,16 @@ function OsmonGallery({ photos }: { photos: string[] }) {
     <section className="band gallery" aria-label="Fotogalereya">
       <h2 className="script-title reveal">Fotogalereya</h2>
       <div className={`gallery-grid${photos.length % 2 ? " gallery-grid--odd" : ""}`} data-slot="gallery">
-        {photos.map((src, i) => (
-          <button key={`${src}-${i}`} type="button" className="gallery-item reveal" onClick={() => setOpen(i)}>
-            <img src={src} alt={`${i + 1}-rasm`} loading="lazy" />
+        {photos.map((photo, i) => (
+          <button key={`${photo.thumb}-${i}`} type="button" className="gallery-item reveal" onClick={() => setOpen(i)}>
+            <img src={photo.thumb} alt={`${i + 1}-rasm`} loading="lazy" decoding="async" />
           </button>
         ))}
       </div>
 
       {open !== null && (
         <div className="lightbox" role="dialog" aria-modal="true" aria-label="Rasm" onClick={() => setOpen(null)}>
-          <img src={photos[open]} alt={`${open + 1}-rasm`} onClick={(e) => e.stopPropagation()} />
+          <img src={photos[open].full} alt={`${open + 1}-rasm`} onClick={(e) => e.stopPropagation()} />
           <button type="button" className="lightbox-close" aria-label="Yopish" onClick={() => setOpen(null)}>×</button>
           {photos.length > 1 && (
             <>

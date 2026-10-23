@@ -1,5 +1,5 @@
 import { ChangeEvent, ReactNode, useRef, useState } from "react";
-import { ApiError, mediaUrl, uploadFile } from "../../lib/api";
+import { ApiError, mediaUrl, PHOTO_WIDTHS, uploadFile } from "../../lib/api";
 import { PButton } from "../../platform/ui";
 
 const IMAGE_ACCEPT = "image/jpeg,image/png,image/webp";
@@ -68,7 +68,7 @@ export function UploadField({ kind, label, hint, value, onChange, placement, onA
 
       {placement}
       {!placement && value && kind === "image" && (
-        <img src={mediaUrl(value)} alt="" className="mt-4 max-h-56 w-full rounded-xl object-cover" />
+        <img src={mediaUrl(value, PHOTO_WIDTHS.card)} alt="" className="mt-4 max-h-56 w-full rounded-xl object-cover" />
       )}
       {value && kind === "audio" && <audio src={mediaUrl(value)} controls className="mt-4 w-full" />}
       {error && <p className="mt-3 text-xs text-rose">{error}</p>}
@@ -124,7 +124,7 @@ export function GalleryField({ label, hint, value, max, onChange, placement, onA
         <div className="mt-4 grid grid-cols-3 gap-2 sm:grid-cols-4">
           {value.map((url, i) => (
             <div key={`${url}-${i}`} className="group relative aspect-[3/4] overflow-hidden rounded-xl bg-sand">
-              <img src={mediaUrl(url)} alt="" className="h-full w-full object-cover" />
+              <img src={mediaUrl(url, PHOTO_WIDTHS.thumb)} alt="" className="h-full w-full object-cover" />
               <button
                 type="button"
                 onClick={() => onChange(value.filter((_, idx) => idx !== i))}

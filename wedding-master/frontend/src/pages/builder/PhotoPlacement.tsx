@@ -1,5 +1,5 @@
 import type { ReactNode } from "react";
-import { mediaUrl } from "../../lib/api";
+import { mediaUrl, PHOTO_WIDTHS } from "../../lib/api";
 import type { PhotoSlot } from "../../lib/previewFocus";
 import { usePreview } from "./PreviewSheet";
 import { resolveOsmonPhotos } from "../../templates/osmon/photos";
@@ -13,6 +13,7 @@ import type { InvitationData } from "../../types/invitation";
  */
 
 const HIGHLIGHT = "ring-2 ring-rose ring-offset-2 ring-offset-white";
+const thumb = (path: string) => mediaUrl(path, PHOTO_WIDTHS.thumb);
 const OSMON_SCRIPT = { fontFamily: '"Imperial Script", cursive' };
 const OSMON_SERIF = { fontFamily: "Rufina, Georgia, serif" };
 
@@ -23,12 +24,9 @@ interface Props {
 
 export function PhotoPlacement({ slot, data }: Props) {
   const { show } = usePreview();
-  const photos = resolveOsmonPhotos(
-    mediaUrl(data.coverPhoto),
-    mediaUrl(data.couplePhoto),
-    mediaUrl(data.venuePhoto),
-    data.gallery.map(mediaUrl)
-  );
+  const raw = resolveOsmonPhotos(data.coverPhoto, data.couplePhoto, data.venuePhoto, data.gallery);
+  // Kichik telefon ekrani — eng kichik variant yetarli
+  const photos = { ...raw, hero: thumb(raw.hero), card: thumb(raw.card), venue: thumb(raw.venue), gallery: raw.gallery.map(thumb) };
   const names = { groom: data.groomName || "Kuyov", bride: data.brideName || "Kelin" };
   const view = describe(slot, data, photos, names);
 
@@ -100,7 +98,7 @@ function describe(
   }
 
   // Kelin-kuyov surati — tanlangan shablonga qarab
-  const couple = mediaUrl(data.couplePhoto);
+  const couple = thumb(data.couplePhoto);
   const templateName = TEMPLATES[data.template]?.name ?? "Bog'";
   switch (data.template) {
     case "osmon":

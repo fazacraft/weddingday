@@ -1,13 +1,14 @@
-import { withBase } from "../../lib/base";
-
 /*
  * "Osmon" shablonining rasm joylari. Shablonning o'zi ham, wizard'dagi
  * "taklifnomada shunday chiqadi" ko'rinishi ham shu funksiyadan foydalanadi —
  * ikkalasi bir xil natija ko'rsatishi uchun (CSS'siz, yengil modul).
+ *
+ * Bu yerda xom yo'llar ("/uploads/…", "/templates/…") bilan ishlanadi; to'liq
+ * manzil va kerakli o'lcham chaqiruvchida mediaUrl(path, width) bilan olinadi.
  */
 
 /** Namunaviy rasmlar (Pexels litsenziyasi — tijoriy foydalanish bepul). */
-const IMG = withBase("/templates/osmon");
+const IMG = "/templates/osmon";
 export const OSMON_SAMPLES = {
   cover: `${IMG}/cover.jpg`,
   couple: `${IMG}/couple.jpg`,
@@ -30,7 +31,6 @@ export interface OsmonPhotos {
  * ko'rinish. Biror rasm yuklangan bo'lsa, begona juftlik rasmlari
  * aralashmasligi uchun bo'sh joylar egasining rasmlari bilan to'ldiriladi yoki
  * yashiriladi. To'yxona rasmi umumiy manzara, shuning uchun doim to'ldiriladi.
- * Barcha manzillar mediaUrl'dan o'tgan bo'lishi kerak.
  */
 export function resolveOsmonPhotos(cover: string, couple: string, venue: string, gallery: string[]): OsmonPhotos {
   if (!cover && !couple && gallery.length === 0) {

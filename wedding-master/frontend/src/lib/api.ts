@@ -32,12 +32,22 @@ export function setToken(token: string | null): void {
 }
 
 /**
+ * Yuklangan rasmning qaysi o'lchami kerak: server shu kenglikdagi WebP
+ * variantini beradi (backend'dagi VARIANT_WIDTHS bilan bir xil bo'lsin).
+ * Masalan, galereya katakchasiga 1920 px'lik asl rasm o'rniga 640 px.
+ */
+export const PHOTO_WIDTHS = { thumb: 640, card: 1000, hero: 1600 } as const;
+
+/**
  * Saqlangan rasm/musiqa yo'llarini to'liq manzilga aylantiradi: yuklanganlar
  * (/uploads/...) API'dan, kutubxonadagi umumiy fayllar (/templates/...) saytdan.
+ * `width` faqat yuklangan rasmlarga ta'sir qiladi (statik fayllar tayyor o'lchamda).
  */
-export function mediaUrl(path: string): string {
+export function mediaUrl(path: string, width?: number): string {
   if (!path || /^https?:\/\//.test(path)) return path;
-  if (path.startsWith("/uploads/")) return `${API_URL}${path}`;
+  if (path.startsWith("/uploads/")) {
+    return width && /\.(jpe?g|png|webp)$/i.test(path) ? `${API_URL}${path}?w=${width}` : `${API_URL}${path}`;
+  }
   return path.startsWith("/") ? withBase(path) : path;
 }
 

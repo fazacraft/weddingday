@@ -10,6 +10,9 @@ services:
     environment:
       NODE_ENV: production
       PORT: "5050"
+    volumes:
+      # Yuklangan rasm/musiqalarning disk keshi (GridFS'dan har safar olmaslik uchun)
+      - upload_cache:/app/cache
 
   # HTTPS (Let's Encrypt sertifikatini o'zi oladi va yangilaydi) + reverse proxy
   caddy:
@@ -29,3 +32,4 @@ services:
 volumes:
   caddy_data:
   caddy_config:
+  upload_cache:
