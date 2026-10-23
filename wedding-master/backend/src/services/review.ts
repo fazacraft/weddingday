@@ -3,6 +3,7 @@ import { Invitation, IInvitation } from '../models/Invitation';
 import { User } from '../models/User';
 import { TEMPLATE_NAMES } from './templateNames';
 import { sendApprovalRequest, sendToChat, escapeHtml, publicLink, type ApprovalKind } from './telegram';
+import { rememberRelay } from './telegramRelay';
 
 /**
  * Egasi taklifnomani nashr qilmoqchi bo'lganda chaqiriladi (saqlashdan oldin).
@@ -28,7 +29,7 @@ export function applyPublishRequest(inv: IInvitation, isAdmin: boolean): boolean
 
 export async function notifyApprovalNeeded(inv: IInvitation, kind: ApprovalKind = 'new'): Promise<void> {
   const owner = await User.findById(inv.owner).select('name email');
-  await sendApprovalRequest({
+  const adminMessageId = await sendApprovalRequest({
     id: String(inv._id),
     slug: inv.slug,
     groomName: inv.groomName,
@@ -41,6 +42,8 @@ export async function notifyApprovalNeeded(inv: IInvitation, kind: ApprovalKind 
     ownerName: owner?.name ?? '—',
     ownerEmail: owner?.email ?? '—',
   }, kind);
+  // Egasi botga ulangan bo'lsa, admin shu xabarga reply qilib unga yoza oladi
+  await rememberRelay(adminMessageId, inv.ownerTgChatId);
 }
 
 /** Admin qarori: tasdiqlash → nashr, rad etish → qoralama. Topilmasa null. */

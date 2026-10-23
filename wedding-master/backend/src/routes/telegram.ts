@@ -6,12 +6,14 @@ import {
   ADMIN_CHAT_ID,
   PAYMENT_CONTACT,
   answerCallback,
+  copyMessage,
   formattedCard,
   escapeHtml,
   finishApprovalMessage,
   forwardToAdmin,
   sendToChat,
 } from '../services/telegram';
+import { relayTarget, rememberRelay, type RepliedMessage } from '../services/telegramRelay';
 
 const router = Router();
 
@@ -30,6 +32,7 @@ interface TgUpdate {
     caption?: string;
     photo?: unknown[];
     document?: { mime_type?: string };
+    reply_to_message?: RepliedMessage;
   };
 }
 
@@ -77,7 +80,11 @@ function paymentText(names: string): string {
  * - Boshqa matn — admin'ga forward qilinadi.
  */
 async function handleMessage(msg: NonNullable<TgUpdate['message']>): Promise<void> {
-  if (msg.chat.type !== 'private' || String(msg.chat.id) === ADMIN_CHAT_ID) return;
+  if (msg.chat.type !== 'private') return;
+  if (String(msg.chat.id) === ADMIN_CHAT_ID) {
+    await handleAdminReply(msg);
+    return;
+  }
   const text = (msg.text ?? '').trim();
   const startArg = /^\/start(?:\s+(\S+))?$/.exec(text)?.[1];
 
@@ -119,11 +126,12 @@ async function handleMessage(msg: NonNullable<TgUpdate['message']>): Promise<voi
     return;
   }
 
-  await forwardToAdmin(msg.chat.id, msg.message_id);
+  // Admin shu forward'ga reply qilsa, javob shu foydalanuvchiga qaytadi
+  await rememberRelay(await forwardToAdmin(msg.chat.id, msg.message_id), msg.chat.id);
 
   const isReceipt = Boolean(msg.photo || msg.document);
   if (!isReceipt) {
-    await sendToChat(msg.chat.id, 'Xabaringiz adminga yetkazildi ✅');
+    await sendToChat(msg.chat.id, '✅ Xabaringiz yuborildi. Admin javobi shu yerga keladi.');
     return;
   }
 
@@ -145,6 +153,40 @@ async function handleMessage(msg: NonNullable<TgUpdate['message']>): Promise<voi
   await sendToChat(
     msg.chat.id,
     "✅ Chek qabul qilindi! Tekshirilgach taklifnomangiz faollashtiriladi va havolani shu yerga yuboraman."
+  );
+}
+
+/**
+ * Admin botga yozdi. Foydalanuvchi xabariga (forward) yoki taklifnoma
+ * xabariga reply qilgan bo'lsa — javob o'sha foydalanuvchiga yetkaziladi
+ * (matn ham, rasm/ovoz/stiker ham). Natija admin'ga reply bilan bildiriladi.
+ */
+async function handleAdminReply(msg: NonNullable<TgUpdate['message']>): Promise<void> {
+  const replied = msg.reply_to_message;
+  if (!replied) {
+    // Buyruqlar (/start va h.k.) — jim; oddiy matnga qanday javob berishni eslatamiz
+    if (!(msg.text ?? '').startsWith('/')) {
+      await sendToChat(msg.chat.id, "ℹ️ Foydalanuvchiga javob berish uchun uning xabariga <b>Reply</b> qiling.", msg.message_id);
+    }
+    return;
+  }
+  const target = await relayTarget(replied);
+  if (!target) {
+    await sendToChat(
+      msg.chat.id,
+      "❌ Kimga yuborishni aniqlab bo'lmadi: bu foydalanuvchi xabari emas, egasi botga hali yozmagan yoki u profilini yashirgan.",
+      msg.message_id
+    );
+    return;
+  }
+  const header = '💬 <b>Admin javobi:</b>';
+  const delivered = msg.text
+    ? await sendToChat(target, `${header}\n\n${escapeHtml(msg.text)}`)
+    : (await sendToChat(target, header)) && (await copyMessage(target, msg.chat.id, msg.message_id));
+  await sendToChat(
+    msg.chat.id,
+    delivered ? '✅ Yetkazildi' : "❌ Yetkazilmadi — foydalanuvchi botni bloklagan bo'lishi mumkin.",
+    msg.message_id
   );
 }
 

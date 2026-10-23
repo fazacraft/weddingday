@@ -24,19 +24,30 @@ export function telegramEnabled(): boolean {
   return Boolean(TOKEN && ADMIN_CHAT_ID);
 }
 
-async function call(method: string, body: Record<string, unknown>): Promise<void> {
-  if (!TOKEN) return;
+/** Bot API chaqiruvi; muvaffaqiyatli bo'lsa natijani (result), aks holda null qaytaradi. */
+async function call<T = unknown>(method: string, body: Record<string, unknown>): Promise<T | null> {
+  if (!TOKEN) return null;
   try {
     const res = await fetch(`${API_BASE}/bot${TOKEN}/${method}`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(body),
     });
-    if (!res.ok) console.error(`Telegram ${method} failed: ${res.status} ${await res.text()}`);
+    if (!res.ok) {
+      console.error(`Telegram ${method} failed: ${res.status} ${await res.text()}`);
+      return null;
+    }
+    const data = (await res.json().catch(() => null)) as { result?: T } | null;
+    return data?.result ?? null;
   } catch (err) {
     // Telegram ishlamasa ham sayt ishlashda davom etadi — admin /admin'dan tasdiqlaydi
     console.error(`Telegram ${method} error`, err);
+    return null;
   }
+}
+
+interface SentMessage {
+  message_id: number;
 }
 
 export function escapeHtml(text: string): string {
@@ -73,13 +84,29 @@ export function publicLink(slug: string): string {
   return PUBLIC_URL ? `${PUBLIC_URL}/${slug}` : `/${slug}`;
 }
 
-export async function sendToChat(chatId: number | string, html: string): Promise<void> {
-  await call('sendMessage', { chat_id: chatId, text: html, parse_mode: 'HTML', disable_web_page_preview: true });
+/** Xabar yuboradi; yuborilgan xabar id'si yoki (yetkazilmasa) null. replyTo — shu xabarga javob sifatida. */
+export async function sendToChat(chatId: number | string, html: string, replyTo?: number): Promise<number | null> {
+  const sent = await call<SentMessage>('sendMessage', {
+    chat_id: chatId,
+    text: html,
+    parse_mode: 'HTML',
+    disable_web_page_preview: true,
+    ...(replyTo ? { reply_parameters: { message_id: replyTo, allow_sending_without_reply: true } } : {}),
+  });
+  return sent?.message_id ?? null;
 }
 
-export async function forwardToAdmin(fromChatId: number, messageId: number): Promise<void> {
-  if (!ADMIN_CHAT_ID) return;
-  await call('forwardMessage', { chat_id: ADMIN_CHAT_ID, from_chat_id: fromChatId, message_id: messageId });
+/** Foydalanuvchi xabarini admin chatiga forward qiladi; admin chatidagi nusxa id'si yoki null. */
+export async function forwardToAdmin(fromChatId: number, messageId: number): Promise<number | null> {
+  if (!ADMIN_CHAT_ID) return null;
+  const sent = await call<SentMessage>('forwardMessage', { chat_id: ADMIN_CHAT_ID, from_chat_id: fromChatId, message_id: messageId });
+  return sent?.message_id ?? null;
+}
+
+/** Istalgan turdagi xabarni (rasm, ovoz, stiker...) "forwarded" belgisisiz nusxalaydi. */
+export async function copyMessage(toChatId: number | string, fromChatId: number | string, messageId: number): Promise<number | null> {
+  const sent = await call<SentMessage>('copyMessage', { chat_id: toChatId, from_chat_id: fromChatId, message_id: messageId });
+  return sent?.message_id ?? null;
 }
 
 export type ApprovalKind = 'new' | 'reminder' | 'receipt';
@@ -89,8 +116,9 @@ const APPROVAL_HEADERS: Record<Exclude<ApprovalKind, 'new'>, string> = {
   receipt: '🧾 <b>To\'lov cheki keldi (yuqoridagi xabar)</b>',
 };
 
-export async function sendApprovalRequest(info: ApprovalInfo, kind: ApprovalKind = 'new'): Promise<void> {
-  if (!telegramEnabled()) return;
+/** Admin chatiga tasdiq so'rovi; yuborilgan xabar id'si yoki null. */
+export async function sendApprovalRequest(info: ApprovalInfo, kind: ApprovalKind = 'new'): Promise<number | null> {
+  if (!telegramEnabled()) return null;
   const keyboard: { text: string; callback_data?: string; url?: string }[][] = [
     [
       { text: '✅ Tasdiqlash', callback_data: `approve:${info.id}` },
@@ -101,13 +129,14 @@ export async function sendApprovalRequest(info: ApprovalInfo, kind: ApprovalKind
   if (PUBLIC_URL.startsWith('https://')) {
     keyboard.push([{ text: "👁 Ko'rish", url: `${PUBLIC_URL}/${info.slug}` }]);
   }
-  await call('sendMessage', {
+  const sent = await call<SentMessage>('sendMessage', {
     chat_id: ADMIN_CHAT_ID,
     text: kind === 'new' ? approvalText(info) : `${APPROVAL_HEADERS[kind]}\n\n${approvalText(info, false)}`,
     parse_mode: 'HTML',
     disable_web_page_preview: true,
     reply_markup: { inline_keyboard: keyboard },
   });
+  return sent?.message_id ?? null;
 }
 
 export async function answerCallback(callbackId: string, text: string): Promise<void> {
