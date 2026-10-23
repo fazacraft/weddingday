@@ -1,4 +1,4 @@
-import { BASE } from "./base";
+import { BASE, withBase } from "./base";
 
 /** API manzili: alohida domen berilmasa, sayt joylashgan yo'l ("" yoki "/erbotayev"). */
 export const API_URL = import.meta.env.VITE_API_URL || BASE.replace(/\/$/, "");
@@ -31,10 +31,14 @@ export function setToken(token: string | null): void {
   }
 }
 
-/** Backend'dan kelgan rasm/musiqa yo'llarini (/uploads/...) to'liq manzilga aylantiradi. */
+/**
+ * Saqlangan rasm/musiqa yo'llarini to'liq manzilga aylantiradi: yuklanganlar
+ * (/uploads/...) API'dan, kutubxonadagi umumiy fayllar (/templates/...) saytdan.
+ */
 export function mediaUrl(path: string): string {
   if (!path || /^https?:\/\//.test(path)) return path;
-  return path.startsWith("/uploads/") ? `${API_URL}${path}` : path;
+  if (path.startsWith("/uploads/")) return `${API_URL}${path}`;
+  return path.startsWith("/") ? withBase(path) : path;
 }
 
 export async function api<T>(

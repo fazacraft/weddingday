@@ -4,7 +4,7 @@ import { api, ApiError } from "../lib/api";
 import { loadDraft } from "../lib/draft";
 import { DEMO_INVITATION, type InvitationData, type PublicInvitation } from "../types/invitation";
 import { InvitationRenderer, FullPageLoader } from "../templates/InvitationRenderer";
-import { isTemplateKey, TEMPLATES } from "../templates/registry";
+import { isSelectableTemplate, TEMPLATES } from "../templates/registry";
 import { useAuth } from "../context/AuthContext";
 import { buttonClass } from "../platform/ui";
 
@@ -45,7 +45,7 @@ export function PublicInvitationPage() {
 /** Landingdagi shablon namunasi: /shablonlar/:key */
 export function TemplateDemoPage() {
   const { key } = useParams();
-  if (!isTemplateKey(key)) return <NotFoundPage message="Bunday shablon yo'q" />;
+  if (!isSelectableTemplate(key)) return <NotFoundPage message="Bunday shablon yo'q" />;
   const data: InvitationData = { ...DEMO_INVITATION, ...TEMPLATES[key].demo, template: key };
   return (
     <>

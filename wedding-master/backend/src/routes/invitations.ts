@@ -11,7 +11,7 @@ import {
   deleteInvitationWish,
   listInvitationRsvps,
 } from '../controllers/invitationsController';
-import { TEMPLATE_KEYS } from '../models/Invitation';
+import { GALLERY_MAX, SELECTABLE_TEMPLATE_KEYS, TEMPLATE_KEYS } from '../models/Invitation';
 import { handleValidation } from '../middleware/validate';
 import { requireAuth } from '../middleware/auth';
 
@@ -29,7 +29,9 @@ function invitationRules(partial: boolean) {
     req('date').matches(DATE_RE).withMessage('Sanani tanlang'),
     req('time').matches(TIME_RE).withMessage('Vaqtni tanlang'),
     req('venueName').trim().notEmpty().withMessage("To'yxona nomini kiriting"),
-    body('template').optional().isIn(TEMPLATE_KEYS).withMessage("Shablon noto'g'ri"),
+    // Yaratishda faqat ochiq shablonlar; tahrirda yashirin shablondagi mavjud
+    // taklifnoma o'z shablonini saqlay oladi (o'tkazish controller'da tekshiriladi)
+    body('template').optional().isIn(partial ? TEMPLATE_KEYS : SELECTABLE_TEMPLATE_KEYS).withMessage("Shablon noto'g'ri"),
     body('status').optional().isIn(['draft', 'published']),
     body('schedule').optional().isArray({ max: 20 }),
     // Bo'sh bandlar controller'da (pickEditable) tashlab yuboriladi
@@ -37,6 +39,9 @@ function invitationRules(partial: boolean) {
     body('googleMapUrl').optional({ values: 'falsy' }).isURL().withMessage("Google xarita havolasi noto'g'ri"),
     body('yandexMapUrl').optional({ values: 'falsy' }).isURL().withMessage("Yandex xarita havolasi noto'g'ri"),
     body('greetingMessage').optional().isLength({ max: 3000 }),
+    body(['couplePhoto', 'coverPhoto', 'venuePhoto', 'musicUrl']).optional().isString().isLength({ max: 500 }),
+    body('gallery').optional().isArray({ max: GALLERY_MAX }).withMessage(`Galereyaga ko'pi bilan ${GALLERY_MAX} ta rasm`),
+    body('gallery.*').isString().isLength({ max: 500 }),
     body('features.wishes').optional().isBoolean(),
     body('features.rsvp').optional().isBoolean(),
     body('features.gift').optional().isBoolean(),

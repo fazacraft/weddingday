@@ -8,6 +8,7 @@ import { FloatingPetals } from "./FloatingPetals";
 import { FloatingControls } from "./FloatingControls";
 import { useInvitation } from "../shared/InvitationContext";
 import { useCountOpen } from "../shared/useRsvp";
+import { useSlotFocus } from "../shared/useSlotFocus";
 import "dayjs/locale/uz-latn";
 
 /** "Bog'" shabloni — yashil-krem ranglar, arka, kaptarlar va musiqali kirish ekrani. */
@@ -17,6 +18,7 @@ export default function BogTemplate() {
   const [hasEntered, setHasEntered] = useState(false);
   const [isPlaying, setIsPlaying] = useState(false);
   const audioRef = useRef<HTMLAudioElement | null>(null);
+  useSlotFocus(() => setHasEntered(true));
 
   useEffect(() => {
     const audio = new Audio(musicUrl);

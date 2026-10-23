@@ -38,7 +38,10 @@ export function GreetingSection() {
         {couplePhoto && (
           <FadeUp delay={0.3} className="mt-12 flex justify-center">
             {/* Arka shaklidagi ramka — bosh sahifadagi arkaga hamohang */}
-            <div className="w-full max-w-xs rounded-t-full overflow-hidden border-4 border-white shadow-xl ring-1 ring-forest/15">
+            <div
+              className="w-full max-w-xs rounded-t-full overflow-hidden border-4 border-white shadow-xl ring-1 ring-forest/15"
+              data-slot="couple"
+            >
               <img
                 src={couplePhoto}
                 alt={`${data.groomName} va ${data.brideName}`}

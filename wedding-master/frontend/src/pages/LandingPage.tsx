@@ -8,6 +8,10 @@ import { TEMPLATE_LIST } from "../templates/registry";
 import { PAYMENT_CONTACT, SITE_DOMAIN, SITE_NAME, SUPPORT_BOT } from "../lib/site";
 import { withBase } from "../lib/base";
 
+const COUNT_WORDS = ["", "Bir", "Ikki", "Uch", "To'rt", "Besh", "Olti", "Yetti", "Sakkiz"];
+/** Shablonlar soni o'zgarsa sarlavha o'zi yangilanadi: "To'rt xil kayfiyat" */
+const TEMPLATES_HEADING = `${COUNT_WORDS[TEMPLATE_LIST.length] ?? TEMPLATE_LIST.length} xil kayfiyat`;
+
 const STEPS = [
   { n: "01", title: "Shablonni tanlang", text: "Har bir shablonni oldindan mehmon ko'zi bilan jonli ko'rib chiqing." },
   { n: "02", title: "Ma'lumotlarni kiriting", text: "Ismlar, sana, to'yxona, dastur, rasm va musiqa. Hammasi o'ng tomonda jonli ko'rinadi." },
@@ -136,14 +140,15 @@ export function LandingPage() {
           <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-end">
             <div>
               <Eyebrow>Shablonlar</Eyebrow>
-              <h2 className="mt-3 font-display text-4xl font-semibold text-ink sm:text-5xl">Uch xil kayfiyat</h2>
+              <h2 className="mt-3 font-display text-4xl font-semibold text-ink sm:text-5xl">{TEMPLATES_HEADING}</h2>
             </div>
             <p className="max-w-sm text-sm leading-relaxed text-ink/55">
               Har bir shablonni mehmon ko'zi bilan oching — musiqa, animatsiya va barcha bo'limlar bilan.
             </p>
           </div>
 
-          <div className="mt-12 grid gap-6 md:grid-cols-2">
+          {/* 4 ta bo'lsa 2×2, 3 ga bo'linsa katta ekranda 3 ustun */}
+          <div className={`mt-12 grid gap-6 md:grid-cols-2 ${TEMPLATE_LIST.length % 3 === 0 ? "lg:grid-cols-3" : ""}`}>
             {TEMPLATE_LIST.map((tpl) => (
               <article key={tpl.key} className="group overflow-hidden rounded-[2rem] border border-ink/10 bg-white">
                 <Link to={`/shablonlar/${tpl.key}`} className="block">

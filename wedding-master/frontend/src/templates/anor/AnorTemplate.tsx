@@ -4,6 +4,7 @@ import { useCountOpen, useRsvp } from "../shared/useRsvp";
 import { useWishes } from "../shared/useWishes";
 import { UZ_WEEKDAYS, envelopeLines, monthGrid, useCountdown } from "../shared/calendar";
 import { useReveal } from "../shared/useReveal";
+import { useSlotFocus } from "../shared/useSlotFocus";
 import { withBase } from "../../lib/base";
 import "./anor.css";
 
@@ -41,6 +42,7 @@ export default function AnorTemplate() {
 
   // Konvert ochilgach bo'limlar ekranga kirganda paydo bo'ladi.
   useReveal(rootRef, phase === "fading" || phase === "open", [phase, data]);
+  useSlotFocus(() => setPhase("open"));
 
   const playMusic = () => {
     const audio = audioRef.current;
@@ -166,9 +168,9 @@ export default function AnorTemplate() {
             </div>
 
             {couplePhoto ? (
-              <img className="heritage-photo" src={couplePhoto} alt={names} />
+              <img className="heritage-photo" src={couplePhoto} alt={names} data-slot="couple" />
             ) : (
-              <div className="heritage-ornament" aria-hidden="true"><span /></div>
+              <div className="heritage-ornament" aria-hidden="true" data-slot="couple"><span /></div>
             )}
           </article>
 

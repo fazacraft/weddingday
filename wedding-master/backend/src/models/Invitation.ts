@@ -1,7 +1,23 @@
 import { Schema, model, Document, Types } from 'mongoose';
 
-export const TEMPLATE_KEYS = ['bog', 'anor', 'atirgul', 'kuz'] as const;
+export const TEMPLATE_KEYS = ['bog', 'anor', 'atirgul', 'kuz', 'osmon'] as const;
 export type TemplateKey = (typeof TEMPLATE_KEYS)[number];
+
+/**
+ * Yangi taklifnomalar uchun yopilgan shablonlar (frontend registry'dagi `hidden`).
+ * Bu shablondagi mavjud taklifnomalar ishlayveradi va tahrirlanadi, lekin boshqa
+ * taklifnomani bu shablonga o'tkazib yoki yangisini yaratib bo'lmaydi.
+ */
+export const HIDDEN_TEMPLATE_KEYS: readonly TemplateKey[] = ['kuz'];
+export const SELECTABLE_TEMPLATE_KEYS = TEMPLATE_KEYS.filter((key) => !HIDDEN_TEMPLATE_KEYS.includes(key));
+
+/** Galereyadagi rasmlar soni chegarasi (frontend'dagi GALLERY_MAX bilan bir xil). */
+export const GALLERY_MAX = 6;
+
+/** Taklifnomaga yuklangan barcha media fayllar (o'chirishda tozalash uchun). */
+export function invitationMedia(inv: Pick<IInvitation, 'couplePhoto' | 'coverPhoto' | 'venuePhoto' | 'gallery' | 'musicUrl'>): string[] {
+  return [inv.couplePhoto, inv.coverPhoto, inv.venuePhoto, ...(inv.gallery ?? []), inv.musicUrl].filter(Boolean);
+}
 
 export const SLUG_PATTERN = /^[a-z0-9](?:[a-z0-9-]{1,58}[a-z0-9])$/;
 
@@ -60,6 +76,9 @@ export interface IInvitation extends Document {
 
   schedule: ScheduleItem[];
   couplePhoto: string;
+  coverPhoto: string;
+  venuePhoto: string;
+  gallery: string[];
   musicUrl: string;
 
   cardNumber: string;
@@ -102,6 +121,9 @@ const invitationSchema = new Schema<IInvitation>(
       default: [],
     },
     couplePhoto: { type: String, default: '' },
+    coverPhoto: { type: String, default: '' },
+    venuePhoto: { type: String, default: '' },
+    gallery: { type: [String], default: [] },
     musicUrl: { type: String, default: '' },
 
     cardNumber: { type: String, default: '', trim: true },
@@ -140,6 +162,9 @@ export function publicInvitation(inv: IInvitation) {
     yandexMapUrl: inv.yandexMapUrl,
     schedule: inv.schedule.map(({ time, title }) => ({ time, title })),
     couplePhoto: inv.couplePhoto,
+    coverPhoto: inv.coverPhoto,
+    venuePhoto: inv.venuePhoto,
+    gallery: [...inv.gallery],
     musicUrl: inv.musicUrl,
     cardNumber: inv.features.gift ? inv.cardNumber : '',
     cardHolder: inv.features.gift ? inv.cardHolder : '',

@@ -1,9 +1,12 @@
 import { Link } from "react-router-dom";
-import type { InvitationData } from "../../types/invitation";
-import { TEMPLATE_LIST } from "../../templates/registry";
+import { GALLERY_MAX, type InvitationData } from "../../types/invitation";
+import { TEMPLATE_LIST, TEMPLATES } from "../../templates/registry";
 import { TemplateThumb } from "../../platform/TemplateThumb";
 import { Area, Field, Toggle } from "../../platform/ui";
-import { UploadField } from "./UploadField";
+import { GalleryField, UploadField } from "./UploadField";
+import { PhotoPlacement } from "./PhotoPlacement";
+import { MusicPicker } from "./MusicPicker";
+import { focusPreviewSlot, type PhotoSlot } from "../../lib/previewFocus";
 import { SlugField, type SlugStatus } from "./SlugField";
 
 export interface StepProps {
@@ -182,30 +185,69 @@ export function DetailsStep({ data, update }: StepProps) {
 }
 
 export function MediaStep({ data, update }: StepProps) {
+  // Rasm yangilangach jonli ko'rinish (iframe) qoralamani o'qib ulgurishi uchun biroz kutamiz
+  const updatePhoto = (patch: Partial<InvitationData>, slot: PhotoSlot) => {
+    update(patch);
+    window.setTimeout(() => focusPreviewSlot(slot), 350);
+  };
+
   return (
     <div className="flex flex-col gap-4">
       <UploadField
         kind="image"
         label="Kelin-kuyov surati"
-        hint="JPG, PNG yoki WEBP, 12MB gacha. Bog'da arka ramkada, Anor'da ismlar ostida chiqadi."
+        hint="JPG, PNG yoki WEBP, 12MB gacha."
         value={data.couplePhoto}
-        onChange={(couplePhoto) => update({ couplePhoto })}
+        onChange={(couplePhoto) => updatePhoto({ couplePhoto }, "couple")}
+        onActivate={() => focusPreviewSlot("couple")}
+        placement={<PhotoPlacement slot="couple" data={data} />}
+      />
+      <MusicPicker data={data} update={update} />
+
+      <div className="mt-4 border-t border-ink/10 pt-6">
+        <p className="text-sm font-semibold text-ink">Qo'shimcha rasmlar</p>
+        <p className="mt-1 text-xs leading-relaxed text-ink/50">
+          Hozircha «Osmon» shablonida chiqadi. Hech qanday rasm yuklamasangiz, shablonning namunaviy rasmlari ko'rinadi.
+        </p>
+      </div>
+      <UploadField
+        kind="image"
+        label="Muqova rasmi"
+        hint="Birinchi ekranning foni — ismlar va sana uning ustida yoziladi. Yuklamasangiz, kelin-kuyov surati ishlatiladi."
+        value={data.coverPhoto}
+        onChange={(coverPhoto) => updatePhoto({ coverPhoto }, "cover")}
+        onActivate={() => focusPreviewSlot("cover")}
+        placement={<PhotoPlacement slot="cover" data={data} />}
       />
       <UploadField
-        kind="audio"
-        label="Fon musiqasi"
-        hint="MP3 yoki M4A. Yuklamasangiz, shablonning o'z musiqasi chalinadi."
-        value={data.musicUrl}
-        onChange={(musicUrl) => update({ musicUrl })}
+        kind="image"
+        label="To'yxona rasmi"
+        hint="«To'y maskani» bo'limida manzil ustida chiqadi."
+        value={data.venuePhoto}
+        onChange={(venuePhoto) => updatePhoto({ venuePhoto }, "venue")}
+        onActivate={() => focusPreviewSlot("venue")}
+        placement={<PhotoPlacement slot="venue" data={data} />}
+      />
+      <GalleryField
+        label="Fotogalereya"
+        hint={`${GALLERY_MAX} tagacha rasm, bir yo'la bir nechtasini tanlash mumkin.`}
+        value={data.gallery}
+        max={GALLERY_MAX}
+        onChange={(gallery) => updatePhoto({ gallery }, "gallery")}
+        onActivate={() => focusPreviewSlot("gallery")}
+        placement={<PhotoPlacement slot="gallery" data={data} />}
       />
     </div>
   );
 }
 
 export function TemplateStep({ data, update }: StepProps) {
+  // Yashirilgan shablondagi mavjud taklifnoma tahrirlanayotgan bo'lsa, uning shabloni ham ko'rinsin
+  const current = TEMPLATES[data.template];
+  const list = current?.hidden ? [current, ...TEMPLATE_LIST] : TEMPLATE_LIST;
   return (
     <div className="grid gap-4 sm:grid-cols-2">
-      {TEMPLATE_LIST.map((tpl) => {
+      {list.map((tpl) => {
         const active = data.template === tpl.key;
         return (
           <div
@@ -236,13 +278,17 @@ export function TemplateStep({ data, update }: StepProps) {
                 <p className="mt-1 text-xs leading-relaxed text-ink/55">{tpl.tagline}</p>
               </div>
             </button>
-            <Link
-              to={`/shablonlar/${tpl.key}`}
-              target="_blank"
-              className="block border-t border-ink/5 px-4 py-2.5 text-xs font-semibold text-ink/50 hover:text-ink"
-            >
-              ▶ To'liq namunani ochish
-            </Link>
+            {tpl.hidden ? (
+              <p className="border-t border-ink/5 px-4 py-2.5 text-xs text-ink/40">Bu shablon yangi taklifnomalar uchun yopilgan</p>
+            ) : (
+              <Link
+                to={`/shablonlar/${tpl.key}`}
+                target="_blank"
+                className="block border-t border-ink/5 px-4 py-2.5 text-xs font-semibold text-ink/50 hover:text-ink"
+              >
+                ▶ To'liq namunani ochish
+              </Link>
+            )}
           </div>
         );
       })}

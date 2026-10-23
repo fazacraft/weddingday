@@ -4,6 +4,7 @@ import { useCountOpen, useRsvp } from "../shared/useRsvp";
 import { useWishes } from "../shared/useWishes";
 import { UZ_MONTHS, UZ_WEEKDAYS, envelopeLines, monthGrid, useCountdown } from "../shared/calendar";
 import { useReveal } from "../shared/useReveal";
+import { useSlotFocus } from "../shared/useSlotFocus";
 import { HeartShape, RoseBranch, RoseCluster, RoseDivider, RoseGarland, RoseMark } from "./ornaments";
 import "./atirgul.css";
 
@@ -75,6 +76,7 @@ export default function AtirgulTemplate() {
   }, [phase]);
 
   useReveal(rootRef, phase === "fading" || phase === "open", [phase, data]);
+  useSlotFocus(() => setPhase("open"));
 
   const playMusic = () => {
     const audio = audioRef.current;
@@ -241,7 +243,7 @@ export default function AtirgulTemplate() {
 
           <div className="arch">
             <RoseCluster className="arch-cluster arch-cluster--top" />
-            <div className="arch-frame">
+            <div className="arch-frame" data-slot="couple">
               {couplePhoto ? (
                 <img src={couplePhoto} alt={names} />
               ) : (

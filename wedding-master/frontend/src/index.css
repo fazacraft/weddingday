@@ -95,3 +95,18 @@
 body.lang-kirill {
   font-family: 'PT Sans', 'Lato', sans-serif;
 }
+
+/*
+ * Wizard'dagi jonli ko'rinish: tanlangan rasm joyini bir lahza belgilash
+ * (templates/shared/useSlotFocus). Barcha shablonlar uchun umumiy.
+ */
+.slot-flash {
+  outline: 3px solid #9b2335;
+  outline-offset: 5px;
+  animation: slotFlash 1.8s ease-out forwards;
+}
+
+@keyframes slotFlash {
+  0%, 60% { outline-color: rgba(155, 35, 53, 0.95); }
+  100% { outline-color: rgba(155, 35, 53, 0); }
+}

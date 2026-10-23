@@ -1,5 +1,6 @@
 import type { TemplateKey } from "../types/invitation";
 import { withBase } from "../lib/base";
+import { GoldSeal } from "../templates/osmon/ornaments";
 
 interface Props {
   template: TemplateKey;
@@ -14,6 +15,39 @@ interface Props {
  * kartochkalar uchun. Har bir shablonning asosiy "kirish" ko'rinishini eslatadi.
  */
 export function TemplateThumb({ template, groom = "Mirodil", bride = "Jasmina", date = "12.06.2027", className = "" }: Props) {
+  if (template === "osmon") {
+    return (
+      <div className={`relative overflow-hidden bg-[#f4f1ec] ${className}`}>
+        <div
+          className="absolute inset-0 bg-gradient-to-r from-[#f6f3ee] to-[#ebe7e0]"
+          style={{ clipPath: "polygon(0 0,50% 49%,0 100%)", filter: "drop-shadow(0 0 4px rgba(80,70,60,.15))" }}
+        />
+        <div
+          className="absolute inset-0 bg-gradient-to-l from-[#f6f3ee] to-[#ebe7e0]"
+          style={{ clipPath: "polygon(100% 0,50% 49%,100% 100%)" }}
+        />
+        <div className="absolute inset-0 bg-[#f1ede7]" style={{ clipPath: "polygon(0 100%,50% 54%,100% 100%)" }} />
+        <div
+          className="absolute inset-x-0 top-0 h-1/2 bg-gradient-to-b from-[#faf8f4] to-[#ece8e1]"
+          style={{ clipPath: "polygon(0 0,100% 0,100% 2%,56% 86%,50% 94%,44% 86%,0 2%)", filter: "drop-shadow(0 4px 6px rgba(80,70,60,.15))" }}
+        />
+        <div className="absolute inset-x-0 top-[12%] flex flex-col items-center px-4 text-center">
+          <span style={{ fontFamily: '"Imperial Script", cursive' }} className="text-[30px] leading-tight text-[#64a0bd]">
+            {groom} & {bride}
+          </span>
+        </div>
+        <GoldSeal className="absolute left-1/2 top-[47%] h-14 w-14 -translate-x-1/2 -translate-y-1/2 drop-shadow-[0_6px_8px_rgba(90,64,20,0.35)]" />
+        <div className="absolute inset-x-0 top-[62%] flex flex-col items-center gap-1.5">
+          <span className="flex items-center gap-2 text-[9px] uppercase tracking-[0.3em] text-[#6f6a64]" style={{ fontFamily: "Rufina, serif" }}>
+            <span className="h-1.5 w-1.5 rounded-full bg-[#64a0bd]" />
+            Ochish uchun bosing
+          </span>
+          <span className="text-[10px] tracking-[0.3em] text-[#52839c]" style={{ fontFamily: "Rufina, serif" }}>{date}</span>
+        </div>
+      </div>
+    );
+  }
+
   if (template === "kuz") {
     const monogram = (
       <>

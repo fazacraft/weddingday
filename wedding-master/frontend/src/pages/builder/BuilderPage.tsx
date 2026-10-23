@@ -12,7 +12,7 @@ import {
 } from "../../lib/draft";
 import { slugify } from "../../lib/site";
 import { EMPTY_INVITATION, type InvitationData, type OwnedInvitation } from "../../types/invitation";
-import { isTemplateKey } from "../../templates/registry";
+import { isSelectableTemplate } from "../../templates/registry";
 import { FullPageLoader } from "../../templates/InvitationRenderer";
 import { Logo } from "../../platform/SiteChrome";
 import { LivePreview } from "../../platform/PhoneFrame";
@@ -28,7 +28,7 @@ import {
   type StepProps,
 } from "./steps";
 import type { SlugStatus } from "./SlugField";
-import { withBase } from "../../lib/base";
+import { PreviewFab, PreviewProvider, useIsDesktop } from "./PreviewSheet";
 
 interface StepDef {
   title: string;
@@ -106,13 +106,16 @@ export function BuilderPage({ mode }: Props) {
   const navigate = useNavigate();
   const { user } = useAuth();
   const storageKey = mode === "edit" && id ? editDraftKey(id) : CREATE_DRAFT_KEY;
+  const isDesktop = useIsDesktop();
 
   const [data, setData] = useState<InvitationData | null>(() => {
     if (mode === "edit") return null;
     const saved = loadDraft(CREATE_DRAFT_KEY);
     const base = saved?.data ?? { ...EMPTY_INVITATION };
     const tpl = params.get("shablon");
-    return isTemplateKey(tpl) ? { ...base, template: tpl } : base;
+    if (isSelectableTemplate(tpl)) return { ...base, template: tpl };
+    // Eski qoralamada endi yashirilgan shablon qolgan bo'lsa — standartga qaytaramiz
+    return isSelectableTemplate(base.template) ? base : { ...base, template: EMPTY_INVITATION.template };
   });
   const [step, setStep] = useState(() => (mode === "create" ? loadDraft(CREATE_DRAFT_KEY)?.step ?? 0 : 0));
   const [loadError, setLoadError] = useState<string | null>(null);
@@ -257,6 +260,7 @@ export function BuilderPage({ mode }: Props) {
   const StepComponent = current.Component;
 
   return (
+    <PreviewProvider storageKey={storageKey}>
     <div className="min-h-screen bg-ivory">
       <header className="sticky top-0 z-30 border-b border-ink/5 bg-ivory/90 backdrop-blur-md">
         <div className="mx-auto flex h-16 max-w-6xl items-center justify-between gap-4 px-4 sm:px-6">
@@ -281,7 +285,8 @@ export function BuilderPage({ mode }: Props) {
         </div>
       </header>
 
-      <div className="mx-auto grid max-w-6xl gap-10 px-4 py-8 sm:px-6 lg:grid-cols-[minmax(0,1fr)_380px]">
+      {/* Telefonda pastdagi "Ko'rish" tugmasi tugmalar qatorini to'smasligi uchun pb-28 */}
+      <div className="mx-auto grid max-w-6xl gap-10 px-4 pb-28 pt-8 sm:px-6 lg:grid-cols-[minmax(0,1fr)_380px] lg:pb-8">
         <main className="min-w-0">
           <nav className="-mx-4 mb-8 flex gap-1.5 overflow-x-auto px-4 pb-1 sm:mx-0 sm:px-0" aria-label="Qadamlar">
             {STEPS.map((s, i) => {
@@ -350,14 +355,6 @@ export function BuilderPage({ mode }: Props) {
               ← Orqaga
             </PButton>
             <div className="flex items-center gap-2">
-              <a
-                href={`${withBase("/korinish")}?key=${encodeURIComponent(storageKey)}`}
-                target="_blank"
-                rel="noreferrer"
-                className="inline-flex h-11 items-center rounded-full px-4 text-sm font-semibold text-ink/60 hover:text-ink lg:hidden"
-              >
-                Ko'rish ↗
-              </a>
               {step < LAST ? (
                 <PButton onClick={next}>Keyingi →</PButton>
               ) : mode === "create" ? (
@@ -373,13 +370,17 @@ export function BuilderPage({ mode }: Props) {
           </div>
         </main>
 
-        <aside className="hidden lg:block">
-          <div className="sticky top-24 flex flex-col items-center gap-3">
-            <LivePreview storageKey={storageKey} className="h-[700px] w-[350px]" />
-            <p className="text-center text-xs text-ink/40">Jonli ko'rinish · kirish tugmasini bosib ko'ring</p>
-          </div>
-        </aside>
+        {isDesktop && (
+          <aside>
+            <div className="sticky top-24 flex flex-col items-center gap-3">
+              <LivePreview storageKey={storageKey} className="h-[700px] w-[350px]" />
+              <p className="text-center text-xs text-ink/40">Jonli ko'rinish · kirish tugmasini bosib ko'ring</p>
+            </div>
+          </aside>
+        )}
       </div>
     </div>
+    <PreviewFab />
+    </PreviewProvider>
   );
 }

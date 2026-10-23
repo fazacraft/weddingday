@@ -1,4 +1,7 @@
-export type TemplateKey = "bog" | "anor" | "atirgul" | "kuz";
+export type TemplateKey = "bog" | "anor" | "atirgul" | "kuz" | "osmon";
+
+/** Galereyadagi rasmlar soni chegarasi (backend'dagi GALLERY_MAX bilan bir xil). */
+export const GALLERY_MAX = 6;
 
 export interface ScheduleItem {
   time: string;
@@ -32,6 +35,11 @@ export interface InvitationData {
   yandexMapUrl: string;
   schedule: ScheduleItem[];
   couplePhoto: string;
+  /** Muqova (hero foni) — hozircha "Osmon" shablonida */
+  coverPhoto: string;
+  venuePhoto: string;
+  /** Fotogalereya, ko'pi bilan GALLERY_MAX ta */
+  gallery: string[];
   musicUrl: string;
   cardNumber: string;
   cardHolder: string;
@@ -100,6 +108,9 @@ export const EMPTY_INVITATION: InvitationData = {
   yandexMapUrl: "",
   schedule: [],
   couplePhoto: "",
+  coverPhoto: "",
+  venuePhoto: "",
+  gallery: [],
   musicUrl: "",
   cardNumber: "",
   cardHolder: "",

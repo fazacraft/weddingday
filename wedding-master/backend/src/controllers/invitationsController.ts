@@ -1,6 +1,7 @@
 import { Response, NextFunction } from 'express';
 import { isValidObjectId } from 'mongoose';
 import {
+  HIDDEN_TEMPLATE_KEYS,
   Invitation,
   IInvitation,
   RESERVED_SLUGS,
@@ -20,7 +21,7 @@ const EDITABLE_FIELDS = [
   'groomName', 'brideName', 'date', 'time', 'eventTitle', 'inviteText',
   'greetingHeading', 'greetingMessage',
   'venueName', 'venueAddress', 'venueLandmark', 'googleMapUrl', 'yandexMapUrl',
-  'schedule', 'couplePhoto', 'musicUrl',
+  'schedule', 'couplePhoto', 'coverPhoto', 'venuePhoto', 'gallery', 'musicUrl',
   'cardNumber', 'cardHolder', 'dressCode', 'features',
 ] as const;
 
@@ -35,6 +36,9 @@ function pickEditable(body: Record<string, unknown>): Partial<IInvitation> {
       .filter((item) => item && String(item.title ?? '').trim() && item.time)
       .map((item) => ({ time: String(item.time ?? ''), title: String(item.title).trim() }))
       .sort((a, b) => a.time.localeCompare(b.time));
+  }
+  if (Array.isArray(out.gallery)) {
+    out.gallery = (out.gallery as unknown[]).filter((url): url is string => typeof url === 'string' && url.trim() !== '');
   }
   return out as Partial<IInvitation>;
 }
@@ -183,6 +187,10 @@ export async function updateInvitation(req: AuthedRequest, res: Response, next: 
     const inv = await findOwned(req, res);
     if (!inv) return;
     const data = pickEditable(req.body as Record<string, unknown>);
+    if (data.template && data.template !== inv.template && HIDDEN_TEMPLATE_KEYS.includes(data.template)) {
+      res.status(422).json({ error: "Bu shablon yangi taklifnomalar uchun yopilgan", field: 'template' });
+      return;
+    }
     if (data.slug !== undefined && data.slug !== inv.slug) {
       const problem = slugProblem(data.slug);
       if (problem) {
