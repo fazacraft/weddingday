@@ -167,9 +167,17 @@ export async function saveUpload(buffer: Buffer, contentType: string, name?: str
     stream.once('error', reject);
     stream.end(buffer);
   });
-  // Yuklagan odam darhol ko'radi — diskka ham yozib qo'yamiz (xato bo'lsa, keyin GridFS'dan olinadi)
-  writeAtomic(originalPath(filename), buffer).catch(() => {});
+  // Yuklagan odam darhol ko'radi — diskka ham yozib qo'yamiz (xato bo'lsa, keyin GridFS'dan olinadi).
+  // Rasm bo'lsa, birinchi mehmon kutmasligi uchun o'lcham variantlari ham fonda tayyorlanadi.
+  writeAtomic(originalPath(filename), buffer)
+    .then(() => (IMAGE_EXT.test(filename) ? warmVariants(filename) : undefined))
+    .catch(() => {});
   return `/uploads/${filename}`;
+}
+
+/** Barcha o'lcham variantlarini ketma-ket tayyorlaydi (sharp bir vaqtda bittadan ishlaydi). */
+export async function warmVariants(name: string): Promise<void> {
+  for (const width of VARIANT_WIDTHS) await ensureVariant(name, width);
 }
 
 /** /uploads/<nom> yo'llari bo'yicha fayllarni o'chiradi (boshqa manzillar e'tiborsiz qoldiriladi). */
