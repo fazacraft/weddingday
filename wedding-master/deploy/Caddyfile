@@ -1,6 +1,16 @@
 beluga.uz {
 	encode zstd gzip
-	reverse_proxy app:5050
+
+	# Tug'ilgan kun tabriklari (makeMeHappy, /opt/birthday) — prefiksni olib uzatadi,
+	# Django havolalarga uni o'zi qaytaradi (URL_PREFIX=/birthday)
+	redir /birthday /birthday/ permanent
+	handle_path /birthday/* {
+		reverse_proxy birthday:8000
+	}
+
+	handle {
+		reverse_proxy app:5050
+	}
 }
 
 www.beluga.uz {

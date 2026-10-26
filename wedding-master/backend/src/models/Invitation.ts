@@ -28,6 +28,7 @@ export const RESERVED_SLUGS = new Set([
   'login', 'register', 'kirish', 'royxatdan-otish', 'dashboard', 'kabinet',
   'preview', 'korinish', 'tahrirlash', 'admin',
   'socket-io', 'static', 'about', 'help', 'yordam', 'narxlar', 'pricing',
+  'birthday', // beluga.uz/birthday — tug'ilgan kun tabriklari (alohida konteyner)
 ]);
 
 /**
