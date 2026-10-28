@@ -1,5 +1,5 @@
 import { Schema, model, Document, Types } from 'mongoose';
-import { invalidatePublic } from '../services/publicCache';
+import { invalidatePublic, invalidateShowcase } from '../services/publicCache';
 
 export const TEMPLATE_KEYS = ['bog', 'anor', 'atirgul', 'kuz', 'osmon'] as const;
 export type TemplateKey = (typeof TEMPLATE_KEYS)[number];
@@ -29,6 +29,7 @@ export const RESERVED_SLUGS = new Set([
   'preview', 'korinish', 'tahrirlash', 'admin',
   'socket-io', 'static', 'about', 'help', 'yordam', 'narxlar', 'pricing',
   'birthday', // beluga.uz/birthday — tug'ilgan kun tabriklari (alohida konteyner)
+  'namunalar', // admin tanlagan tayyor taklifnomalar ko'rgazmasi
 ]);
 
 /**
@@ -91,6 +92,9 @@ export interface IInvitation extends Document {
 
   features: InvitationFeatures;
   openCount: number;
+  /** Admin "namuna" qilib belgilagan — saytdagi ko'rgazmada chiqadi (faqat nashr qilingan bo'lsa) */
+  featured: boolean;
+  featuredAt?: Date;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -141,6 +145,8 @@ const invitationSchema = new Schema<IInvitation>(
       gift: { type: Boolean, default: false },
     },
     openCount: { type: Number, default: 0 },
+    featured: { type: Boolean, default: false, index: true },
+    featuredAt: { type: Date },
   },
   { timestamps: true }
 );
@@ -192,13 +198,16 @@ invitationSchema.post('init', function (doc) {
 });
 invitationSchema.post('save', function (doc) {
   invalidatePublic(doc.slug, doc.$locals.loadedSlug as string | undefined);
+  invalidateShowcase();
   doc.$locals.loadedSlug = doc.slug;
 });
 invitationSchema.post('deleteOne', { document: true, query: false }, function (doc) {
   invalidatePublic(doc.slug, doc.$locals.loadedSlug as string | undefined);
+  invalidateShowcase();
 });
 invitationSchema.post('findOneAndUpdate', function (doc: IInvitation | null) {
   if (doc) invalidatePublic(doc.slug);
+  invalidateShowcase();
 });
 
 export const Invitation = model<IInvitation>('Invitation', invitationSchema);

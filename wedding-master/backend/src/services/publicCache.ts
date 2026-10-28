@@ -34,3 +34,23 @@ export function setCached<T>(slug: string, value: T | null): void {
 export function invalidatePublic(...slugs: (string | undefined | null)[]): void {
   for (const slug of slugs) if (slug) entries.delete(slug);
 }
+
+/*
+ * Namunalar (ko'rgazma) ro'yxati — bitta yozuv. Har qanday taklifnoma
+ * saqlanganda/o'chirilganda tozalanadi: nomlar, rasmlar yoki nashr holati
+ * o'zgargan bo'lishi mumkin.
+ */
+let showcase: { value: unknown; expires: number } | null = null;
+
+export function getShowcaseCache<T>(): T | undefined {
+  if (!showcase || showcase.expires < Date.now()) return undefined;
+  return showcase.value as T;
+}
+
+export function setShowcaseCache<T>(value: T): void {
+  showcase = { value, expires: Date.now() + TTL_MS };
+}
+
+export function invalidateShowcase(): void {
+  showcase = null;
+}

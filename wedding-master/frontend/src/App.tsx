@@ -21,6 +21,7 @@ const BuilderPage = lazy(() => import("./pages/builder/BuilderPage").then((m) =>
 const DashboardPage = lazy(() => import("./pages/dashboard/DashboardPage").then((m) => ({ default: m.DashboardPage })));
 const ManagePage = lazy(() => import("./pages/dashboard/ManagePage").then((m) => ({ default: m.ManagePage })));
 const AdminGate = lazy(() => import("./pages/admin/AdminGate").then((m) => ({ default: m.AdminGate })));
+const ShowcasePage = lazy(() => import("./pages/ShowcasePage").then((m) => ({ default: m.ShowcasePage })));
 
 /** Kabinet sahifalari — kirmagan foydalanuvchi kirish sahifasiga yo'naltiriladi. */
 function RequireAuth({ children }: { children: ReactNode }) {
@@ -62,6 +63,7 @@ export default function App() {
           element={<RequireAuth><BuilderPage key="edit" mode="edit" /></RequireAuth>}
         />
         <Route path="/admin" element={<AdminGate />} />
+        <Route path="/namunalar" element={<ShowcasePage />} />
         <Route path="/:slug/*" element={<PublicInvitationPage />} />
         <Route path="*" element={<NotFoundPage />} />
       </Routes>

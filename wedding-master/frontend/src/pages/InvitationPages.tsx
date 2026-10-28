@@ -24,6 +24,10 @@ function inlineInvitation(slug: string): PublicInvitation | null {
 /** Mehmon ochadigan sahifa: /:slug va /:slug/tilaklar */
 export function PublicInvitationPage() {
   const { slug = "" } = useParams();
+  const [params] = useSearchParams();
+  // Saytdagi "Namunalar"dan ochilgan: haqiqiy juftlikning sahifasi, lekin ko'rgazma
+  // sifatida — ochilishlar sanalmaydi, tilak/javob saqlanmaydi (demo rejim)
+  const showcase = params.has("namuna");
   const { user, loading: authLoading } = useAuth();
   const [invitation, setInvitation] = useState<PublicInvitation | null>(() => inlineInvitation(slug));
   const [error, setError] = useState<number | null>(null);
@@ -57,8 +61,28 @@ export function PublicInvitationPage() {
           Qoralama — faqat siz ko'ryapsiz. Mehmonlar uchun kabinetdan nashr qiling.
         </div>
       )}
-      <InvitationRenderer data={invitation} id={invitation.id} mode="live" basePath={`/${slug}`} />
+      <InvitationRenderer data={invitation} id={invitation.id} mode={showcase ? "demo" : "live"} basePath={`/${slug}`} />
+      {showcase && (
+        <DemoBar
+          label={`${invitation.groomName} & ${invitation.brideName}`}
+          template={isSelectableTemplate(invitation.template) ? invitation.template : undefined}
+        />
+      )}
     </>
+  );
+}
+
+/** Namuna sahifalari pastidagi panel: nima ko'rsatilayotgani va "yaratish" tugmasi. */
+function DemoBar({ label, template }: { label: string; template?: string }) {
+  return (
+    <div className="fixed bottom-5 left-1/2 z-[10000] flex max-w-[calc(100vw-2rem)] -translate-x-1/2 items-center gap-2 rounded-full bg-ink/90 p-1.5 pl-5 text-ivory shadow-2xl backdrop-blur">
+      <span className="hidden truncate text-xs sm:inline">
+        Namuna: <b>{label}</b>
+      </span>
+      <Link to={template ? `/yaratish?shablon=${template}` : "/yaratish"} className={buttonClass("secondary", "sm", "shrink-0 border-0")}>
+        Shu shablon bilan yaratish
+      </Link>
+    </div>
   );
 }
 
@@ -70,14 +94,7 @@ export function TemplateDemoPage() {
   return (
     <>
       <InvitationRenderer data={data} mode="demo" basePath={`/shablonlar/${key}`} />
-      <div className="fixed bottom-5 left-1/2 z-[10000] flex -translate-x-1/2 items-center gap-2 rounded-full bg-ink/90 p-1.5 pl-5 text-ivory shadow-2xl backdrop-blur">
-        <span className="hidden text-xs sm:inline">
-          Namuna: <b>{TEMPLATES[key].name}</b>
-        </span>
-        <Link to={`/yaratish?shablon=${key}`} className={buttonClass("secondary", "sm", "border-0")}>
-          Shu shablon bilan yaratish
-        </Link>
-      </div>
+      <DemoBar label={TEMPLATES[key].name} template={key} />
     </>
   );
 }

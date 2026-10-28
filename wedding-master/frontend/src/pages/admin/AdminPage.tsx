@@ -30,6 +30,7 @@ interface AdminInvitation {
   date: string;
   venueName: string;
   openCount: number;
+  featured?: boolean;
   createdAt: string;
   owner: { id: string; name: string; email: string } | null;
   wishes: number;
@@ -198,7 +199,7 @@ function InvitationsTab({ ownerFilter, onChange }: { ownerFilter: string | null;
   const [busyId, setBusyId] = useState<string | null>(null);
   const [actionError, setActionError] = useState<string | null>(null);
 
-  const act = async (inv: AdminInvitation, kind: "toggle" | "delete" | "approve" | "reject") => {
+  const act = async (inv: AdminInvitation, kind: "toggle" | "delete" | "approve" | "reject" | "feature") => {
     if (kind === "delete") {
       const ok = window.confirm(
         `"${inv.groomName} & ${inv.brideName}" (/${inv.slug}) butunlay o'chirilsinmi?\nTilaklar, javoblar va yuklangan rasm/musiqa ham o'chadi. Qaytarib bo'lmaydi.`
@@ -210,6 +211,8 @@ function InvitationsTab({ ownerFilter, onChange }: { ownerFilter: string | null;
     try {
       if (kind === "delete") {
         await adminApi(`/admin/invitations/${inv.id}`, { method: "DELETE" });
+      } else if (kind === "feature") {
+        await adminApi(`/admin/invitations/${inv.id}/featured`, { method: "PATCH", body: { featured: !inv.featured } });
       } else if (kind === "approve" || kind === "reject") {
         await adminApi(`/admin/invitations/${inv.id}/review`, { method: "POST", body: { decision: kind } });
       } else {
@@ -252,6 +255,7 @@ function InvitationsTab({ ownerFilter, onChange }: { ownerFilter: string | null;
           <option value="pending">Tasdiq kutmoqda</option>
           <option value="published">Nashrda</option>
           <option value="draft">Qoralama</option>
+          <option value="featured">Namunalar</option>
         </select>
       </div>
 
@@ -302,7 +306,12 @@ function InvitationsTab({ ownerFilter, onChange }: { ownerFilter: string | null;
                       <span className="text-xs text-ink/40">o'chirilgan</span>
                     )}
                   </td>
-                  <td className="px-4 py-3"><StatusBadge status={inv.status} review={inv.review} /></td>
+                  <td className="px-4 py-3">
+                    <StatusBadge status={inv.status} review={inv.review} />
+                    {inv.featured && inv.status === "published" && (
+                      <span className="mt-1 block w-fit rounded-full bg-amber-100 px-2 py-0.5 text-[10px] font-bold text-amber-800">★ Namunada</span>
+                    )}
+                  </td>
                   <td className="px-4 py-3 text-xs text-ink/55">
                     {inv.openCount} ochildi · {inv.replies} javob · {inv.wishes} tilak
                   </td>
@@ -327,6 +336,24 @@ function InvitationsTab({ ownerFilter, onChange }: { ownerFilter: string | null;
                           </button>
                         </>
                       )}
+                      <button
+                        disabled={busyId === inv.id || (!inv.featured && inv.status !== "published")}
+                        onClick={() => void act(inv, "feature")}
+                        title={
+                          inv.featured
+                            ? "Saytdagi «Namunalar»dan olib tashlash"
+                            : inv.status === "published"
+                              ? "Saytdagi «Namunalar»ga qo'shish"
+                              : "Avval nashr qiling — faqat nashrdagi taklifnoma namuna bo'la oladi"
+                        }
+                        className={`h-8 whitespace-nowrap rounded-lg px-2.5 text-xs font-semibold transition-colors disabled:opacity-40 ${
+                          inv.featured
+                            ? "bg-amber-100 text-amber-800 hover:bg-amber-200"
+                            : "text-ink/60 ring-1 ring-ink/10 hover:text-ink"
+                        }`}
+                      >
+                        {inv.featured ? "★ Namunada" : "☆ Namuna"}
+                      </button>
                       <a
                         href={withBase(inv.slug)}
                         target="_blank"

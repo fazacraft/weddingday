@@ -34,7 +34,7 @@ async function countsFor(ids: Types.ObjectId[]) {
 export async function stats(_req: AuthedRequest, res: Response, next: NextFunction): Promise<void> {
   try {
     await syncUploadedMusic();
-    const [users, invitations, published, pending, wishes, rsvps, musicPending] = await Promise.all([
+    const [users, invitations, published, pending, wishes, rsvps, musicPending, featured] = await Promise.all([
       User.countDocuments(),
       Invitation.countDocuments(),
       Invitation.countDocuments({ status: 'published' }),
@@ -42,8 +42,9 @@ export async function stats(_req: AuthedRequest, res: Response, next: NextFuncti
       Wish.countDocuments(),
       Rsvp.countDocuments(),
       Track.countDocuments({ status: 'pending' }),
+      Invitation.countDocuments({ featured: true, status: 'published' }),
     ]);
-    res.json({ users, invitations, published, pending, wishes, rsvps, musicPending });
+    res.json({ users, invitations, published, pending, wishes, rsvps, musicPending, featured });
   } catch (err) {
     next(err);
   }
@@ -55,6 +56,7 @@ export async function listInvitations(req: AuthedRequest, res: Response, next: N
     const filter: Record<string, unknown> = {};
     if (req.query.status === 'published' || req.query.status === 'draft') filter.status = req.query.status;
     if (req.query.status === 'pending') filter.review = 'pending';
+    if (req.query.status === 'featured') filter.featured = true;
     if (q) {
       const re = new RegExp(escapeRegex(q), 'i');
       const owners = await User.find({ $or: [{ email: re }, { name: re }] }).select('_id');
@@ -93,6 +95,7 @@ export async function listInvitations(req: AuthedRequest, res: Response, next: N
         date: inv.date,
         venueName: inv.venueName,
         openCount: inv.openCount,
+        featured: inv.featured,
         createdAt: inv.createdAt,
         owner: inv.owner ? { id: String(inv.owner._id), name: inv.owner.name, email: inv.owner.email } : null,
         ...counts(inv._id as Types.ObjectId),

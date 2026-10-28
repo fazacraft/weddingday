@@ -11,6 +11,7 @@ import {
 import { requireAdmin } from '../middleware/auth';
 import { adminLogin } from '../controllers/adminAuthController';
 import { adminDeleteTrack, adminListMusic, adminUpdateTrack } from '../controllers/musicController';
+import { setFeatured } from '../controllers/showcaseController';
 
 const router = Router();
 
@@ -23,6 +24,7 @@ router.get('/stats', stats);
 router.get('/invitations', listInvitations);
 router.patch('/invitations/:id', setInvitationStatus);
 router.post('/invitations/:id/review', reviewInvitation);
+router.patch('/invitations/:id/featured', setFeatured);
 router.delete('/invitations/:id', deleteInvitation);
 router.get('/users', listUsers);
 router.delete('/users/:id', deleteUser);
