@@ -36,6 +36,30 @@ interface TgUpdate {
   };
 }
 
+/**
+ * Bu bot avval tug'ilgan kun sahifalari (makeMeHappy) uchun ishlagan; eski
+ * foydalanuvchilar chatida o'sha pastki tugmalar qolgan. Ularni bosish — xabar emas.
+ */
+const LEGACY_BUTTONS = new Set([
+  '📸 Karusel rasm',
+  '⭕️ Little moment',
+  '🎵 Fon musiqa',
+  '👁 Sahifam',
+  '🎨 Shablon',
+  "ℹ️ Yo'riqnoma",
+]);
+
+function welcomeText(): string {
+  return [
+    `Assalomu alaykum! Bu Beluga taklifnomalari boti.`,
+    '',
+    `Taklifnomani faollashtirish uchun to'lov kartasi: <code>${formattedCard()}</code>`,
+    `To'lovdan so'ng chekni shu yerga yoki @${PAYMENT_CONTACT} ga yuboring — bu majburiy.`,
+    '',
+    "Chekni taklifnomangizga bog'lash uchun saytdagi kabinetingizda <b>«Telegram botni ochish»</b> tugmasini bosing.",
+  ].join('\n');
+}
+
 /** Admin tasdiqlash/rad etish tugmasini bosdi. */
 async function handleCallback(cb: NonNullable<TgUpdate['callback_query']>): Promise<void> {
   if (!cb.data) return;
@@ -111,18 +135,8 @@ async function handleMessage(msg: NonNullable<TgUpdate['message']>): Promise<voi
     return;
   }
 
-  if (text === '/start') {
-    await sendToChat(
-      msg.chat.id,
-      [
-        `Assalomu alaykum! Bu Beluga taklifnomalari boti.`,
-        '',
-        `Taklifnomani faollashtirish uchun to'lov kartasi: <code>${formattedCard()}</code>`,
-        `To'lovdan so'ng chekni shu yerga yoki @${PAYMENT_CONTACT} ga yuboring — bu majburiy.`,
-        '',
-        "Chekni taklifnomangizga bog'lash uchun saytdagi kabinetingizda <b>«Telegram botni ochish»</b> tugmasini bosing.",
-      ].join('\n')
-    );
+  if (text === '/start' || LEGACY_BUTTONS.has(text)) {
+    await sendToChat(msg.chat.id, welcomeText());
     return;
   }
 
@@ -165,7 +179,9 @@ async function handleAdminReply(msg: NonNullable<TgUpdate['message']>): Promise<
   const replied = msg.reply_to_message;
   if (!replied) {
     // Buyruqlar (/start va h.k.) — jim; oddiy matnga qanday javob berishni eslatamiz
-    if (!(msg.text ?? '').startsWith('/')) {
+    if (LEGACY_BUTTONS.has((msg.text ?? '').trim())) {
+      await sendToChat(msg.chat.id, '🧹 Eski tugmalar olib tashlandi.');
+    } else if (!(msg.text ?? '').startsWith('/')) {
       await sendToChat(msg.chat.id, "ℹ️ Foydalanuvchiga javob berish uchun uning xabariga <b>Reply</b> qiling.", msg.message_id);
     }
     return;

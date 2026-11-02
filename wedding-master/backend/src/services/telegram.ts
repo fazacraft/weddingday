@@ -92,6 +92,8 @@ export async function sendToChat(chatId: number | string, html: string, replyTo?
     parse_mode: 'HTML',
     disable_web_page_preview: true,
     ...(replyTo ? { reply_parameters: { message_id: replyTo, allow_sending_without_reply: true } } : {}),
+    // Bot avval tug'ilgan kun loyihasida ishlagan — chatlarda o'shaning pastki tugmalari qolgan, olib tashlaymiz
+    reply_markup: { remove_keyboard: true },
   });
   return sent?.message_id ?? null;
 }
