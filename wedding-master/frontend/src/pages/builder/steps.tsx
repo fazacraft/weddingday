@@ -354,6 +354,16 @@ export function PublishStep({ data, update, exceptId, onSlugStatus, slugError }:
           </div>
         )}
       </div>
+
+      <div className="flex flex-col gap-2.5">
+        <p className="text-[13px] font-semibold text-ink/80">Ko'rinish</p>
+        <Toggle
+          checked={!data.hideFromShowcase}
+          onChange={(v) => update({ hideFromShowcase: !v })}
+          title="Saytdagi «Namunalar»da ko'rinsin"
+          description="Nashr qilingach taklifnomangiz (ismlar, sana, rasm) boshqa foydalanuvchilarga namuna sifatida ko'rsatiladi. Istalgan vaqtda o'chirib qo'yishingiz mumkin."
+        />
+      </div>
     </div>
   );
 }

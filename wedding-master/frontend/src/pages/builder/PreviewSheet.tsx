@@ -115,20 +115,61 @@ function PreviewSheet({ storageKey, slot, onClose }: { storageKey: string; slot?
   );
 }
 
-/** Telefonda doim ko'rinib turadigan "Ko'rish" tugmasi. */
+const EYE_ICON = (
+  <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="1.8" aria-hidden="true">
+    <path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12Z" />
+    <circle cx="12" cy="12" r="3" />
+  </svg>
+);
+
+/** Pastki tugmalar qatori (id) — ko'rinib turganda suzuvchi tugma uni to'smasligi uchun yashirinadi. */
+export const BUILDER_ACTIONS_ID = "builder-actions";
+
+/**
+ * Telefonda suzuvchi "Ko'rish" tugmasi. Pastki tugmalar qatori ekranga kirganda
+ * yashirinadi ("Keyingi"/"Nashr qilish"ni to'smasin) — u yerda o'zining
+ * ixcham ko'rish tugmasi bor (PreviewIconButton).
+ */
 export function PreviewFab() {
+  const { show } = usePreview();
+  const [actionsVisible, setActionsVisible] = useState(false);
+
+  useEffect(() => {
+    const actions = document.getElementById(BUILDER_ACTIONS_ID);
+    if (!actions || !("IntersectionObserver" in window)) return;
+    const observer = new IntersectionObserver(([entry]) => setActionsVisible(entry.isIntersecting));
+    observer.observe(actions);
+    return () => observer.disconnect();
+  }, []);
+
+  return (
+    <button
+      type="button"
+      onClick={() => show()}
+      aria-hidden={actionsVisible}
+      tabIndex={actionsVisible ? -1 : 0}
+      className={`fixed bottom-5 right-4 z-40 inline-flex h-12 items-center gap-2 rounded-full bg-ink pl-4 pr-5 text-sm font-semibold text-ivory shadow-[0_14px_30px_-10px_rgba(31,26,23,0.7)] transition-all duration-200 active:scale-95 lg:hidden ${
+        actionsVisible ? "pointer-events-none translate-y-4 opacity-0" : ""
+      }`}
+    >
+      {EYE_ICON}
+      Ko'rish
+    </button>
+  );
+}
+
+/** Pastki tugmalar qatoridagi ixcham "ko'rish" tugmasi (faqat telefonda). */
+export function PreviewIconButton() {
   const { show } = usePreview();
   return (
     <button
       type="button"
       onClick={() => show()}
-      className="fixed bottom-5 right-4 z-40 inline-flex h-12 items-center gap-2 rounded-full bg-ink pl-4 pr-5 text-sm font-semibold text-ivory shadow-[0_14px_30px_-10px_rgba(31,26,23,0.7)] active:scale-95 lg:hidden"
+      aria-label="Taklifnomani ko'rish"
+      title="Ko'rish"
+      className="grid h-11 w-11 shrink-0 place-items-center rounded-full text-ink/60 ring-1 ring-ink/15 hover:text-ink lg:hidden"
     >
-      <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="1.8" aria-hidden="true">
-        <path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12Z" />
-        <circle cx="12" cy="12" r="3" />
-      </svg>
-      Ko'rish
+      {EYE_ICON}
     </button>
   );
 }

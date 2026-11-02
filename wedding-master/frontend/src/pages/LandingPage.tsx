@@ -286,7 +286,7 @@ export function LandingPage() {
   );
 }
 
-/** Mijozlarning tayyor taklifnomalari — admin panelda "namuna" deb belgilanganlar. */
+/** Mijozlarning tayyor taklifnomalari — nashr qilinganlarning hammasi (egasi yoki admin yashirmagan bo'lsa). */
 function ShowcaseSection() {
   const { items, total, loaded } = useShowcase(8);
   if (!loaded || items.length === 0) return null;
@@ -299,7 +299,8 @@ function ShowcaseSection() {
             <h2 className="mt-3 font-display text-4xl font-semibold text-ink sm:text-5xl">Tayyor taklifnomalar</h2>
           </div>
           <p className="max-w-sm text-sm leading-relaxed text-ink/55">
-            Juftliklar biz bilan yaratgan haqiqiy taklifnomalar — oching va mehmon ko'zi bilan ko'ring.
+            Hozirgacha <b className="text-ink">{total} ta</b> juftlik biz bilan taklifnoma yaratdi. Istalganini oching va
+            mehmon ko'zi bilan ko'ring — sizniki ham shunday bo'ladi.
           </p>
         </div>
         <div className="mt-12">

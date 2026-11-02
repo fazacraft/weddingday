@@ -92,9 +92,13 @@ export interface IInvitation extends Document {
 
   features: InvitationFeatures;
   openCount: number;
-  /** Admin "namuna" qilib belgilagan — saytdagi ko'rgazmada chiqadi (faqat nashr qilingan bo'lsa) */
+  /** Admin ko'rgazmada (saytdagi "Namunalar") boshiga mahkamlagan */
   featured: boolean;
   featuredAt?: Date;
+  /** Egasi o'chirgan: taklifnomam saytdagi "Namunalar"da ko'rinmasin */
+  hideFromShowcase: boolean;
+  /** Admin ko'rgazmadan yashirgan */
+  showcaseHidden: boolean;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -147,6 +151,8 @@ const invitationSchema = new Schema<IInvitation>(
     openCount: { type: Number, default: 0 },
     featured: { type: Boolean, default: false, index: true },
     featuredAt: { type: Date },
+    hideFromShowcase: { type: Boolean, default: false },
+    showcaseHidden: { type: Boolean, default: false },
   },
   { timestamps: true }
 );

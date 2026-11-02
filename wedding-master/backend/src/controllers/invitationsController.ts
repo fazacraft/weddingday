@@ -22,7 +22,7 @@ const EDITABLE_FIELDS = [
   'groomName', 'brideName', 'date', 'time', 'eventTitle', 'inviteText',
   'greetingHeading', 'greetingMessage',
   'venueName', 'venueAddress', 'venueLandmark', 'googleMapUrl', 'yandexMapUrl',
-  'schedule', 'couplePhoto', 'coverPhoto', 'venuePhoto', 'gallery', 'musicUrl', 'musicTitle',
+  'schedule', 'couplePhoto', 'coverPhoto', 'venuePhoto', 'gallery', 'musicUrl', 'musicTitle', 'hideFromShowcase',
   'cardNumber', 'cardHolder', 'dressCode', 'features',
 ] as const;
 
@@ -88,6 +88,7 @@ function ownerView(inv: IInvitation, stats?: Record<string, number>) {
     cardNumber: inv.cardNumber,
     cardHolder: inv.cardHolder,
     musicTitle: inv.musicTitle,
+    hideFromShowcase: inv.hideFromShowcase,
     review: inv.review,
     reviewRequestedAt: inv.reviewRequestedAt,
     // Tasdiq kechiksa foydalanuvchi shu botga yozadi (t.me/<bot>?start=<id>)

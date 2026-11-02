@@ -18,14 +18,19 @@ export interface ShowcaseItem {
 const MAX_ITEMS = 500;
 
 /**
- * Admin namuna qilib belgilagan va nashrda turgan taklifnomalar, eng yangi
- * belgilangani birinchi. Nashrdan olinsa ro'yxatdan o'zi chiqadi.
+ * Saytdagi "Namunalar": nashr qilingan barcha taklifnomalar — egasi o'chirmagan
+ * va admin yashirmagan bo'lsa. Admin mahkamlaganlari boshida, qolgani yangisidan.
+ * Nashrdan olinsa ro'yxatdan o'zi chiqadi.
  */
 export async function getShowcase(): Promise<ShowcaseItem[]> {
   const cached = getShowcaseCache<ShowcaseItem[]>();
   if (cached) return cached;
-  const list = await Invitation.find({ featured: true, status: 'published' })
-    .sort({ featuredAt: -1 })
+  const list = await Invitation.find({
+    status: 'published',
+    hideFromShowcase: { $ne: true },
+    showcaseHidden: { $ne: true },
+  })
+    .sort({ featured: -1, featuredAt: -1, createdAt: -1 })
     .limit(MAX_ITEMS)
     .select('slug template groomName brideName eventTitle date venueName coverPhoto couplePhoto gallery')
     .lean();

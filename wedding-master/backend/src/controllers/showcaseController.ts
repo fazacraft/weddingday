@@ -17,7 +17,7 @@ export async function listShowcase(req: Request, res: Response, next: NextFuncti
   }
 }
 
-/** PATCH /api/admin/invitations/:id/featured { featured } — namunalarga qo'shish/olib tashlash. */
+/** PATCH /api/admin/invitations/:id/featured { featured } — ko'rgazma boshiga mahkamlash/bo'shatish. */
 export async function setFeatured(req: AuthedRequest, res: Response, next: NextFunction): Promise<void> {
   try {
     const featured = (req.body as { featured?: unknown }).featured;
@@ -31,13 +31,45 @@ export async function setFeatured(req: AuthedRequest, res: Response, next: NextF
       return;
     }
     if (featured && inv.status !== 'published') {
-      res.status(422).json({ error: "Namuna qilish uchun taklifnoma nashr qilingan bo'lishi kerak" });
+      res.status(422).json({ error: "Mahkamlash uchun taklifnoma nashr qilingan bo'lishi kerak" });
+      return;
+    }
+    // Egasining tanlovi ustun: u "ko'rinmasin" degan bo'lsa, admin ham chiqara olmaydi
+    if (featured && inv.hideFromShowcase) {
+      res.status(422).json({ error: "Egasi taklifnomasi namunalarda ko'rinmasligini tanlagan" });
       return;
     }
     inv.featured = featured;
     inv.featuredAt = featured ? new Date() : undefined;
+    if (featured) inv.showcaseHidden = false;
     await inv.save();
     res.json({ id: String(inv._id), featured: inv.featured });
+  } catch (err) {
+    next(err);
+  }
+}
+
+/** PATCH /api/admin/invitations/:id/showcase { hidden } — saytdagi "Namunalar"dan yashirish/qaytarish. */
+export async function setShowcaseHidden(req: AuthedRequest, res: Response, next: NextFunction): Promise<void> {
+  try {
+    const hidden = (req.body as { hidden?: unknown }).hidden;
+    if (typeof hidden !== 'boolean') {
+      res.status(422).json({ error: "Noto'g'ri so'rov" });
+      return;
+    }
+    const inv = isValidObjectId(req.params.id) ? await Invitation.findById(req.params.id) : null;
+    if (!inv) {
+      res.status(404).json({ error: 'Taklifnoma topilmadi' });
+      return;
+    }
+    inv.showcaseHidden = hidden;
+    // Yashirilgan taklifnoma mahkamlangan bo'lib qolmasin
+    if (hidden) {
+      inv.featured = false;
+      inv.featuredAt = undefined;
+    }
+    await inv.save();
+    res.json({ id: String(inv._id), showcaseHidden: inv.showcaseHidden, featured: inv.featured });
   } catch (err) {
     next(err);
   }

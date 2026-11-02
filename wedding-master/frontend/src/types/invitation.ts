@@ -43,6 +43,8 @@ export interface InvitationData {
   musicUrl: string;
   /** O'zi yuklagan qo'shiqning nomi — admin tasdiqlasa umumiy ro'yxatda shu nom bilan chiqadi */
   musicTitle: string;
+  /** true — taklifnoma saytdagi "Namunalar" ro'yxatida ko'rinmaydi (egasining tanlovi) */
+  hideFromShowcase: boolean;
   cardNumber: string;
   cardHolder: string;
   dressCode: string;
@@ -115,6 +117,7 @@ export const EMPTY_INVITATION: InvitationData = {
   gallery: [],
   musicUrl: "",
   musicTitle: "",
+  hideFromShowcase: false,
   cardNumber: "",
   cardHolder: "",
   dressCode: "",

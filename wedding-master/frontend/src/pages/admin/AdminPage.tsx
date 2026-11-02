@@ -31,6 +31,8 @@ interface AdminInvitation {
   venueName: string;
   openCount: number;
   featured?: boolean;
+  hideFromShowcase?: boolean;
+  showcaseHidden?: boolean;
   createdAt: string;
   owner: { id: string; name: string; email: string } | null;
   wishes: number;
@@ -199,7 +201,7 @@ function InvitationsTab({ ownerFilter, onChange }: { ownerFilter: string | null;
   const [busyId, setBusyId] = useState<string | null>(null);
   const [actionError, setActionError] = useState<string | null>(null);
 
-  const act = async (inv: AdminInvitation, kind: "toggle" | "delete" | "approve" | "reject" | "feature") => {
+  const act = async (inv: AdminInvitation, kind: "toggle" | "delete" | "approve" | "reject" | "feature" | "showcase") => {
     if (kind === "delete") {
       const ok = window.confirm(
         `"${inv.groomName} & ${inv.brideName}" (/${inv.slug}) butunlay o'chirilsinmi?\nTilaklar, javoblar va yuklangan rasm/musiqa ham o'chadi. Qaytarib bo'lmaydi.`
@@ -213,6 +215,8 @@ function InvitationsTab({ ownerFilter, onChange }: { ownerFilter: string | null;
         await adminApi(`/admin/invitations/${inv.id}`, { method: "DELETE" });
       } else if (kind === "feature") {
         await adminApi(`/admin/invitations/${inv.id}/featured`, { method: "PATCH", body: { featured: !inv.featured } });
+      } else if (kind === "showcase") {
+        await adminApi(`/admin/invitations/${inv.id}/showcase`, { method: "PATCH", body: { hidden: !inv.showcaseHidden } });
       } else if (kind === "approve" || kind === "reject") {
         await adminApi(`/admin/invitations/${inv.id}/review`, { method: "POST", body: { decision: kind } });
       } else {
@@ -255,7 +259,9 @@ function InvitationsTab({ ownerFilter, onChange }: { ownerFilter: string | null;
           <option value="pending">Tasdiq kutmoqda</option>
           <option value="published">Nashrda</option>
           <option value="draft">Qoralama</option>
-          <option value="featured">Namunalar</option>
+          <option value="showcase">Namunalarda ko'rinadi</option>
+          <option value="featured">Namunalarda mahkamlangan</option>
+          <option value="showcase-hidden">Namunalardan yashirilgan</option>
         </select>
       </div>
 
@@ -308,9 +314,7 @@ function InvitationsTab({ ownerFilter, onChange }: { ownerFilter: string | null;
                   </td>
                   <td className="px-4 py-3">
                     <StatusBadge status={inv.status} review={inv.review} />
-                    {inv.featured && inv.status === "published" && (
-                      <span className="mt-1 block w-fit rounded-full bg-amber-100 px-2 py-0.5 text-[10px] font-bold text-amber-800">★ Namunada</span>
-                    )}
+                    <ShowcaseBadge inv={inv} />
                   </td>
                   <td className="px-4 py-3 text-xs text-ink/55">
                     {inv.openCount} ochildi · {inv.replies} javob · {inv.wishes} tilak
@@ -336,24 +340,29 @@ function InvitationsTab({ ownerFilter, onChange }: { ownerFilter: string | null;
                           </button>
                         </>
                       )}
-                      <button
-                        disabled={busyId === inv.id || (!inv.featured && inv.status !== "published")}
-                        onClick={() => void act(inv, "feature")}
-                        title={
-                          inv.featured
-                            ? "Saytdagi «Namunalar»dan olib tashlash"
-                            : inv.status === "published"
-                              ? "Saytdagi «Namunalar»ga qo'shish"
-                              : "Avval nashr qiling — faqat nashrdagi taklifnoma namuna bo'la oladi"
-                        }
-                        className={`h-8 whitespace-nowrap rounded-lg px-2.5 text-xs font-semibold transition-colors disabled:opacity-40 ${
-                          inv.featured
-                            ? "bg-amber-100 text-amber-800 hover:bg-amber-200"
-                            : "text-ink/60 ring-1 ring-ink/10 hover:text-ink"
-                        }`}
-                      >
-                        {inv.featured ? "★ Namunada" : "☆ Namuna"}
-                      </button>
+                      {inv.status === "published" && !inv.hideFromShowcase && (
+                        <>
+                          <button
+                            disabled={busyId === inv.id}
+                            onClick={() => void act(inv, "feature")}
+                            title={inv.featured ? "Namunalar boshidan bo'shatish" : "Saytdagi «Namunalar» boshiga mahkamlash"}
+                            aria-label={inv.featured ? "Mahkamdan bo'shatish" : "Mahkamlash"}
+                            className={`h-8 rounded-lg px-2.5 text-xs font-semibold transition-colors disabled:opacity-40 ${
+                              inv.featured ? "bg-amber-100 text-amber-800 hover:bg-amber-200" : "text-ink/60 ring-1 ring-ink/10 hover:text-ink"
+                            }`}
+                          >
+                            📌
+                          </button>
+                          <button
+                            disabled={busyId === inv.id}
+                            onClick={() => void act(inv, "showcase")}
+                            title={inv.showcaseHidden ? "Saytdagi «Namunalar»ga qaytarish" : "Saytdagi «Namunalar»dan yashirish"}
+                            className="h-8 whitespace-nowrap rounded-lg px-2.5 text-xs font-semibold text-ink/60 ring-1 ring-ink/10 hover:text-ink disabled:opacity-40"
+                          >
+                            {inv.showcaseHidden ? "Namunaga qaytarish" : "Namunadan yashirish"}
+                          </button>
+                        </>
+                      )}
                       <a
                         href={withBase(inv.slug)}
                         target="_blank"
@@ -657,4 +666,17 @@ function TrackCard({ track, onDone }: { track: AdminTrack; onDone: () => void })
       </div>
     </div>
   );
+}
+
+/** Taklifnoma saytdagi "Namunalar"da ko'rinadimi — admin jadvali uchun qisqa belgi. */
+function ShowcaseBadge({ inv }: { inv: AdminInvitation }) {
+  if (inv.status !== "published") return null;
+  const [text, className] = inv.hideFromShowcase
+    ? ["Egasi yashirgan", "bg-ink/10 text-ink/55"]
+    : inv.showcaseHidden
+      ? ["Siz yashirgansiz", "bg-ink/10 text-ink/55"]
+      : inv.featured
+        ? ["📌 Mahkamlangan", "bg-amber-100 text-amber-800"]
+        : ["Namunalarda", "bg-sky-100 text-sky-800"];
+  return <span className={`mt-1 block w-fit whitespace-nowrap rounded-full px-2 py-0.5 text-[10px] font-bold ${className}`}>{text}</span>;
 }

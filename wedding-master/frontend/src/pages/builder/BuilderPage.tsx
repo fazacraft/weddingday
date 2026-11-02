@@ -28,7 +28,7 @@ import {
   type StepProps,
 } from "./steps";
 import type { SlugStatus } from "./SlugField";
-import { PreviewFab, PreviewProvider, useIsDesktop } from "./PreviewSheet";
+import { BUILDER_ACTIONS_ID, PreviewFab, PreviewIconButton, PreviewProvider, useIsDesktop } from "./PreviewSheet";
 
 interface StepDef {
   title: string;
@@ -350,11 +350,12 @@ export function BuilderPage({ mode }: Props) {
             {mode === "edit" && saved && <Notice tone="success">O'zgarishlar saqlandi — mehmonlar darhol yangisini ko'radi.</Notice>}
           </div>
 
-          <div className="mt-8 flex items-center justify-between gap-3 border-t border-ink/10 pt-6">
+          <div id={BUILDER_ACTIONS_ID} className="mt-8 flex items-center justify-between gap-3 border-t border-ink/10 pt-6">
             <PButton variant="ghost" onClick={() => goTo(step - 1)} disabled={step === 0}>
               ← Orqaga
             </PButton>
             <div className="flex items-center gap-2">
+              <PreviewIconButton />
               {step < LAST ? (
                 <PButton onClick={next}>Keyingi →</PButton>
               ) : mode === "create" ? (

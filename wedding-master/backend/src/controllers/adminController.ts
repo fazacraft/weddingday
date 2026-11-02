@@ -57,6 +57,9 @@ export async function listInvitations(req: AuthedRequest, res: Response, next: N
     if (req.query.status === 'published' || req.query.status === 'draft') filter.status = req.query.status;
     if (req.query.status === 'pending') filter.review = 'pending';
     if (req.query.status === 'featured') filter.featured = true;
+    // Saytdagi "Namunalar"da ko'rinayotganlar / ko'rinmayotganlar
+    if (req.query.status === 'showcase') Object.assign(filter, { status: 'published', hideFromShowcase: { $ne: true }, showcaseHidden: { $ne: true } });
+    if (req.query.status === 'showcase-hidden') filter.$and = [{ $or: [{ hideFromShowcase: true }, { showcaseHidden: true }] }];
     if (q) {
       const re = new RegExp(escapeRegex(q), 'i');
       const owners = await User.find({ $or: [{ email: re }, { name: re }] }).select('_id');
@@ -96,6 +99,8 @@ export async function listInvitations(req: AuthedRequest, res: Response, next: N
         venueName: inv.venueName,
         openCount: inv.openCount,
         featured: inv.featured,
+        hideFromShowcase: inv.hideFromShowcase,
+        showcaseHidden: inv.showcaseHidden,
         createdAt: inv.createdAt,
         owner: inv.owner ? { id: String(inv.owner._id), name: inv.owner.name, email: inv.owner.email } : null,
         ...counts(inv._id as Types.ObjectId),
