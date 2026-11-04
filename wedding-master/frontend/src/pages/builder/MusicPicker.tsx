@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { api, mediaUrl } from "../../lib/api";
-import { withBase } from "../../lib/base";
 import { MUSIC_LIBRARY } from "../../lib/music";
+import { templateMusic, useTemplateSettings } from "../../lib/templateSettings";
 import { TEMPLATES } from "../../templates/registry";
 import type { InvitationData } from "../../types/invitation";
 import { PButton } from "../../platform/ui";
@@ -81,14 +81,20 @@ export function MusicPicker({ data, update }: { data: InvitationData; update: (p
   }, []);
 
   const template = TEMPLATES[data.template] ?? TEMPLATES.bog;
-  const templateTrack = MUSIC_LIBRARY.find((t) => withBase(t.url) === template.defaultMusic);
+  const settings = useTemplateSettings();
+  const defaultMusic = templateMusic(template.key, template.defaultMusic, settings);
+  const libraryTrack = MUSIC_LIBRARY.find((t) => mediaUrl(t.url) === defaultMusic);
+  const sharedTrack = shared.find((t) => mediaUrl(t.url) === defaultMusic);
+  const templateTrack = libraryTrack
+    ? { title: libraryTrack.title, duration: libraryTrack.duration }
+    : sharedTrack && { title: sharedTrack.title, duration: formatDuration(sharedTrack.durationSec) };
   // O'zi yuklagan va hali umumiy ro'yxatda bo'lmagan musiqa
   const custom = data.musicUrl.startsWith("/uploads/") && !shared.some((t) => t.url === data.musicUrl) ? data.musicUrl : "";
 
   const options: Option[] = [
     {
       value: "",
-      src: template.defaultMusic,
+      src: defaultMusic,
       title: "Shablon musiqasi",
       note: templateTrack ? `«${template.name}»: ${templateTrack.title}` : `«${template.name}» shablonining o'z kuyi`,
       duration: templateTrack?.duration,

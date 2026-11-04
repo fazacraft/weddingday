@@ -4,12 +4,13 @@ import { Rsvp } from '../models/Rsvp';
 import { Track } from '../models/Track';
 import { deleteUploads } from '../storage';
 import { libraryMedia } from './musicLibrary';
+import { templateMedia } from './templateSettings';
 
 /**
  * Taklifnomani butunlay o'chiradi: tilaklar, javoblar va yuklangan rasm/musiqa
  * ham. Boshqa taklifnoma xuddi shu faylni ishlatayotgan bo'lsa (masalan, seed
- * surati) yoki musiqa kutubxonasida (kutayotgan/tasdiqlangan) bo'lsa, fayl
- * qoldiriladi.
+ * surati), musiqa kutubxonasida (kutayotgan/tasdiqlangan) yoki shablon
+ * standartlarida bo'lsa, fayl qoldiriladi.
  */
 export async function removeInvitation(inv: IInvitation): Promise<void> {
   const media = invitationMedia(inv);
@@ -19,7 +20,7 @@ export async function removeInvitation(inv: IInvitation): Promise<void> {
     inv.deleteOne(),
   ]);
   if (media.length === 0) return;
-  const [stillUsed, inLibrary] = await Promise.all([
+  const [stillUsed, inLibrary, inTemplates] = await Promise.all([
     Invitation.find({
       $or: [
         { couplePhoto: { $in: media } },
@@ -30,8 +31,9 @@ export async function removeInvitation(inv: IInvitation): Promise<void> {
       ],
     }).select('couplePhoto coverPhoto venuePhoto gallery musicUrl'),
     libraryMedia(media),
+    templateMedia(),
   ]);
-  const keep = new Set([...stillUsed.flatMap((i) => invitationMedia(i)), ...inLibrary]);
+  const keep = new Set([...stillUsed.flatMap((i) => invitationMedia(i)), ...inLibrary, ...inTemplates]);
   const removed = media.filter((m) => !keep.has(m));
   await deleteUploads(removed);
   // Rad etilgan nomzodning fayli endi yo'q — yozuvi ham kerak emas

@@ -1,6 +1,7 @@
 import { Link } from "react-router-dom";
 import { GALLERY_MAX, type InvitationData } from "../../types/invitation";
 import { TEMPLATE_LIST, TEMPLATES } from "../../templates/registry";
+import { switchTemplate } from "../../lib/templateSettings";
 import { TemplateThumb } from "../../platform/TemplateThumb";
 import { Area, Field, Toggle } from "../../platform/ui";
 import { GalleryField, UploadField } from "./UploadField";
@@ -256,7 +257,7 @@ export function TemplateStep({ data, update }: StepProps) {
               active ? "border-rose shadow-[0_16px_40px_-20px_rgba(155,35,53,0.6)]" : "border-transparent ring-1 ring-ink/10"
             }`}
           >
-            <button type="button" onClick={() => update({ template: tpl.key })} className="block w-full text-left">
+            <button type="button" onClick={() => update(switchTemplate(data, tpl.key))} className="block w-full text-left">
               <TemplateThumb
                 template={tpl.key}
                 groom={data.groomName || undefined}

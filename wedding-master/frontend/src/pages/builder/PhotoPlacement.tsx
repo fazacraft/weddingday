@@ -2,7 +2,8 @@ import type { ReactNode } from "react";
 import { mediaUrl, PHOTO_WIDTHS } from "../../lib/api";
 import type { PhotoSlot } from "../../lib/previewFocus";
 import { usePreview } from "./PreviewSheet";
-import { resolveOsmonPhotos } from "../../templates/osmon/photos";
+import { osmonSamples, resolveOsmonPhotos } from "../../templates/osmon/photos";
+import { useTemplateSettings } from "../../lib/templateSettings";
 import { TEMPLATES } from "../../templates/registry";
 import type { InvitationData } from "../../types/invitation";
 
@@ -24,7 +25,8 @@ interface Props {
 
 export function PhotoPlacement({ slot, data }: Props) {
   const { show } = usePreview();
-  const raw = resolveOsmonPhotos(data.coverPhoto, data.couplePhoto, data.venuePhoto, data.gallery);
+  const settings = useTemplateSettings();
+  const raw = resolveOsmonPhotos(data.coverPhoto, data.couplePhoto, data.venuePhoto, data.gallery, osmonSamples(settings));
   // Kichik telefon ekrani — eng kichik variant yetarli
   const photos = { ...raw, hero: thumb(raw.hero), card: thumb(raw.card), venue: thumb(raw.venue), gallery: raw.gallery.map(thumb) };
   const names = { groom: data.groomName || "Kuyov", bride: data.brideName || "Kelin" };

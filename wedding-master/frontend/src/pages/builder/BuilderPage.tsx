@@ -12,6 +12,7 @@ import {
 } from "../../lib/draft";
 import { slugify } from "../../lib/site";
 import { EMPTY_INVITATION, type InvitationData, type OwnedInvitation } from "../../types/invitation";
+import { switchTemplate, templateTexts } from "../../lib/templateSettings";
 import { isSelectableTemplate } from "../../templates/registry";
 import { FullPageLoader } from "../../templates/InvitationRenderer";
 import { Logo } from "../../platform/SiteChrome";
@@ -111,11 +112,11 @@ export function BuilderPage({ mode }: Props) {
   const [data, setData] = useState<InvitationData | null>(() => {
     if (mode === "edit") return null;
     const saved = loadDraft(CREATE_DRAFT_KEY);
-    const base = saved?.data ?? { ...EMPTY_INVITATION };
+    const base = saved?.data ?? { ...EMPTY_INVITATION, ...templateTexts(EMPTY_INVITATION.template) };
     const tpl = params.get("shablon");
-    if (isSelectableTemplate(tpl)) return { ...base, template: tpl };
+    if (isSelectableTemplate(tpl)) return { ...base, ...switchTemplate(base, tpl) };
     // Eski qoralamada endi yashirilgan shablon qolgan bo'lsa — standartga qaytaramiz
-    return isSelectableTemplate(base.template) ? base : { ...base, template: EMPTY_INVITATION.template };
+    return isSelectableTemplate(base.template) ? base : { ...base, ...switchTemplate(base, EMPTY_INVITATION.template) };
   });
   const [step, setStep] = useState(() => (mode === "create" ? loadDraft(CREATE_DRAFT_KEY)?.step ?? 0 : 0));
   const [loadError, setLoadError] = useState<string | null>(null);

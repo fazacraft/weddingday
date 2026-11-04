@@ -1,6 +1,7 @@
 import { Invitation, IInvitation } from '../models/Invitation';
 import { Track } from '../models/Track';
 import { deleteUploads } from '../storage';
+import { templateMedia } from './templateSettings';
 
 /** Foydalanuvchi yuklagan audio fayl (kutubxonaga nomzod). */
 export function isUploadedAudio(url: string | undefined): url is string {
@@ -40,9 +41,9 @@ export async function libraryMedia(urls: string[]): Promise<Set<string>> {
   return new Set(tracks.map((t) => t.url));
 }
 
-/** Kutubxonadan chiqarilgan faylni hech bir taklifnoma ishlatmasa, uni ham o'chiradi. */
+/** Kutubxonadan chiqarilgan faylni hech bir taklifnoma (va shablon standarti) ishlatmasa, uni ham o'chiradi. */
 export async function deleteTrackFileIfUnused(url: string): Promise<boolean> {
-  if (await Invitation.exists({ musicUrl: url })) return false;
+  if ((await Invitation.exists({ musicUrl: url })) || (await templateMedia()).has(url)) return false;
   await deleteUploads([url]);
   return true;
 }

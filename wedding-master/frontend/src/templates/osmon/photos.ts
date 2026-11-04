@@ -7,6 +7,8 @@
  * manzil va kerakli o'lcham chaqiruvchida mediaUrl(path, width) bilan olinadi.
  */
 
+import type { TemplateSettingsMap } from "../../lib/templateSettings";
+
 /** Namunaviy rasmlar (Pexels litsenziyasi — tijoriy foydalanish bepul). */
 const IMG = "/templates/osmon";
 export const OSMON_SAMPLES = {
@@ -15,6 +17,19 @@ export const OSMON_SAMPLES = {
   venue: `${IMG}/venue.jpg`,
   gallery: [1, 2, 3, 4].map((n) => `${IMG}/gallery-${n}.jpg`),
 };
+
+export type OsmonSamples = typeof OSMON_SAMPLES;
+
+/** Admin panelda almashtirilgan namuna rasmlar (bo'shlari — o'rnatilgani). */
+export function osmonSamples(settings: TemplateSettingsMap): OsmonSamples {
+  const photos = settings.osmon?.photos ?? {};
+  return {
+    cover: photos.cover || OSMON_SAMPLES.cover,
+    couple: photos.couple || OSMON_SAMPLES.couple,
+    venue: photos.venue || OSMON_SAMPLES.venue,
+    gallery: photos.gallery?.length ? photos.gallery : OSMON_SAMPLES.gallery,
+  };
+}
 
 export interface OsmonPhotos {
   hero: string;
@@ -32,16 +47,22 @@ export interface OsmonPhotos {
  * aralashmasligi uchun bo'sh joylar egasining rasmlari bilan to'ldiriladi yoki
  * yashiriladi. To'yxona rasmi umumiy manzara, shuning uchun doim to'ldiriladi.
  */
-export function resolveOsmonPhotos(cover: string, couple: string, venue: string, gallery: string[]): OsmonPhotos {
+export function resolveOsmonPhotos(
+  cover: string,
+  couple: string,
+  venue: string,
+  gallery: string[],
+  samples: OsmonSamples = OSMON_SAMPLES
+): OsmonPhotos {
   if (!cover && !couple && gallery.length === 0) {
     return {
-      hero: OSMON_SAMPLES.cover,
-      card: OSMON_SAMPLES.couple,
-      venue: venue || OSMON_SAMPLES.venue,
-      gallery: OSMON_SAMPLES.gallery,
+      hero: samples.cover,
+      card: samples.couple,
+      venue: venue || samples.venue,
+      gallery: samples.gallery,
       sample: true,
     };
   }
   const hero = cover || couple || gallery[0];
-  return { hero, card: couple && couple !== hero ? couple : "", venue: venue || OSMON_SAMPLES.venue, gallery, sample: false };
+  return { hero, card: couple && couple !== hero ? couple : "", venue: venue || samples.venue, gallery, sample: false };
 }

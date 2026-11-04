@@ -2,6 +2,7 @@ import { Suspense } from "react";
 import type { InvitationData } from "../types/invitation";
 import { InvitationProvider, type TemplateMode } from "./shared/InvitationContext";
 import { TEMPLATES } from "./registry";
+import { templateMusic, useTemplateSettings } from "../lib/templateSettings";
 
 interface Props {
   data: InvitationData;
@@ -14,13 +15,14 @@ interface Props {
 export function InvitationRenderer({ data, id, mode, basePath }: Props) {
   const template = TEMPLATES[data.template] ?? TEMPLATES.bog;
   const { Component } = template;
+  const settings = useTemplateSettings();
   return (
     <InvitationProvider
       data={data}
       id={id}
       mode={mode}
       basePath={basePath}
-      defaultMusic={template.defaultMusic}
+      defaultMusic={templateMusic(template.key, template.defaultMusic, settings)}
     >
       <Suspense fallback={<FullPageLoader />}>
         <Component />

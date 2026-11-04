@@ -2,6 +2,7 @@ import fs from 'fs';
 import path from 'path';
 import { RESERVED_SLUGS, SLUG_PATTERN } from '../models/Invitation';
 import { getPublishedSnapshot, type PublicSnapshot } from './publicInvitations';
+import { getTemplateSettings } from './templateSettings';
 
 /*
  * Taklifnoma sahifasini (/doniyor-hilola) tezlashtirish.
@@ -42,7 +43,7 @@ function escapeHtml(value: string): string {
 }
 
 /** <script> ichiga xavfsiz joylash: "</script>" va satr ajratgichlari qochiriladi. */
-function inlineJson(value: unknown): string {
+export function inlineJson(value: unknown): string {
   return JSON.stringify(value)
     .replace(/</g, '\\u003c')
     .replace(new RegExp('\\u2028', 'g'), '\\u2028')
@@ -97,23 +98,23 @@ export function createInvitationPageRenderer(webDist: string, basePath: string) 
   }
 
   /** Birinchi ko'rinadigan katta rasm — shablonlardagi tanlov mantiqiga mos. */
-  function heroImage(inv: PublicSnapshot): string {
+  function heroImage(inv: PublicSnapshot, sampleCover: string): string {
     if (inv.template === 'osmon') {
       // templates/osmon/photos.ts → resolveOsmonPhotos
-      const hero = inv.coverPhoto || inv.couplePhoto || inv.gallery[0] || '/templates/osmon/cover.jpg';
+      const hero = inv.coverPhoto || inv.couplePhoto || inv.gallery[0] || sampleCover;
       return mediaUrl(hero, WIDTH.hero);
     }
     return mediaUrl(inv.couplePhoto, WIDTH.card);
   }
 
-  function render(inv: PublicSnapshot, origin: string): string {
+  function render(inv: PublicSnapshot, origin: string, sampleCover: string): string {
     const names = `${inv.groomName} va ${inv.brideName}`;
     const title = `${names} | To'y taklifnomasi`;
     const details = [inv.eventTitle, formatDate(inv.date), inv.time && `soat ${inv.time}`, inv.venueName]
       .filter(Boolean)
       .join(' · ');
     const description = `${inv.inviteText || "Sizni to'yimizga taklif etamiz"} — ${details}`;
-    const hero = heroImage(inv);
+    const hero = heroImage(inv, sampleCover);
     const { js, css } = templateAssets(inv.template);
     const url = `${origin}${basePath}/${inv.slug}`;
 
@@ -150,6 +151,9 @@ export function createInvitationPageRenderer(webDist: string, basePath: string) 
     const slug = match?.[1];
     if (!slug || !SLUG_PATTERN.test(slug) || RESERVED_SLUGS.has(slug)) return null;
     const inv = await getPublishedSnapshot(slug);
-    return inv ? render(inv, origin) : null;
+    if (!inv) return null;
+    // Admin almashtirgan namuna muqova (admin panel → Shablonlar)
+    const sampleCover = (await getTemplateSettings()).osmon?.photos?.cover || '/templates/osmon/cover.jpg';
+    return render(inv, origin, sampleCover);
   };
 }

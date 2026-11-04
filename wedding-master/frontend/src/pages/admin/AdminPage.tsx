@@ -9,6 +9,7 @@ import { SiteHeader } from "../../platform/SiteChrome";
 import { Eyebrow, Notice, PButton, Spinner } from "../../platform/ui";
 import { inviteUrl } from "../../lib/site";
 import { CopyButton, StatusBadge, formatDate, formatDateTime } from "../dashboard/shared";
+import { TemplatesTab } from "./TemplatesTab";
 
 interface AdminStats {
   users: number;
@@ -58,8 +59,8 @@ interface Paged<T> {
   items: T[];
 }
 
-type Tab = "taklifnomalar" | "foydalanuvchilar" | "musiqalar";
-const TABS: Tab[] = ["taklifnomalar", "foydalanuvchilar", "musiqalar"];
+type Tab = "taklifnomalar" | "foydalanuvchilar" | "musiqalar" | "shablonlar";
+const TABS: Tab[] = ["taklifnomalar", "foydalanuvchilar", "musiqalar", "shablonlar"];
 
 export function AdminPage({ onLogout }: { onLogout?: () => void } = {}) {
   const [params, setParams] = useSearchParams();
@@ -109,7 +110,7 @@ export function AdminPage({ onLogout }: { onLogout?: () => void } = {}) {
           ))}
         </div>
 
-        <div className="mt-8 flex gap-1 border-b border-ink/10">
+        <div className="mt-8 flex gap-1 overflow-x-auto border-b border-ink/10">
           {TABS.map((key) => (
             <button
               key={key}
@@ -131,6 +132,8 @@ export function AdminPage({ onLogout }: { onLogout?: () => void } = {}) {
             <InvitationsTab ownerFilter={params.get("owner")} onChange={loadStats} />
           ) : tab === "musiqalar" ? (
             <MusicTab onChange={loadStats} />
+          ) : tab === "shablonlar" ? (
+            <TemplatesTab />
           ) : (
             <UsersTab onChange={loadStats} />
           )}
@@ -204,7 +207,7 @@ function InvitationsTab({ ownerFilter, onChange }: { ownerFilter: string | null;
   const [busyId, setBusyId] = useState<string | null>(null);
   const [actionError, setActionError] = useState<string | null>(null);
 
-  const act = async (inv: AdminInvitation, kind: "toggle" | "delete" | "approve" | "reject" | "feature" | "showcase") => {
+  const act = async (inv: AdminInvitation, kind: "toggle" | "delete" | "approve" | "reject" | ShowcaseState) => {
     if (kind === "delete") {
       const ok = window.confirm(
         `"${inv.groomName} & ${inv.brideName}" (/${inv.slug}) butunlay o'chirilsinmi?\nTilaklar, javoblar va yuklangan rasm/musiqa ham o'chadi. Qaytarib bo'lmaydi.`
@@ -216,10 +219,15 @@ function InvitationsTab({ ownerFilter, onChange }: { ownerFilter: string | null;
     try {
       if (kind === "delete") {
         await adminApi(`/admin/invitations/${inv.id}`, { method: "DELETE" });
-      } else if (kind === "feature") {
-        await adminApi(`/admin/invitations/${inv.id}/featured`, { method: "PATCH", body: { featured: !inv.featured } });
-      } else if (kind === "showcase") {
-        await adminApi(`/admin/invitations/${inv.id}/showcase`, { method: "PATCH", body: { hidden: !inv.showcaseHidden } });
+      } else if (kind === "pinned") {
+        // Yashirilgan bo'lsa ham — mahkamlash uni qaytaradi
+        await adminApi(`/admin/invitations/${inv.id}/featured`, { method: "PATCH", body: { featured: true } });
+      } else if (kind === "hidden") {
+        // Yashirish mahkamni ham bo'shatadi
+        await adminApi(`/admin/invitations/${inv.id}/showcase`, { method: "PATCH", body: { hidden: true } });
+      } else if (kind === "visible") {
+        if (inv.showcaseHidden) await adminApi(`/admin/invitations/${inv.id}/showcase`, { method: "PATCH", body: { hidden: false } });
+        if (inv.featured) await adminApi(`/admin/invitations/${inv.id}/featured`, { method: "PATCH", body: { featured: false } });
       } else if (kind === "approve" || kind === "reject") {
         await adminApi(`/admin/invitations/${inv.id}/review`, { method: "POST", body: { decision: kind } });
       } else {
@@ -317,7 +325,7 @@ function InvitationsTab({ ownerFilter, onChange }: { ownerFilter: string | null;
                   </td>
                   <td className="px-4 py-3">
                     <StatusBadge status={inv.status} review={inv.review} />
-                    <ShowcaseBadge inv={inv} />
+                    <ShowcaseSelect inv={inv} disabled={busyId === inv.id} onSelect={(state) => void act(inv, state)} />
                   </td>
                   <td className="px-4 py-3 text-xs text-ink/55">
                     {inv.openCount} ochildi · {inv.replies} javob · {inv.wishes} tilak
@@ -343,34 +351,11 @@ function InvitationsTab({ ownerFilter, onChange }: { ownerFilter: string | null;
                           </button>
                         </>
                       )}
-                      {inv.status === "published" && !inv.hideFromShowcase && (
-                        <>
-                          <button
-                            disabled={busyId === inv.id}
-                            onClick={() => void act(inv, "feature")}
-                            title={inv.featured ? "Namunalar boshidan bo'shatish" : "Saytdagi «Namunalar» boshiga mahkamlash"}
-                            aria-label={inv.featured ? "Mahkamdan bo'shatish" : "Mahkamlash"}
-                            className={`h-8 rounded-lg px-2.5 text-xs font-semibold transition-colors disabled:opacity-40 ${
-                              inv.featured ? "bg-amber-100 text-amber-800 hover:bg-amber-200" : "text-ink/60 ring-1 ring-ink/10 hover:text-ink"
-                            }`}
-                          >
-                            📌
-                          </button>
-                          <button
-                            disabled={busyId === inv.id}
-                            onClick={() => void act(inv, "showcase")}
-                            title={inv.showcaseHidden ? "Saytdagi «Namunalar»ga qaytarish" : "Saytdagi «Namunalar»dan yashirish"}
-                            className="h-8 whitespace-nowrap rounded-lg px-2.5 text-xs font-semibold text-ink/60 ring-1 ring-ink/10 hover:text-ink disabled:opacity-40"
-                          >
-                            {inv.showcaseHidden ? "Namunaga qaytarish" : "Namunadan yashirish"}
-                          </button>
-                        </>
-                      )}
                       <a
                         href={inv.status === "published" ? withBase(inv.slug) : `${withBase(inv.slug)}?k=${inv.previewKey}`}
                         target="_blank"
                         rel="noreferrer"
-                        className="inline-flex h-8 items-center rounded-lg px-2.5 text-xs font-semibold text-ink/60 hover:bg-ink/5 hover:text-ink"
+                        className="inline-flex h-8 items-center whitespace-nowrap rounded-lg px-2.5 text-xs font-semibold text-ink/60 hover:bg-ink/5 hover:text-ink"
                       >
                         Ochish ↗
                       </a>
@@ -380,9 +365,9 @@ function InvitationsTab({ ownerFilter, onChange }: { ownerFilter: string | null;
                       <button
                         disabled={busyId === inv.id}
                         onClick={() => void act(inv, "toggle")}
-                        className="h-8 rounded-lg px-2.5 text-xs font-semibold text-ink/60 ring-1 ring-ink/10 hover:text-ink"
+                        className="h-8 whitespace-nowrap rounded-lg px-2.5 text-xs font-semibold text-ink/60 ring-1 ring-ink/10 hover:text-ink"
                       >
-                        {inv.status === "published" ? "Yashirish" : "Nashr"}
+                        {inv.status === "published" ? "Nashrdan olish" : "Nashr qilish"}
                       </button>
                       <button
                         disabled={busyId === inv.id}
@@ -704,14 +689,47 @@ function TrackCard({ track, onDone }: { track: AdminTrack; onDone: () => void })
 }
 
 /** Taklifnoma saytdagi "Namunalar"da ko'rinadimi — admin jadvali uchun qisqa belgi. */
-function ShowcaseBadge({ inv }: { inv: AdminInvitation }) {
+type ShowcaseState = "visible" | "pinned" | "hidden";
+
+const SHOWCASE_OPTIONS: { value: ShowcaseState; label: string }[] = [
+  { value: "visible", label: "Ko'rinadi" },
+  { value: "pinned", label: "📌 Eng boshida" },
+  { value: "hidden", label: "Yashirilgan" },
+];
+
+/** Saytdagi «Namunalar» ro'yxatidagi holati — faqat nashrdagi taklifnomalar uchun. */
+function ShowcaseSelect({ inv, disabled, onSelect }: { inv: AdminInvitation; disabled: boolean; onSelect: (state: ShowcaseState) => void }) {
   if (inv.status !== "published") return null;
-  const [text, className] = inv.hideFromShowcase
-    ? ["Egasi yashirgan", "bg-ink/10 text-ink/55"]
-    : inv.showcaseHidden
-      ? ["Siz yashirgansiz", "bg-ink/10 text-ink/55"]
-      : inv.featured
-        ? ["📌 Mahkamlangan", "bg-amber-100 text-amber-800"]
-        : ["Namunalarda", "bg-sky-100 text-sky-800"];
-  return <span className={`mt-1 block w-fit whitespace-nowrap rounded-full px-2 py-0.5 text-[10px] font-bold ${className}`}>{text}</span>;
+  if (inv.hideFromShowcase) {
+    return (
+      <span
+        title="Egasi taklifnomasini «Namunalar»da ko'rsatishni o'chirgan"
+        className="mt-1.5 block w-fit whitespace-nowrap rounded-full bg-ink/10 px-2 py-0.5 text-[10px] font-bold text-ink/55"
+      >
+        Namunada yo'q (egasi o'chirgan)
+      </span>
+    );
+  }
+  const value: ShowcaseState = inv.showcaseHidden ? "hidden" : inv.featured ? "pinned" : "visible";
+  return (
+    <label className="mt-1.5 flex flex-col gap-0.5">
+      <span className="whitespace-nowrap text-[10px] font-bold uppercase tracking-wider text-ink/40">Namunalarda</span>
+      <select
+        value={value}
+        disabled={disabled}
+        onChange={(e) => onSelect(e.target.value as ShowcaseState)}
+        className={`h-8 w-fit rounded-lg border px-2 text-xs font-semibold ${
+          value === "pinned"
+            ? "border-amber-300 bg-amber-50 text-amber-800"
+            : value === "hidden"
+              ? "border-ink/15 bg-ink/5 text-ink/55"
+              : "border-sky-200 bg-sky-50 text-sky-800"
+        }`}
+      >
+        {SHOWCASE_OPTIONS.map((opt) => (
+          <option key={opt.value} value={opt.value}>{opt.label}</option>
+        ))}
+      </select>
+    </label>
+  );
 }

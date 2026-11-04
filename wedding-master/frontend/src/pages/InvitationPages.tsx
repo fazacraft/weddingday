@@ -7,6 +7,7 @@ import { InvitationRenderer, FullPageLoader } from "../templates/InvitationRende
 import { isSelectableTemplate, TEMPLATES } from "../templates/registry";
 import { useAuth } from "../context/AuthContext";
 import { buttonClass } from "../platform/ui";
+import { templateTexts, useTemplateSettings } from "../lib/templateSettings";
 
 declare global {
   interface Window {
@@ -101,8 +102,9 @@ function DemoBar({ label, template }: { label: string; template?: string }) {
 /** Landingdagi shablon namunasi: /shablonlar/:key */
 export function TemplateDemoPage() {
   const { key } = useParams();
+  const settings = useTemplateSettings();
   if (!isSelectableTemplate(key)) return <NotFoundPage message="Bunday shablon yo'q" />;
-  const data: InvitationData = { ...DEMO_INVITATION, ...TEMPLATES[key].demo, template: key };
+  const data: InvitationData = { ...DEMO_INVITATION, ...templateTexts(key, settings), ...TEMPLATES[key].demo, template: key };
   return (
     <>
       <InvitationRenderer data={data} mode="demo" basePath={`/shablonlar/${key}`} />

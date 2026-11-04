@@ -8,7 +8,8 @@ import { useSlotFocus } from "../shared/useSlotFocus";
 import { useDeferredAudioPreload } from "../shared/useDeferredAudioPreload";
 import { mediaUrl, PHOTO_WIDTHS } from "../../lib/api";
 import { Cloud, DoodleHeart, EnvelopeDoodle, GoldSeal, HeartPin, HeartShape } from "./ornaments";
-import { resolveOsmonPhotos } from "./photos";
+import { osmonSamples, resolveOsmonPhotos } from "./photos";
+import { useTemplateSettings } from "../../lib/templateSettings";
 import "./osmon.css";
 
 const OPENING_DURATION_MS = 1900;
@@ -46,17 +47,24 @@ export default function OsmonTemplate() {
   const audioRef = useRef<HTMLAudioElement>(null);
   const rootRef = useRef<HTMLDivElement>(null);
   const parts = useMemo(() => dateParts(data.date), [data.date]);
+  const settings = useTemplateSettings();
   // Xom yo'llar bo'yicha tanlab, so'ng har bir joyga kerakli o'lchamni so'raymiz
   // (server bilan kelishilgan: hero/lightbox 1600, kartalar 1000, galereya 640)
   const photos = useMemo(() => {
-    const raw = resolveOsmonPhotos(data.coverPhoto ?? "", data.couplePhoto, data.venuePhoto ?? "", data.gallery ?? []);
+    const raw = resolveOsmonPhotos(
+      data.coverPhoto ?? "",
+      data.couplePhoto,
+      data.venuePhoto ?? "",
+      data.gallery ?? [],
+      osmonSamples(settings)
+    );
     return {
       hero: mediaUrl(raw.hero, PHOTO_WIDTHS.hero),
       card: mediaUrl(raw.card, PHOTO_WIDTHS.card),
       venue: mediaUrl(raw.venue, PHOTO_WIDTHS.card),
       gallery: raw.gallery.map((src) => ({ thumb: mediaUrl(src, PHOTO_WIDTHS.thumb), full: mediaUrl(src, PHOTO_WIDTHS.hero) })),
     };
-  }, [data.coverPhoto, data.couplePhoto, data.venuePhoto, data.gallery]);
+  }, [data.coverPhoto, data.couplePhoto, data.venuePhoto, data.gallery, settings]);
   useDeferredAudioPreload(audioRef);
 
   // Konvert yopiq turganda sahifa aylantirilmaydi

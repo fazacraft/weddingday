@@ -11,7 +11,9 @@ import { listApprovedMusic } from './controllers/musicController';
 import { listShowcase } from './controllers/showcaseController';
 import telegramRouter from './routes/telegram';
 import { serveUpload } from './storage';
-import { createInvitationPageRenderer } from './services/invitationPage';
+import { createInvitationPageRenderer, inlineJson } from './services/invitationPage';
+import { listTemplateSettings } from './controllers/templateSettingsController';
+import { getTemplateSettings } from './services/templateSettings';
 import { errorHandler } from './middleware/errorHandler';
 
 /** Production'da frontend build'i ham shu serverdan beriladi (bitta Render servisi). */
@@ -44,6 +46,7 @@ site.use('/api/admin', adminRouter);
 site.use('/api/telegram', telegramRouter);
 site.get('/api/music', listApprovedMusic);
 site.get('/api/showcase', listShowcase);
+site.get('/api/templates/settings', listTemplateSettings);
 site.use('/api', (_req, res) => {
   res.status(404).json({ error: 'Not found' });
 });
@@ -55,7 +58,7 @@ site.get('/health', (_req, res) => {
 });
 
 if (fs.existsSync(WEB_DIST)) {
-  const indexHtml = path.join(WEB_DIST, 'index.html');
+  const indexHtml = fs.readFileSync(path.join(WEB_DIST, 'index.html'), 'utf8');
   site.use(
     express.static(WEB_DIST, {
       index: false,
@@ -71,20 +74,20 @@ if (fs.existsSync(WEB_DIST)) {
   const renderInvitationPage = createInvitationPageRenderer(WEB_DIST, BASE_PATH);
   // SPA: /feruz-dilfuza, /kabinet va h.k. — marshrutlash React'da. Nashr qilingan
   // taklifnoma sahifasiga ma'lumot, shablon kodi va rasm oldindan qo'shiladi.
+  // Har bir sahifaga admin o'zgartirgan shablon standartlari ham (alohida so'rovsiz).
   site.get('*', async (req, res) => {
     res.setHeader('Cache-Control', 'no-cache');
+    let html = indexHtml;
     try {
       const origin = process.env.PUBLIC_URL?.replace(/\/+$/, '') || `${req.protocol}://${req.get('host')}`;
-      const html = await renderInvitationPage(req.path, origin);
-      if (html) {
-        res.type('html').send(html);
-        return;
-      }
+      html = (await renderInvitationPage(req.path, origin)) ?? indexHtml;
+      const settings = await getTemplateSettings();
+      html = html.replace('</head>', `  <script>window.__TEMPLATE_SETTINGS__=${inlineJson(settings)}</script>\n  </head>`);
     } catch (err) {
       // Baza vaqtincha javob bermasa ham sahifa ochilsin — frontend o'zi so'raydi
       console.warn('Invitation page prerender failed:', (err as Error).message);
     }
-    res.sendFile(indexHtml);
+    res.type('html').send(html);
   });
 }
 

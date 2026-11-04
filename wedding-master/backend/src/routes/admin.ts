@@ -13,6 +13,7 @@ import { requireAdmin } from '../middleware/auth';
 import { adminLogin } from '../controllers/adminAuthController';
 import { adminDeleteTrack, adminListMusic, adminUpdateTrack } from '../controllers/musicController';
 import { setFeatured, setShowcaseHidden } from '../controllers/showcaseController';
+import { saveTemplateSettings } from '../controllers/templateSettingsController';
 
 const router = Router();
 
@@ -34,5 +35,6 @@ router.post('/users/:id/impersonate', impersonateUser);
 router.get('/music', adminListMusic);
 router.patch('/music/:id', adminUpdateTrack);
 router.delete('/music/:id', adminDeleteTrack);
+router.put('/templates/:key', saveTemplateSettings);
 
 export default router;
