@@ -293,17 +293,14 @@ function ShowcaseSection() {
   return (
     <section id="namunalar" className="scroll-mt-20 border-t border-ink/5 bg-white">
       <div className="mx-auto max-w-6xl px-4 py-20 sm:px-6">
-        <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-end">
-          <div>
-            <Eyebrow>Namunalar</Eyebrow>
-            <h2 className="mt-3 font-display text-4xl font-semibold text-ink sm:text-5xl">Shu vaqtgacha tayyorlangan taklifnomalar</h2>
-          </div>
-          <p className="max-w-sm text-sm leading-relaxed text-ink/55">
+        <div>
+          <Eyebrow>Namunalar</Eyebrow>
+          <p className="mt-3 max-w-xl text-sm leading-relaxed text-ink/55">
             Juftliklar biz bilan yaratgan haqiqiy taklifnomalar. Istalganini oching va mehmon ko'zi bilan ko'ring — sizniki
             ham shunday bo'ladi.
           </p>
         </div>
-        <div className="mt-12">
+        <div className="mt-8">
           <ShowcaseGrid items={items} />
         </div>
         {total > items.length && (
