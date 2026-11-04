@@ -13,6 +13,8 @@ export interface User {
   name: string;
   email: string;
   isAdmin?: boolean;
+  /** Admin panel "Kirish" tugmasi bilan shu foydalanuvchi hisobiga kirgan */
+  impersonated?: boolean;
 }
 
 interface AuthContextValue {

@@ -4,7 +4,8 @@ import { Invitation } from '../models/Invitation';
 import { User, isAdminEmail } from '../models/User';
 import { Wish } from '../models/Wish';
 import { Rsvp } from '../models/Rsvp';
-import { AuthedRequest } from '../middleware/auth';
+import { AuthedRequest, signImpersonationToken } from '../middleware/auth';
+import { previewKey } from '../services/previewKey';
 import { removeInvitation } from '../services/invitations';
 import { decideReview } from '../services/review';
 import { syncUploadedMusic } from '../services/musicLibrary';
@@ -102,6 +103,7 @@ export async function listInvitations(req: AuthedRequest, res: Response, next: N
         hideFromShowcase: inv.hideFromShowcase,
         showcaseHidden: inv.showcaseHidden,
         createdAt: inv.createdAt,
+        previewKey: previewKey(String(inv._id)),
         owner: inv.owner ? { id: String(inv.owner._id), name: inv.owner.name, email: inv.owner.email } : null,
         ...counts(inv._id as Types.ObjectId),
       })),
@@ -190,6 +192,25 @@ export async function listUsers(req: AuthedRequest, res: Response, next: NextFun
         invitations: byOwner.get(String(u._id)) ?? 0,
       })),
     });
+  } catch (err) {
+    next(err);
+  }
+}
+
+/**
+ * POST /api/admin/users/:id/impersonate — admin foydalanuvchi hisobiga kiradi.
+ * Parollar faqat xesh holida saqlanadi (ularni hech kim, admin ham bilmaydi) —
+ * shuning uchun parol o'rniga 2 soatlik kirish tokeni beriladi.
+ */
+export async function impersonateUser(req: AuthedRequest, res: Response, next: NextFunction): Promise<void> {
+  try {
+    const user = isValidObjectId(req.params.id) ? await User.findById(req.params.id).select('email') : null;
+    if (!user) {
+      res.status(404).json({ error: 'Foydalanuvchi topilmadi' });
+      return;
+    }
+    console.info(`Admin impersonation: ${user.email} (ip ${req.ip})`);
+    res.json({ token: signImpersonationToken(String(user._id)) });
   } catch (err) {
     next(err);
   }

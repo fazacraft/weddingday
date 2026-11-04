@@ -28,6 +28,8 @@ export function PublicInvitationPage() {
   // Saytdagi "Namunalar"dan ochilgan: haqiqiy juftlikning sahifasi, lekin ko'rgazma
   // sifatida — ochilishlar sanalmaydi, tilak/javob saqlanmaydi (demo rejim)
   const showcase = params.has("namuna");
+  // Admin bergan imzolangan havola: tasdiqlanmagan taklifnomani ko'rish uchun (/slug?k=...)
+  const previewKey = params.get("k");
   const { user, loading: authLoading } = useAuth();
   const [invitation, setInvitation] = useState<PublicInvitation | null>(() => inlineInvitation(slug));
   const [error, setError] = useState<number | null>(null);
@@ -43,25 +45,35 @@ export function PublicInvitationPage() {
     // Qoralama egasiga ko'rinadi — token tekshirilguncha kutamiz
     if (authLoading) return;
     setError(null);
-    api<PublicInvitation>(`/public/${slug.toLowerCase()}`)
+    const query = previewKey ? `?k=${encodeURIComponent(previewKey)}` : "";
+    api<PublicInvitation>(`/public/${slug.toLowerCase()}${query}`)
       .then((inv) => {
         setInvitation(inv);
         document.title = `${inv.groomName} va ${inv.brideName} | To'y taklifnomasi`;
       })
       .catch((err) => setError(err instanceof ApiError ? err.status : 0));
-  }, [slug, authLoading, user]);
+  }, [slug, authLoading, user, previewKey]);
 
   if (error !== null) return <NotFoundPage message={error === 404 ? "Bunday taklifnoma topilmadi" : "Serverga ulanib bo'lmadi"} />;
   if (!invitation) return <FullPageLoader />;
+  // Havola orqali ko'rilayotgan qoralama — tilak/javob saqlanmaydi, ochilish sanalmaydi
+  const keyPreview = invitation.status === "draft" && Boolean(previewKey);
 
   return (
     <>
       {invitation.status === "draft" && (
         <div className="fixed inset-x-0 top-0 z-[10000] bg-ink py-1.5 text-center text-xs font-semibold text-ivory">
-          Qoralama — faqat siz ko'ryapsiz. Mehmonlar uchun kabinetdan nashr qiling.
+          {keyPreview
+            ? "Ko'rib chiqish havolasi — taklifnoma hali faollashtirilmagan, mehmonlarga ochilmagan."
+            : "Qoralama — faqat siz ko'ryapsiz. Mehmonlar uchun kabinetdan nashr qiling."}
         </div>
       )}
-      <InvitationRenderer data={invitation} id={invitation.id} mode={showcase ? "demo" : "live"} basePath={`/${slug}`} />
+      <InvitationRenderer
+        data={invitation}
+        id={invitation.id}
+        mode={showcase || keyPreview ? "demo" : "live"}
+        basePath={`/${slug}`}
+      />
       {showcase && (
         <DemoBar
           label={`${invitation.groomName} & ${invitation.brideName}`}

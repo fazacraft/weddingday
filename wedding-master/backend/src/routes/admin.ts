@@ -7,6 +7,7 @@ import {
   deleteInvitation,
   listUsers,
   deleteUser,
+  impersonateUser,
 } from '../controllers/adminController';
 import { requireAdmin } from '../middleware/auth';
 import { adminLogin } from '../controllers/adminAuthController';
@@ -29,6 +30,7 @@ router.patch('/invitations/:id/showcase', setShowcaseHidden);
 router.delete('/invitations/:id', deleteInvitation);
 router.get('/users', listUsers);
 router.delete('/users/:id', deleteUser);
+router.post('/users/:id/impersonate', impersonateUser);
 router.get('/music', adminListMusic);
 router.patch('/music/:id', adminUpdateTrack);
 router.delete('/music/:id', adminDeleteTrack);

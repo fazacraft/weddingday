@@ -1,5 +1,5 @@
 import { lazy, ReactNode, Suspense, useEffect } from "react";
-import { Navigate, Route, Routes, useLocation } from "react-router-dom";
+import { Navigate, Route, Routes, useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "./context/AuthContext";
 import {
   NotFoundPage,
@@ -35,6 +35,28 @@ function RequireAuth({ children }: { children: ReactNode }) {
   return <>{children}</>;
 }
 
+/** Admin foydalanuvchi hisobiga kirganda — kimning hisobida ekanini eslatib turadi. */
+function ImpersonationBar() {
+  const { user, logout } = useAuth();
+  const navigate = useNavigate();
+  if (!user?.impersonated) return null;
+  return (
+    <div className="fixed bottom-3 left-3 z-[10001] flex max-w-[calc(100vw-1.5rem)] items-center gap-3 rounded-full bg-amber-400 py-1.5 pl-4 pr-1.5 text-xs font-semibold text-ink shadow-xl">
+      <span className="truncate">Admin rejimi: {user.name} ({user.email})</span>
+      <button
+        type="button"
+        onClick={() => {
+          logout();
+          navigate("/admin");
+        }}
+        className="h-7 shrink-0 rounded-full bg-ink px-3 text-ivory hover:bg-ink/85"
+      >
+        Panelga qaytish
+      </button>
+    </div>
+  );
+}
+
 /** Platforma sahifalarida sarlavhani tiklaydi (taklifnoma sahifasi o'zinikini qo'yadi). */
 function TitleReset() {
   const { pathname } = useLocation();
@@ -48,6 +70,7 @@ export default function App() {
   return (
     <>
       <TitleReset />
+      <ImpersonationBar />
       <Suspense fallback={<FullPageLoader />}>
       <Routes>
         <Route path="/" element={<LandingPage />} />

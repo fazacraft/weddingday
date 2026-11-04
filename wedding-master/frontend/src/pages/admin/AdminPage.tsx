@@ -1,13 +1,14 @@
 import { FormEvent, useCallback, useEffect, useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
-import { ApiError, mediaUrl } from "../../lib/api";
+import { ApiError, mediaUrl, setToken } from "../../lib/api";
 import { adminApi } from "../../lib/adminAuth";
 import { withBase } from "../../lib/base";
 import { TEMPLATES } from "../../templates/registry";
 import type { TemplateKey } from "../../types/invitation";
 import { SiteHeader } from "../../platform/SiteChrome";
 import { Eyebrow, Notice, PButton, Spinner } from "../../platform/ui";
-import { StatusBadge, formatDate, formatDateTime } from "../dashboard/shared";
+import { inviteUrl } from "../../lib/site";
+import { CopyButton, StatusBadge, formatDate, formatDateTime } from "../dashboard/shared";
 
 interface AdminStats {
   users: number;
@@ -34,6 +35,8 @@ interface AdminInvitation {
   hideFromShowcase?: boolean;
   showcaseHidden?: boolean;
   createdAt: string;
+  /** Imzolangan kalit: /slug?k=... — tasdiqlanmagan taklifnoma ham ochiladi */
+  previewKey: string;
   owner: { id: string; name: string; email: string } | null;
   wishes: number;
   replies: number;
@@ -364,13 +367,16 @@ function InvitationsTab({ ownerFilter, onChange }: { ownerFilter: string | null;
                         </>
                       )}
                       <a
-                        href={withBase(inv.slug)}
+                        href={inv.status === "published" ? withBase(inv.slug) : `${withBase(inv.slug)}?k=${inv.previewKey}`}
                         target="_blank"
                         rel="noreferrer"
                         className="inline-flex h-8 items-center rounded-lg px-2.5 text-xs font-semibold text-ink/60 hover:bg-ink/5 hover:text-ink"
                       >
                         Ochish ↗
                       </a>
+                      {inv.status !== "published" && (
+                        <CopyButton text={`${inviteUrl(inv.slug)}?k=${inv.previewKey}`} label="Havola" />
+                      )}
                       <button
                         disabled={busyId === inv.id}
                         onClick={() => void act(inv, "toggle")}
@@ -404,6 +410,25 @@ function UsersTab({ onChange }: { onChange: () => void }) {
   const { data, error, reload } = useAdminList<AdminUser>("/admin/users", { q, page: String(page) });
   const [busyId, setBusyId] = useState<string | null>(null);
   const [actionError, setActionError] = useState<string | null>(null);
+
+  // Parollar faqat xesh holida saqlanadi — admin parolsiz, 2 soatlik token bilan kiradi
+  const impersonate = async (user: AdminUser) => {
+    const ok = window.confirm(
+      `${user.name} (${user.email}) hisobiga kirasizmi?\nUning kabineti ochiladi (2 soat). Saytdagi o'z hisobingizdan chiqasiz — admin panel ochiq qoladi.`
+    );
+    if (!ok) return;
+    setBusyId(user.id);
+    setActionError(null);
+    try {
+      const { token } = await adminApi<{ token: string }>(`/admin/users/${user.id}/impersonate`, { method: "POST" });
+      setToken(token);
+      // To'liq qayta yuklash — AuthContext yangi tokenni o'qiydi
+      window.location.assign(withBase("/kabinet"));
+    } catch (err) {
+      setActionError(err instanceof ApiError ? err.message : "Xatolik yuz berdi");
+      setBusyId(null);
+    }
+  };
 
   const remove = async (user: AdminUser) => {
     const ok = window.confirm(
@@ -473,16 +498,26 @@ function UsersTab({ onChange }: { onChange: () => void }) {
                     )}
                   </td>
                   <td className="px-4 py-3 text-xs text-ink/45">{formatDateTime(u.createdAt)}</td>
-                  <td className="px-4 py-3 text-right">
-                    {!u.isAdmin && (
+                  <td className="px-4 py-3">
+                    <div className="flex justify-end gap-1.5">
                       <button
                         disabled={busyId === u.id}
-                        onClick={() => void remove(u)}
-                        className="h-8 rounded-lg px-2.5 text-xs font-semibold text-rose ring-1 ring-rose/25 hover:bg-rose hover:text-white"
+                        onClick={() => void impersonate(u)}
+                        title="Parolsiz, uning hisobiga kirib kabinetini ko'rish"
+                        className="h-8 rounded-lg px-2.5 text-xs font-semibold text-ink/60 ring-1 ring-ink/10 hover:text-ink"
                       >
-                        O'chirish
+                        Kirish →
                       </button>
-                    )}
+                      {!u.isAdmin && (
+                        <button
+                          disabled={busyId === u.id}
+                          onClick={() => void remove(u)}
+                          className="h-8 rounded-lg px-2.5 text-xs font-semibold text-rose ring-1 ring-rose/25 hover:bg-rose hover:text-white"
+                        >
+                          O'chirish
+                        </button>
+                      )}
+                    </div>
                   </td>
                 </tr>
               ))}

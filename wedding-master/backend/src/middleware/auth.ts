@@ -2,7 +2,7 @@ import { Request, Response, NextFunction } from 'express';
 import jwt from 'jsonwebtoken';
 import { User, isAdminEmail } from '../models/User';
 
-const JWT_SECRET = process.env.JWT_SECRET ?? 'dev-only-secret-change-me';
+export const JWT_SECRET = process.env.JWT_SECRET ?? 'dev-only-secret-change-me';
 const TOKEN_TTL = '30d';
 
 if (!process.env.JWT_SECRET && process.env.NODE_ENV === 'production') {
@@ -35,6 +35,20 @@ function readUserId(req: Request): string | undefined {
 }
 
 const ADMIN_TOKEN_TTL = '12h';
+const IMPERSONATE_TTL = '2h';
+
+/**
+ * Admin foydalanuvchi hisobiga uning parolisiz kiradi (kabinetini ko'rish, yordam
+ * berish uchun). Oddiy foydalanuvchi tokeni, faqat qisqa muddatli va belgilangan.
+ */
+export function signImpersonationToken(userId: string): string {
+  return jwt.sign({ sub: userId, imp: true }, JWT_SECRET, { expiresIn: IMPERSONATE_TTL });
+}
+
+/** So'rov admin "foydalanuvchi sifatida kirish" tokeni bilan kelganmi. */
+export function isImpersonated(req: Request): boolean {
+  return readPayload(req)?.imp === true;
+}
 
 /** /admin paneliga login/parol bilan kirganda beriladigan token (foydalanuvchiga bog'lanmagan). */
 export function signAdminToken(): string {

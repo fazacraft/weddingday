@@ -1,7 +1,7 @@
 import { Response, NextFunction } from 'express';
 import bcrypt from 'bcryptjs';
 import { User, publicUser } from '../models/User';
-import { AuthedRequest, signToken } from '../middleware/auth';
+import { AuthedRequest, isImpersonated, signToken } from '../middleware/auth';
 
 export async function register(req: AuthedRequest, res: Response, next: NextFunction): Promise<void> {
   try {
@@ -43,7 +43,7 @@ export async function me(req: AuthedRequest, res: Response, next: NextFunction):
       res.status(401).json({ error: 'Foydalanuvchi topilmadi' });
       return;
     }
-    res.json({ user: publicUser(user) });
+    res.json({ user: { ...publicUser(user), ...(isImpersonated(req) ? { impersonated: true } : {}) } });
   } catch (err) {
     next(err);
   }

@@ -6,17 +6,22 @@ import { AuthedRequest } from '../middleware/auth';
 import { User, isAdminEmail } from '../models/User';
 import { emitWishCreated } from '../socket';
 import { getPublishedSnapshot } from '../services/publicInvitations';
+import { isPreviewKey } from '../services/previewKey';
 
 /**
  * Slug bo'yicha mehmonlarga ochiq taklifnomani topadi. Nashr qilinmagan
  * taklifnoma faqat adminga (tasdiqlashdan oldin ko'rish uchun) va admin
  * tasdiqlagan bo'lsa egasiga ko'rinadi — tasdiqsiz havola egasiga ham ochilmaydi.
+ * Admin bergan imzolangan havola (?k=...) bilan esa istalgan kishi ko'ra oladi.
  */
 async function findVisible(req: AuthedRequest, res: Response): Promise<IInvitation | null> {
   const slug = String(req.params.slug ?? '').toLowerCase();
   const inv = await Invitation.findOne({ slug });
   let visible = Boolean(
-    inv && (inv.status === 'published' || (inv.review === 'approved' && String(inv.owner) === req.userId))
+    inv &&
+      (inv.status === 'published' ||
+        (inv.review === 'approved' && String(inv.owner) === req.userId) ||
+        isPreviewKey(String(inv._id), req.query.k))
   );
   // Admin tasdiqlashdan oldin qoralamani ko'ra olishi kerak (Telegram'dagi "Ko'rish")
   if (inv && !visible && req.userId) {

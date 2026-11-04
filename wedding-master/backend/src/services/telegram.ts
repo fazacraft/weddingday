@@ -5,6 +5,8 @@
  *   PUBLIC_URL — havolalar uchun sayt manzili (masalan https://beluga.uz)
  * Sozlanmagan bo'lsa, tasdiqlash faqat /admin panelida qilinadi.
  */
+import { previewKey } from './previewKey';
+
 const TOKEN = process.env.TG_BOT_TOKEN ?? '';
 /** Sinov uchun almashtirish mumkin (lokal soxta Telegram server) */
 const API_BASE = (process.env.TG_API_BASE ?? 'https://api.telegram.org').replace(/\/+$/, '');
@@ -127,9 +129,9 @@ export async function sendApprovalRequest(info: ApprovalInfo, kind: ApprovalKind
       { text: '❌ Rad etish', callback_data: `reject:${info.id}` },
     ],
   ];
-  // Qoralamani admin brauzerida (saytga admin sifatida kirgan bo'lsa) ko'rish mumkin
+  // Imzolangan havola — tasdiqlanmagan qoralama ham kirmasdan, istalgan brauzerda ochiladi
   if (PUBLIC_URL.startsWith('https://')) {
-    keyboard.push([{ text: "👁 Ko'rish", url: `${PUBLIC_URL}/${info.slug}` }]);
+    keyboard.push([{ text: "👁 Ko'rish", url: `${PUBLIC_URL}/${info.slug}?k=${previewKey(info.id)}` }]);
   }
   const sent = await call<SentMessage>('sendMessage', {
     chat_id: ADMIN_CHAT_ID,
