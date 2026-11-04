@@ -296,11 +296,11 @@ function ShowcaseSection() {
         <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-end">
           <div>
             <Eyebrow>Namunalar</Eyebrow>
-            <h2 className="mt-3 font-display text-4xl font-semibold text-ink sm:text-5xl">Tayyor taklifnomalar</h2>
+            <h2 className="mt-3 font-display text-4xl font-semibold text-ink sm:text-5xl">Shu vaqtgacha tayyorlangan taklifnomalar</h2>
           </div>
           <p className="max-w-sm text-sm leading-relaxed text-ink/55">
-            Hozirgacha <b className="text-ink">{total} ta</b> juftlik biz bilan taklifnoma yaratdi. Istalganini oching va
-            mehmon ko'zi bilan ko'ring — sizniki ham shunday bo'ladi.
+            Juftliklar biz bilan yaratgan haqiqiy taklifnomalar. Istalganini oching va mehmon ko'zi bilan ko'ring — sizniki
+            ham shunday bo'ladi.
           </p>
         </div>
         <div className="mt-12">
@@ -309,7 +309,7 @@ function ShowcaseSection() {
         {total > items.length && (
           <div className="mt-10 flex justify-center">
             <PLink to="/namunalar" variant="secondary">
-              Barcha namunalar ({total}) →
+              Barchasini ko'rish →
             </PLink>
           </div>
         )}

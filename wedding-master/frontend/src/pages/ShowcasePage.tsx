@@ -4,17 +4,16 @@ import { Eyebrow, PButton, PLink, Spinner } from "../platform/ui";
 
 /** /namunalar — admin tanlagan barcha tayyor taklifnomalar. */
 export function ShowcasePage() {
-  const { items, total, loaded, loading, hasMore, loadMore } = useShowcase(24);
+  const { items, loaded, loading, hasMore, loadMore } = useShowcase(24);
 
   return (
     <div className="min-h-screen bg-ivory">
       <SiteHeader />
       <main className="mx-auto max-w-6xl px-4 py-12 sm:px-6 sm:py-16">
         <Eyebrow>Namunalar</Eyebrow>
-        <h1 className="mt-3 font-display text-4xl font-semibold text-ink sm:text-5xl">Tayyor taklifnomalar</h1>
+        <h1 className="mt-3 font-display text-4xl font-semibold text-ink sm:text-5xl">Shu vaqtgacha tayyorlangan taklifnomalar</h1>
         <p className="mt-3 max-w-xl text-sm leading-relaxed text-ink/55">
           Juftliklar biz bilan yaratgan haqiqiy taklifnomalar. Istalganini oching — mehmonlar uni aynan shunday ko'radi.
-          {total > 0 && ` Jami: ${total} ta.`}
         </p>
 
         <div className="mt-10">
