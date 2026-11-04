@@ -11,6 +11,7 @@ export function ShowcasePage() {
       <SiteHeader />
       <main className="mx-auto max-w-6xl px-4 py-12 sm:px-6 sm:py-16">
         <Eyebrow>Namunalar</Eyebrow>
+        <h1 className="mt-3 font-display text-4xl font-semibold text-ink sm:text-5xl">Beluga arts</h1>
         <p className="mt-3 max-w-xl text-sm leading-relaxed text-ink/55">
           Juftliklar biz bilan yaratgan haqiqiy taklifnomalar. Istalganini oching — mehmonlar uni aynan shunday ko'radi.
         </p>
