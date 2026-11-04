@@ -8,7 +8,7 @@ import type { TemplateKey } from "../../types/invitation";
 import { SiteHeader } from "../../platform/SiteChrome";
 import { Eyebrow, Notice, PButton, Spinner } from "../../platform/ui";
 import { inviteUrl } from "../../lib/site";
-import { CopyButton, StatusBadge, formatDate, formatDateTime } from "../dashboard/shared";
+import { CopyButton, formatDate, formatDateTime } from "../dashboard/shared";
 import { TemplatesTab } from "./TemplatesTab";
 
 interface AdminStats {
@@ -207,13 +207,17 @@ function InvitationsTab({ ownerFilter, onChange }: { ownerFilter: string | null;
   const [busyId, setBusyId] = useState<string | null>(null);
   const [actionError, setActionError] = useState<string | null>(null);
 
-  const act = async (inv: AdminInvitation, kind: "toggle" | "delete" | "approve" | "reject" | ShowcaseState) => {
-    if (kind === "delete") {
-      const ok = window.confirm(
-        `"${inv.groomName} & ${inv.brideName}" (/${inv.slug}) butunlay o'chirilsinmi?\nTilaklar, javoblar va yuklangan rasm/musiqa ham o'chadi. Qaytarib bo'lmaydi.`
-      );
-      if (!ok) return;
-    }
+  const act = async (inv: AdminInvitation, kind: "delete" | InvitationState | ShowcaseState) => {
+    const names = `"${inv.groomName} & ${inv.brideName}" (/${inv.slug})`;
+    const question =
+      kind === "delete"
+        ? `${names} butunlay o'chirilsinmi?\nTilaklar, javoblar va yuklangan rasm/musiqa ham o'chadi. Qaytarib bo'lmaydi.`
+        : kind === "rejected"
+          ? `${names} rad etilsinmi?\nHavola yopiladi; egasi botga ulangan bo'lsa, unga xabar boradi.`
+          : kind === "draft" && inv.status === "published"
+            ? `${names} nashrdan olinsinmi?\nMehmonlar havolani ocha olmay qoladi.`
+            : null;
+    if (question && !window.confirm(question)) return;
     setBusyId(inv.id);
     setActionError(null);
     try {
@@ -228,13 +232,12 @@ function InvitationsTab({ ownerFilter, onChange }: { ownerFilter: string | null;
       } else if (kind === "visible") {
         if (inv.showcaseHidden) await adminApi(`/admin/invitations/${inv.id}/showcase`, { method: "PATCH", body: { hidden: false } });
         if (inv.featured) await adminApi(`/admin/invitations/${inv.id}/featured`, { method: "PATCH", body: { featured: false } });
-      } else if (kind === "approve" || kind === "reject") {
-        await adminApi(`/admin/invitations/${inv.id}/review`, { method: "POST", body: { decision: kind } });
-      } else {
-        await adminApi(`/admin/invitations/${inv.id}`, {
-          method: "PATCH",
-          body: { status: inv.status === "published" ? "draft" : "published" },
-        });
+      } else if (kind === "rejected" || (kind === "published" && inv.review !== "approved")) {
+        // Tasdiqlash/rad etish — egasi botga ulangan bo'lsa, unga Telegram xabari ham boradi
+        const decision = kind === "rejected" ? "reject" : "approve";
+        await adminApi(`/admin/invitations/${inv.id}/review`, { method: "POST", body: { decision } });
+      } else if (kind === "published" || kind === "draft") {
+        await adminApi(`/admin/invitations/${inv.id}`, { method: "PATCH", body: { status: kind } });
       }
       reload();
       onChange();
@@ -324,7 +327,7 @@ function InvitationsTab({ ownerFilter, onChange }: { ownerFilter: string | null;
                     )}
                   </td>
                   <td className="px-4 py-3">
-                    <StatusBadge status={inv.status} review={inv.review} />
+                    <InvitationStateSelect inv={inv} disabled={busyId === inv.id} onSelect={(state) => void act(inv, state)} />
                     <ShowcaseSelect inv={inv} disabled={busyId === inv.id} onSelect={(state) => void act(inv, state)} />
                   </td>
                   <td className="px-4 py-3 text-xs text-ink/55">
@@ -333,24 +336,6 @@ function InvitationsTab({ ownerFilter, onChange }: { ownerFilter: string | null;
                   <td className="px-4 py-3 text-xs text-ink/45">{formatDateTime(inv.createdAt)}</td>
                   <td className="px-4 py-3">
                     <div className="flex justify-end gap-1.5">
-                      {inv.review === "pending" && inv.status !== "published" && (
-                        <>
-                          <button
-                            disabled={busyId === inv.id}
-                            onClick={() => void act(inv, "approve")}
-                            className="h-8 rounded-lg bg-emerald-600 px-2.5 text-xs font-semibold text-white hover:bg-emerald-700"
-                          >
-                            ✓ Tasdiqlash
-                          </button>
-                          <button
-                            disabled={busyId === inv.id}
-                            onClick={() => void act(inv, "reject")}
-                            className="h-8 rounded-lg px-2.5 text-xs font-semibold text-ink/60 ring-1 ring-ink/10 hover:text-ink"
-                          >
-                            Rad etish
-                          </button>
-                        </>
-                      )}
                       <a
                         href={inv.status === "published" ? withBase(inv.slug) : `${withBase(inv.slug)}?k=${inv.previewKey}`}
                         target="_blank"
@@ -362,13 +347,6 @@ function InvitationsTab({ ownerFilter, onChange }: { ownerFilter: string | null;
                       {inv.status !== "published" && (
                         <CopyButton text={`${inviteUrl(inv.slug)}?k=${inv.previewKey}`} label="Havola" />
                       )}
-                      <button
-                        disabled={busyId === inv.id}
-                        onClick={() => void act(inv, "toggle")}
-                        className="h-8 whitespace-nowrap rounded-lg px-2.5 text-xs font-semibold text-ink/60 ring-1 ring-ink/10 hover:text-ink"
-                      >
-                        {inv.status === "published" ? "Nashrdan olish" : "Nashr qilish"}
-                      </button>
                       <button
                         disabled={busyId === inv.id}
                         onClick={() => void act(inv, "delete")}
@@ -689,7 +667,71 @@ function TrackCard({ track, onDone }: { track: AdminTrack; onDone: () => void })
 }
 
 /** Taklifnoma saytdagi "Namunalar"da ko'rinadimi — admin jadvali uchun qisqa belgi. */
+type InvitationState = "pending" | "published" | "draft" | "rejected";
 type ShowcaseState = "visible" | "pinned" | "hidden";
+
+const SELECT_TONES = {
+  green: "border-emerald-200 bg-emerald-50 text-emerald-800",
+  amber: "border-amber-300 bg-amber-50 text-amber-800",
+  rose: "border-rose/25 bg-rose/5 text-rose",
+  sky: "border-sky-200 bg-sky-50 text-sky-800",
+  gray: "border-ink/15 bg-ink/5 text-ink/60",
+} as const;
+
+/** Jadvaldagi holat tanlagichi: sarlavha + rangli ochiladigan ro'yxat. */
+function StateSelect<T extends string>({
+  label,
+  value,
+  options,
+  tone,
+  disabled,
+  onSelect,
+}: {
+  label: string;
+  value: T;
+  options: { value: T; label: string }[];
+  tone: keyof typeof SELECT_TONES;
+  disabled: boolean;
+  onSelect: (value: T) => void;
+}) {
+  return (
+    <label className="mt-1.5 flex flex-col gap-0.5 first:mt-0">
+      <span className="whitespace-nowrap text-[10px] font-bold uppercase tracking-wider text-ink/40">{label}</span>
+      <select
+        aria-label={label}
+        value={value}
+        disabled={disabled}
+        onChange={(e) => onSelect(e.target.value as T)}
+        className={`h-8 w-fit rounded-lg border px-2 text-xs font-semibold ${SELECT_TONES[tone]}`}
+      >
+        {options.map((opt) => (
+          <option key={opt.value} value={opt.value} disabled={opt.value === value}>
+            {opt.label}
+          </option>
+        ))}
+      </select>
+    </label>
+  );
+}
+
+/**
+ * Taklifnoma holati. To'lov kutayotganini "Nashrda"ga o'tkazish — tasdiqlash,
+ * "Rad etilgan" — rad etish (egasiga Telegram xabari bilan). "To'lov kutilmoqda"ni
+ * faqat egasi so'raydi, shuning uchun u faqat joriy holat sifatida chiqadi.
+ */
+function InvitationStateSelect({ inv, disabled, onSelect }: { inv: AdminInvitation; disabled: boolean; onSelect: (state: InvitationState) => void }) {
+  const value: InvitationState =
+    inv.status === "published" ? "published" : inv.review === "pending" ? "pending" : inv.review === "rejected" ? "rejected" : "draft";
+  const waiting = value === "pending" || value === "rejected";
+  const options: { value: InvitationState; label: string }[] = [
+    ...(value === "pending" ? [{ value: "pending" as const, label: "⏳ To'lov kutilmoqda" }] : []),
+    { value: "published", label: waiting ? "✅ Tasdiqlash — nashrga" : "✅ Nashrda" },
+    ...(waiting ? [] : [{ value: "draft" as const, label: value === "published" ? "Qoralama — nashrdan olish" : "Qoralama" }]),
+    ...(value === "draft" ? [] : [{ value: "rejected" as const, label: value === "pending" ? "❌ Rad etish" : "❌ Rad etilgan" }]),
+  ];
+  const tone = value === "published" ? "green" : value === "pending" ? "amber" : value === "rejected" ? "rose" : "gray";
+  return <StateSelect label="Taklifnoma" value={value} options={options} tone={tone} disabled={disabled} onSelect={onSelect} />;
+}
 
 const SHOWCASE_OPTIONS: { value: ShowcaseState; label: string }[] = [
   { value: "visible", label: "Ko'rinadi" },
@@ -711,25 +753,6 @@ function ShowcaseSelect({ inv, disabled, onSelect }: { inv: AdminInvitation; dis
     );
   }
   const value: ShowcaseState = inv.showcaseHidden ? "hidden" : inv.featured ? "pinned" : "visible";
-  return (
-    <label className="mt-1.5 flex flex-col gap-0.5">
-      <span className="whitespace-nowrap text-[10px] font-bold uppercase tracking-wider text-ink/40">Namunalarda</span>
-      <select
-        value={value}
-        disabled={disabled}
-        onChange={(e) => onSelect(e.target.value as ShowcaseState)}
-        className={`h-8 w-fit rounded-lg border px-2 text-xs font-semibold ${
-          value === "pinned"
-            ? "border-amber-300 bg-amber-50 text-amber-800"
-            : value === "hidden"
-              ? "border-ink/15 bg-ink/5 text-ink/55"
-              : "border-sky-200 bg-sky-50 text-sky-800"
-        }`}
-      >
-        {SHOWCASE_OPTIONS.map((opt) => (
-          <option key={opt.value} value={opt.value}>{opt.label}</option>
-        ))}
-      </select>
-    </label>
-  );
+  const tone = value === "pinned" ? "amber" : value === "hidden" ? "gray" : "sky";
+  return <StateSelect label="Namunalarda" value={value} options={SHOWCASE_OPTIONS} tone={tone} disabled={disabled} onSelect={onSelect} />;
 }
