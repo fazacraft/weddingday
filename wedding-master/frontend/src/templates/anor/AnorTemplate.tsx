@@ -5,6 +5,7 @@ import { useWishes } from "../shared/useWishes";
 import { UZ_WEEKDAYS, envelopeLines, monthGrid, useCountdown } from "../shared/calendar";
 import { useReveal } from "../shared/useReveal";
 import { useSlotFocus } from "../shared/useSlotFocus";
+import { PhotoGallery, useGalleryPhotos } from "../shared/PhotoGallery";
 import { useDeferredAudioPreload } from "../shared/useDeferredAudioPreload";
 import { withBase } from "../../lib/base";
 import "./anor.css";
@@ -44,6 +45,7 @@ export default function AnorTemplate() {
   // Konvert ochilgach bo'limlar ekranga kirganda paydo bo'ladi.
   useReveal(rootRef, phase === "fading" || phase === "open", [phase, data]);
   useSlotFocus(() => setPhase("open"));
+  const gallery = useGalleryPhotos();
   useDeferredAudioPreload(audioRef);
 
   const playMusic = () => {
@@ -195,6 +197,12 @@ export default function AnorTemplate() {
         )}
 
         <div className="details-sections">
+          {gallery.length > 0 && (
+            <section className="paper-card gallery-section reveal" aria-label="Fotogalereya">
+              <h2 className="card-title">Fotogalereya</h2>
+              <PhotoGallery photos={gallery} />
+            </section>
+          )}
           {grid && (
             <section className="paper-card calendar-section reveal" aria-label="To'y sanasi">
               <img className="card-sprig card-sprig--top-left" src={`${IMG}/pomegranate.png`} alt="" aria-hidden="true" />

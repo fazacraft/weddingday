@@ -10,6 +10,7 @@ import { mediaUrl, PHOTO_WIDTHS } from "../../lib/api";
 import { Cloud, DoodleHeart, EnvelopeDoodle, GoldSeal, HeartPin, HeartShape, SealImage } from "./ornaments";
 import { osmonSamples, resolveOsmonPhotos } from "./photos";
 import { useTemplateSettings } from "../../lib/templateSettings";
+import { PhotoGallery, type GalleryPhoto } from "../shared/PhotoGallery";
 import "./osmon.css";
 
 const OPENING_DURATION_MS = 1900;
@@ -462,68 +463,11 @@ function ScratchDate({ label, weekday, time }: { label: string; weekday: string;
   );
 }
 
-/** Rasmlar to'ri; bosilgan rasm butun ekranda ochiladi (strelkalar va Esc bilan). */
-function OsmonGallery({ photos }: { photos: { thumb: string; full: string }[] }) {
-  const [open, setOpen] = useState<number | null>(null);
-  const step = useCallback(
-    (delta: number) => setOpen((i) => (i === null ? i : (i + delta + photos.length) % photos.length)),
-    [photos.length]
-  );
-
-  useEffect(() => {
-    if (open === null) return;
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape") setOpen(null);
-      if (e.key === "ArrowRight") step(1);
-      if (e.key === "ArrowLeft") step(-1);
-    };
-    window.addEventListener("keydown", onKey);
-    return () => window.removeEventListener("keydown", onKey);
-  }, [open, step]);
-
+function OsmonGallery({ photos }: { photos: GalleryPhoto[] }) {
   return (
     <section className="band gallery" aria-label="Fotogalereya">
       <h2 className="script-title reveal">Fotogalereya</h2>
-      <div className={`gallery-grid${photos.length % 2 ? " gallery-grid--odd" : ""}`} data-slot="gallery">
-        {photos.map((photo, i) => (
-          <button key={`${photo.thumb}-${i}`} type="button" className="gallery-item reveal" onClick={() => setOpen(i)}>
-            <img src={photo.thumb} alt={`${i + 1}-rasm`} loading="lazy" decoding="async" />
-          </button>
-        ))}
-      </div>
-
-      {open !== null && (
-        <div className="lightbox" role="dialog" aria-modal="true" aria-label="Rasm" onClick={() => setOpen(null)}>
-          <img src={photos[open].full} alt={`${open + 1}-rasm`} onClick={(e) => e.stopPropagation()} />
-          <button type="button" className="lightbox-close" aria-label="Yopish" onClick={() => setOpen(null)}>×</button>
-          {photos.length > 1 && (
-            <>
-              <button
-                type="button"
-                className="lightbox-nav lightbox-nav--prev"
-                aria-label="Oldingi rasm"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  step(-1);
-                }}
-              >
-                ‹
-              </button>
-              <button
-                type="button"
-                className="lightbox-nav lightbox-nav--next"
-                aria-label="Keyingi rasm"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  step(1);
-                }}
-              >
-                ›
-              </button>
-            </>
-          )}
-        </div>
-      )}
+      <PhotoGallery photos={photos} itemClassName="reveal" />
     </section>
   );
 }

@@ -208,27 +208,34 @@ export function MediaStep({ data, update }: StepProps) {
       <div className="mt-4 border-t border-ink/10 pt-6">
         <p className="text-sm font-semibold text-ink">Qo'shimcha rasmlar</p>
         <p className="mt-1 text-xs leading-relaxed text-ink/50">
-          Hozircha «Osmon» shablonida chiqadi. Hech qanday rasm yuklamasangiz, shablonning namunaviy rasmlari ko'rinadi.
+          {data.template === "osmon"
+            ? "Hech qanday rasm yuklamasangiz, shablonning namunaviy rasmlari ko'rinadi."
+            : "Taklifnomada «Fotogalereya» bo'limi bo'lib chiqadi."}
         </p>
       </div>
-      <UploadField
-        kind="image"
-        label="Muqova rasmi"
-        hint="Birinchi ekranning foni — ismlar va sana uning ustida yoziladi. Yuklamasangiz, kelin-kuyov surati ishlatiladi."
-        value={data.coverPhoto}
-        onChange={(coverPhoto) => updatePhoto({ coverPhoto }, "cover")}
-        onActivate={() => focusPreviewSlot("cover")}
-        placement={<PhotoPlacement slot="cover" data={data} />}
-      />
-      <UploadField
-        kind="image"
-        label="To'yxona rasmi"
-        hint="«To'y maskani» bo'limida manzil ustida chiqadi."
-        value={data.venuePhoto}
-        onChange={(venuePhoto) => updatePhoto({ venuePhoto }, "venue")}
-        onActivate={() => focusPreviewSlot("venue")}
-        placement={<PhotoPlacement slot="venue" data={data} />}
-      />
+      {/* Muqova va to'yxona rasmi faqat «Osmon»ning dizaynida bor */}
+      {data.template === "osmon" && (
+        <>
+          <UploadField
+            kind="image"
+            label="Muqova rasmi"
+            hint="Birinchi ekranning foni — ismlar va sana uning ustida yoziladi. Yuklamasangiz, kelin-kuyov surati ishlatiladi."
+            value={data.coverPhoto}
+            onChange={(coverPhoto) => updatePhoto({ coverPhoto }, "cover")}
+            onActivate={() => focusPreviewSlot("cover")}
+            placement={<PhotoPlacement slot="cover" data={data} />}
+          />
+          <UploadField
+            kind="image"
+            label="To'yxona rasmi"
+            hint="«To'y maskani» bo'limida manzil ustida chiqadi."
+            value={data.venuePhoto}
+            onChange={(venuePhoto) => updatePhoto({ venuePhoto }, "venue")}
+            onActivate={() => focusPreviewSlot("venue")}
+            placement={<PhotoPlacement slot="venue" data={data} />}
+          />
+        </>
+      )}
       <GalleryField
         label="Fotogalereya"
         hint={`${GALLERY_MAX} tagacha rasm, bir yo'la bir nechtasini tanlash mumkin.`}

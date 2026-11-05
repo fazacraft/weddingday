@@ -92,10 +92,14 @@ function describe(
 
   if (slot === "gallery") {
     return {
-      title: osmonTitle("«Fotogalereya» bo'limi"),
+      title: "«Fotogalereya» bo'limi",
       text: "Ikki ustunli to'r; mehmon bosganda rasm butun ekranda ochiladi.",
-      note: data.gallery.length ? undefined : photos.sample ? sampleNote : "Yuklanmasa, galereya bo'limi chiqmaydi",
-      screen: <OsmonGallery srcs={photos.gallery} />,
+      note: data.gallery.length
+        ? undefined
+        : data.template === "osmon" && photos.sample
+          ? sampleNote
+          : "Yuklanmasa, galereya bo'limi chiqmaydi",
+      screen: <OsmonGallery srcs={data.template === "osmon" ? photos.gallery : data.gallery.map(thumb)} />,
     };
   }
 

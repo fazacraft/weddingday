@@ -1371,3 +1371,11 @@
   .tpl-atirgul .intro-branch--right { transform: translateY(-50%) scaleX(-1); }
   .tpl-atirgul .seal-button { transform: translate(-50%, -50%); }
 }
+
+/* ---------- Fotogalereya ---------- */
+
+.tpl-atirgul .gallery-card {
+  --gallery-radius: 14px;
+  --gallery-bg: var(--blush);
+  --gallery-shadow: 0 14px 26px -18px var(--shadow);
+}

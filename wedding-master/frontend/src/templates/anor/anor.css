@@ -903,3 +903,10 @@
     animation: none;
   }
 }
+
+/* ---------- Fotogalereya ---------- */
+
+.tpl-anor .gallery-section {
+  --gallery-radius: 4px;
+  --gallery-shadow: none;
+}

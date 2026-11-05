@@ -1,5 +1,6 @@
 import { HeroSection } from "./sections/HeroSection";
 import { GreetingSection } from "./sections/GreetingSection";
+import { GallerySection } from "./sections/GallerySection";
 import { QuoteSection } from "./sections/QuoteSection";
 import { CountdownSection } from "./sections/CountdownSection";
 import { EventDetailsSection } from "./sections/EventDetailsSection";
@@ -15,6 +16,7 @@ export function HomePage() {
     <main>
       <HeroSection />
       <GreetingSection />
+      <GallerySection />
       <QuoteSection />
       <CountdownSection />
       <EventDetailsSection />

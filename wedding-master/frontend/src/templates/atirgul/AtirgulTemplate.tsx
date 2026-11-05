@@ -5,6 +5,7 @@ import { useWishes } from "../shared/useWishes";
 import { UZ_MONTHS, UZ_WEEKDAYS, envelopeLines, monthGrid, useCountdown } from "../shared/calendar";
 import { useReveal } from "../shared/useReveal";
 import { useSlotFocus } from "../shared/useSlotFocus";
+import { PhotoGallery, useGalleryPhotos } from "../shared/PhotoGallery";
 import { useDeferredAudioPreload } from "../shared/useDeferredAudioPreload";
 import { HeartShape, RoseBranch, RoseCluster, RoseDivider, RoseGarland, RoseMark } from "./ornaments";
 import "./atirgul.css";
@@ -78,6 +79,7 @@ export default function AtirgulTemplate() {
 
   useReveal(rootRef, phase === "fading" || phase === "open", [phase, data]);
   useSlotFocus(() => setPhase("open"));
+  const gallery = useGalleryPhotos();
   useDeferredAudioPreload(audioRef);
 
   const playMusic = () => {
@@ -290,6 +292,12 @@ export default function AtirgulTemplate() {
         </section>
 
         <div className="details">
+          {gallery.length > 0 && (
+            <section className="card gallery-card reveal" aria-label="Fotogalereya">
+              <h2 className="card-title">Fotogalereya</h2>
+              <PhotoGallery photos={gallery} />
+            </section>
+          )}
           {grid && (
             <section className="card calendar-card reveal" aria-label="To'y sanasi">
               <RoseCluster className="card-cluster card-cluster--left" />
