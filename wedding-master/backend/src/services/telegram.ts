@@ -17,6 +17,8 @@ const PUBLIC_URL = (process.env.PUBLIC_URL ?? '').replace(/\/+$/, '');
 export const PAYMENT_CARD = (process.env.PAYMENT_CARD ?? '9860160141174617').replace(/\s/g, '');
 export const PAYMENT_CONTACT = (process.env.PAYMENT_CONTACT ?? 'belugadotenv').replace(/^@/, '');
 export const PAYMENT_PRICE = process.env.PAYMENT_PRICE ?? "39 000 so'm";
+/** Karta egasi — ixtiyoriy, kabinetdagi to'lov blokida ko'rsatiladi */
+export const PAYMENT_HOLDER = process.env.PAYMENT_HOLDER ?? '';
 
 /** "9860160141174617" → "9860 1601 4117 4617" */
 export function formattedCard(): string {
@@ -106,6 +108,58 @@ export async function forwardToAdmin(fromChatId: number, messageId: number): Pro
   if (!ADMIN_CHAT_ID) return null;
   const sent = await call<SentMessage>('forwardMessage', { chat_id: ADMIN_CHAT_ID, from_chat_id: fromChatId, message_id: messageId });
   return sent?.message_id ?? null;
+}
+
+const MAX_SEND_ATTEMPTS = 4;
+
+/**
+ * Faylni chatga yuboradi (backup). Muvaffaqiyatsiz bo'lsa — xato: chaqiruvchi
+ * yuborilmaganini bilishi shart. Telegram "sekinroq" desa (429), aytgan vaqtcha kutadi.
+ */
+export async function sendDocument(
+  chatId: number | string,
+  data: Buffer,
+  filename: string,
+  contentType: string,
+  caption: string
+): Promise<{ messageId: number; fileId: string }> {
+  for (let attempt = 1; ; attempt += 1) {
+    const form = new FormData();
+    form.append('chat_id', String(chatId));
+    form.append('caption', caption);
+    form.append('disable_notification', 'true');
+    form.append('disable_content_type_detection', 'true');
+    form.append('document', new Blob([data], { type: contentType }), filename);
+    const res = await fetch(`${API_BASE}/bot${TOKEN}/sendDocument`, { method: 'POST', body: form });
+    const body = (await res.json().catch(() => null)) as {
+      ok?: boolean;
+      description?: string;
+      parameters?: { retry_after?: number };
+      result?: { message_id: number; document?: { file_id: string } };
+    } | null;
+    if (body?.ok && body.result?.document) {
+      return { messageId: body.result.message_id, fileId: body.result.document.file_id };
+    }
+    const retryAfter = body?.parameters?.retry_after;
+    if ((res.status === 429 || res.status >= 500) && attempt < MAX_SEND_ATTEMPTS) {
+      await new Promise((resolve) => setTimeout(resolve, ((retryAfter ?? 5) + 1) * 1000));
+      continue;
+    }
+    throw new Error(body?.description ?? `Telegram sendDocument: ${res.status}`);
+  }
+}
+
+/** Kanal haqida (bot unga kira olmasa — null); username bor bo'lsa, kanal ochiq. */
+export async function getChannelInfo(chatId: number): Promise<{ title: string; username?: string } | null> {
+  const chat = await call<{ type: string; title?: string; username?: string }>('getChat', { chat_id: chatId });
+  return chat && chat.type === 'channel' ? { title: chat.title ?? '', username: chat.username } : null;
+}
+
+export async function botIsChannelAdmin(chatId: number): Promise<boolean> {
+  const me = await call<{ id: number }>('getMe', {});
+  if (!me) return false;
+  const member = await call<{ status: string; can_post_messages?: boolean }>('getChatMember', { chat_id: chatId, user_id: me.id });
+  return member?.status === 'creator' || (member?.status === 'administrator' && member.can_post_messages !== false);
 }
 
 /** Istalgan turdagi xabarni (rasm, ovoz, stiker...) "forwarded" belgisisiz nusxalaydi. */

@@ -15,6 +15,7 @@ import {
   sendToChat,
 } from '../services/telegram';
 import { relayTarget, rememberRelay, type RepliedMessage } from '../services/telegramRelay';
+import { backupSummary, connectBackupChannel, runBackup, type ConnectResult } from '../services/backup';
 
 const router = Router();
 
@@ -34,7 +35,23 @@ interface TgUpdate {
     photo?: unknown[];
     document?: { mime_type?: string };
     reply_to_message?: RepliedMessage;
+    forward_origin?: { type: string; chat?: { id: number } };
   };
+}
+
+const BACKUP_CONNECT_REPLY: Record<ConnectResult, string> = {
+  connected: "✅ Backup kanali ulandi. Birinchi nusxa olinmoqda...",
+  already: "ℹ️ Bu kanal allaqachon ulangan. Hozir nusxa olish: /backup",
+  public: "❌ Bu kanal ochiq. Nusxada shaxsiy ma'lumotlar bor — kanalni <b>yopiq (private)</b> qiling va qayta forward qiling.",
+  'not-admin': "❌ Bot bu kanalda admin emas. Kanal sozlamalaridan botni xabar yuborish huquqi bilan admin qiling va qayta forward qiling.",
+  'other-channel-connected': "ℹ️ Backup uchun boshqa kanal ulangan. Bu forward e'tiborsiz qoldirildi.",
+};
+
+/** Nusxani fonda oladi va natijani admin'ga aytadi (xatoni runBackup o'zi xabar qiladi). */
+function startBackup(chatId: number): void {
+  void runBackup()
+    .then((result) => sendToChat(chatId, result ? backupSummary(result) : "ℹ️ Backup kanali hali ulanmagan. Yopiq kanaldan bitta postni shu yerga forward qiling."))
+    .catch((err) => console.error('Backup failed:', (err as Error).message));
 }
 
 /**
@@ -178,6 +195,18 @@ async function handleMessage(msg: NonNullable<TgUpdate['message']>): Promise<voi
  * (matn ham, rasm/ovoz/stiker ham). Natija admin'ga reply bilan bildiriladi.
  */
 async function handleAdminReply(msg: NonNullable<TgUpdate['message']>): Promise<void> {
+  // Kanaldan forward — backup kanalini ulash
+  if (msg.forward_origin?.type === 'channel' && msg.forward_origin.chat) {
+    const result = await connectBackupChannel(msg.forward_origin.chat.id);
+    await sendToChat(msg.chat.id, BACKUP_CONNECT_REPLY[result], msg.message_id);
+    if (result === 'connected') startBackup(msg.chat.id);
+    return;
+  }
+  if ((msg.text ?? '').trim() === '/backup') {
+    await sendToChat(msg.chat.id, '⏳ Nusxa olinmoqda...', msg.message_id);
+    startBackup(msg.chat.id);
+    return;
+  }
   const replied = msg.reply_to_message;
   if (!replied) {
     // Buyruqlar (/start va h.k.) — jim; oddiy matnga qanday javob berishni eslatamiz
