@@ -7,7 +7,7 @@ import invitationsRouter from './routes/invitations';
 import publicRouter from './routes/public';
 import uploadsRouter from './routes/uploads';
 import adminRouter from './routes/admin';
-import { listApprovedMusic } from './controllers/musicController';
+import { listActiveMusic } from './controllers/musicController';
 import { listShowcase } from './controllers/showcaseController';
 import telegramRouter from './routes/telegram';
 import { serveUpload } from './storage';
@@ -44,7 +44,7 @@ site.use('/api/public', publicRouter);
 site.use('/api/uploads', uploadsRouter);
 site.use('/api/admin', adminRouter);
 site.use('/api/telegram', telegramRouter);
-site.get('/api/music', listApprovedMusic);
+site.get('/api/music', listActiveMusic);
 site.get('/api/showcase', listShowcase);
 site.get('/api/templates/settings', listTemplateSettings);
 site.use('/api', (_req, res) => {

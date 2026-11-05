@@ -11,7 +11,7 @@ import {
 } from '../controllers/adminController';
 import { requireAdmin } from '../middleware/auth';
 import { adminLogin } from '../controllers/adminAuthController';
-import { adminCreateTrack, adminDeleteTrack, adminListMusic, adminUpdateTrack } from '../controllers/musicController';
+import { adminCreateTrack, adminDeleteTrack, adminListMusic, adminTrimTrack, adminUpdateTrack } from '../controllers/musicController';
 import { setFeatured, setShowcaseHidden } from '../controllers/showcaseController';
 import { saveTemplateSettings } from '../controllers/templateSettingsController';
 
@@ -35,6 +35,7 @@ router.post('/users/:id/impersonate', impersonateUser);
 router.get('/music', adminListMusic);
 router.post('/music', adminCreateTrack);
 router.patch('/music/:id', adminUpdateTrack);
+router.post('/music/:id/trim', adminTrimTrack);
 router.delete('/music/:id', adminDeleteTrack);
 router.put('/templates/:key', saveTemplateSettings);
 

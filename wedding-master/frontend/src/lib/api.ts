@@ -89,18 +89,31 @@ export async function api<T>(
   return data as T;
 }
 
-export async function uploadFile(file: File): Promise<string> {
-  const form = new FormData();
-  form.append("file", file);
-  let res: Response;
-  try {
-    res = await fetch(`${API_URL}/api/uploads`, { method: "POST", body: form });
-  } catch {
-    throw new ApiError("Serverga ulanib bo'lmadi", 0);
-  }
-  const data = (await res.json().catch(() => ({}))) as { url?: string; error?: string };
-  if (!res.ok || !data.url) {
-    throw new ApiError(data.error ?? "Faylni yuklab bo'lmadi", res.status);
-  }
-  return data.url;
+/**
+ * Faylni yuklaydi. XMLHttpRequest — fetch yuborish jarayonini ko'rsatmaydi, server
+ * uzoq bo'lgani uchun esa katta fayl sekin ketadi. onProgress: 0..1; 1 dan keyin
+ * server faylni saqlayotgan bo'ladi.
+ */
+export function uploadFile(file: File, onProgress?: (fraction: number) => void): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const form = new FormData();
+    form.append("file", file);
+    const xhr = new XMLHttpRequest();
+    xhr.open("POST", `${API_URL}/api/uploads`);
+    xhr.upload.onprogress = (e) => {
+      if (e.lengthComputable) onProgress?.(e.loaded / e.total);
+    };
+    xhr.onerror = () => reject(new ApiError("Serverga ulanib bo'lmadi", 0));
+    xhr.onload = () => {
+      let data: { url?: string; error?: string } = {};
+      try {
+        data = JSON.parse(xhr.responseText) as typeof data;
+      } catch {
+        /* Javob JSON emas — pastda umumiy xato */
+      }
+      if (xhr.status >= 200 && xhr.status < 300 && data.url) resolve(data.url);
+      else reject(new ApiError(data.error ?? "Faylni yuklab bo'lmadi", xhr.status));
+    };
+    xhr.send(form);
+  });
 }

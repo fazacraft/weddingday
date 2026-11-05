@@ -1,8 +1,7 @@
 /*
- * Wizard'dagi musiqa kutubxonasi: foydalanuvchi eshitib ko'rib tanlaydi.
- * Tanlanganda musicUrl'ga shu yo'l (BASE'siz) yoziladi; o'ynatishda mediaUrl
- * uni BASE bilan to'ldiradi. Yangi musiqa qo'shish: faylni public/ ga qo'yib,
- * shu ro'yxatga bitta qator yozish kifoya.
+ * Saytga o'rnatilgan musiqalar nomi — "Shablon musiqasi" yozuvi uchun. Ro'yxatning
+ * o'zi serverdan keladi (GET /api/music); yangisi backend services/musicLibrary.ts
+ * dagi BUILT_IN_TRACKS ga qo'shiladi yoki admin paneldan yuklanadi.
  */
 
 export interface MusicTrack {

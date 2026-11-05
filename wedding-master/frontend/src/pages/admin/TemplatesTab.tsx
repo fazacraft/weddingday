@@ -226,7 +226,7 @@ function MusicSection({
 }) {
   const { inputRef, busy, error, onFiles, pick } = useUpload(([url]) => onChange(url));
   const builtIn = MUSIC_LIBRARY.find((t) => withBase(t.url) === tpl.defaultMusic)?.title ?? "shablonning o'z kuyi";
-  const known = value === "" || MUSIC_LIBRARY.some((t) => t.url === value) || shared.some((t) => t.url === value);
+  const known = value === "" || shared.some((t) => t.url === value);
 
   return (
     <section className="flex flex-col gap-3">
@@ -238,9 +238,6 @@ function MusicSection({
           className="h-11 min-w-0 flex-1 rounded-xl border border-ink/15 bg-white px-3 text-sm"
         >
           <option value="">Standart: {builtIn}</option>
-          {MUSIC_LIBRARY.map((t) => (
-            <option key={t.url} value={t.url}>{t.title}</option>
-          ))}
           {shared.map((t) => (
             <option key={t.url} value={t.url}>{t.title}{t.artist ? ` — ${t.artist}` : ""}</option>
           ))}

@@ -14,6 +14,7 @@ interface SharedTrack {
   title: string;
   artist: string;
   durationSec: number;
+  builtIn?: boolean;
 }
 
 function formatDuration(seconds: number): string | undefined {
@@ -76,8 +77,12 @@ export function MusicPicker({ data, update }: { data: InvitationData; update: (p
     update({ musicUrl: url, musicTitle: file ? titleFromFile(file.name) : "" })
   );
   const [shared, setShared] = useState<SharedTrack[]>([]);
+  const [sharedLoaded, setSharedLoaded] = useState(false);
   useEffect(() => {
-    api<SharedTrack[]>("/music").then(setShared).catch(() => {});
+    api<SharedTrack[]>("/music")
+      .then(setShared)
+      .catch(() => {})
+      .finally(() => setSharedLoaded(true));
   }, []);
 
   const template = TEMPLATES[data.template] ?? TEMPLATES.bog;
@@ -89,7 +94,7 @@ export function MusicPicker({ data, update }: { data: InvitationData; update: (p
     ? { title: libraryTrack.title, duration: libraryTrack.duration }
     : sharedTrack && { title: sharedTrack.title, duration: formatDuration(sharedTrack.durationSec) };
   // O'zi yuklagan va hali umumiy ro'yxatda bo'lmagan musiqa
-  const custom = data.musicUrl.startsWith("/uploads/") && !shared.some((t) => t.url === data.musicUrl) ? data.musicUrl : "";
+  const custom = sharedLoaded && data.musicUrl && !shared.some((t) => t.url === data.musicUrl) ? data.musicUrl : "";
 
   const options: Option[] = [
     {
@@ -99,16 +104,15 @@ export function MusicPicker({ data, update }: { data: InvitationData; update: (p
       note: templateTrack ? `«${template.name}»: ${templateTrack.title}` : `«${template.name}» shablonining o'z kuyi`,
       duration: templateTrack?.duration,
     },
-    ...MUSIC_LIBRARY.map((t) => ({ value: t.url, src: mediaUrl(t.url), title: t.title, note: t.note, duration: t.duration })),
     ...shared.map((t) => ({
       value: t.url,
       src: mediaUrl(t.url),
       title: t.title,
-      note: t.artist || "Foydalanuvchilar qo'shgan",
+      note: t.artist || (t.builtIn ? "Beluga musiqasi" : "Foydalanuvchilar qo'shgan"),
       duration: formatDuration(t.durationSec),
     })),
     ...(custom
-      ? [{ value: custom, src: mediaUrl(custom), title: data.musicTitle || "O'zingiz yuklagan musiqa", note: "Siz yuklagan musiqa" }]
+      ? [{ value: custom, src: mediaUrl(custom), title: data.musicTitle || "Tanlangan musiqa", note: custom.startsWith("/uploads/") ? "Siz yuklagan musiqa" : "Hozir tanlangan" }]
       : []),
   ];
 

@@ -19,6 +19,11 @@ import { Request, Response, NextFunction } from 'express';
  * kesh yo'qolsa ham (yangi server) birinchi so'rovda qayta to'ladi.
  */
 const BUCKET = 'uploads';
+/**
+ * Har bir bo'lak bazadan javob kutib yoziladi va baza uzoqda (~270 ms). Standart
+ * 255 KB'da 5 MB fayl 3,5–8 s, 4 MB'da ~1,2 s (o'lchangan). Eski fayllar o'z bo'lagi bilan qoladi.
+ */
+const UPLOAD_CHUNK_BYTES = 4 * 1024 * 1024;
 const CACHE_DIR = process.env.UPLOAD_CACHE_DIR || path.join(os.tmpdir(), 'beluga-uploads');
 const CACHE_MAX_AGE = '30d';
 
@@ -132,6 +137,12 @@ async function ensureOriginal(name: string): Promise<string | null> {
   });
 }
 
+/** Yuklangan faylning diskdagi yo'li (kerak bo'lsa GridFS'dan olinadi); topilmasa null. */
+export async function localUploadPath(name: string): Promise<string | null> {
+  const safe = safeName(name);
+  return safe ? ensureOriginal(safe) : null;
+}
+
 /**
  * Rasmning kichraytirilgan WebP varianti (EXIF bo'yicha to'g'rilangan, metama'lumotsiz).
  * sharp ishlamasa — asl fayl (keshlanmaydi, keyingi safar yana urinib ko'riladi).
@@ -162,7 +173,7 @@ async function ensureVariant(name: string, width: number): Promise<{ file: strin
 export async function saveUpload(buffer: Buffer, contentType: string, name?: string): Promise<string> {
   const filename = name ?? `${crypto.randomUUID()}${ALLOWED_TYPES.get(contentType) ?? ''}`;
   await new Promise<void>((resolve, reject) => {
-    const stream = bucket().openUploadStream(filename, { metadata: { contentType } });
+    const stream = bucket().openUploadStream(filename, { chunkSizeBytes: UPLOAD_CHUNK_BYTES, metadata: { contentType } });
     stream.once('finish', () => resolve());
     stream.once('error', reject);
     stream.end(buffer);

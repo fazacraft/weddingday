@@ -1,7 +1,6 @@
 import { Invitation, IInvitation, invitationMedia } from '../models/Invitation';
 import { Wish } from '../models/Wish';
 import { Rsvp } from '../models/Rsvp';
-import { Track } from '../models/Track';
 import { deleteUploads } from '../storage';
 import { libraryMedia } from './musicLibrary';
 import { templateMedia } from './templateSettings';
@@ -9,7 +8,7 @@ import { templateMedia } from './templateSettings';
 /**
  * Taklifnomani butunlay o'chiradi: tilaklar, javoblar va yuklangan rasm/musiqa
  * ham. Boshqa taklifnoma xuddi shu faylni ishlatayotgan bo'lsa (masalan, seed
- * surati), musiqa kutubxonasida (kutayotgan/tasdiqlangan) yoki shablon
+ * surati), musiqa kutubxonasida yoki shablon
  * standartlarida bo'lsa, fayl qoldiriladi.
  */
 export async function removeInvitation(inv: IInvitation): Promise<void> {
@@ -34,8 +33,5 @@ export async function removeInvitation(inv: IInvitation): Promise<void> {
     templateMedia(),
   ]);
   const keep = new Set([...stillUsed.flatMap((i) => invitationMedia(i)), ...inLibrary, ...inTemplates]);
-  const removed = media.filter((m) => !keep.has(m));
-  await deleteUploads(removed);
-  // Rad etilgan nomzodning fayli endi yo'q — yozuvi ham kerak emas
-  if (removed.length) await Track.deleteMany({ url: { $in: removed }, status: 'rejected' });
+  await deleteUploads(media.filter((m) => !keep.has(m)));
 }
