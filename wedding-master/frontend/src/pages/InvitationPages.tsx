@@ -88,7 +88,7 @@ export function PublicInvitationPage() {
 /** Namuna sahifalari pastidagi panel: nima ko'rsatilayotgani va "yaratish" tugmasi. */
 function DemoBar({ label, template }: { label: string; template?: string }) {
   return (
-    <div className="fixed bottom-5 left-1/2 z-[10000] flex max-w-[calc(100vw-2rem)] -translate-x-1/2 items-center gap-2 rounded-full bg-ink/90 p-1.5 pl-5 text-ivory shadow-2xl backdrop-blur">
+    <div className="fixed bottom-5 left-1/2 z-[10000] flex w-max max-w-[calc(100vw-2rem)] -translate-x-1/2 items-center gap-2 rounded-full bg-ink/90 p-1.5 pl-5 text-ivory shadow-2xl backdrop-blur">
       <span className="hidden truncate text-xs sm:inline">
         Namuna: <b>{label}</b>
       </span>
