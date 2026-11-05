@@ -1,4 +1,4 @@
-import { lazy, ReactNode, Suspense, useEffect } from "react";
+import { ReactNode, Suspense, useEffect } from "react";
 import { Navigate, Route, Routes, useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "./context/AuthContext";
 import {
@@ -9,19 +9,21 @@ import {
 } from "./pages/InvitationPages";
 import { FullPageLoader } from "./templates/InvitationRenderer";
 import { SITE_NAME } from "./lib/site";
+import { lazyPage } from "./lib/lazyPage";
+import { ErrorBoundary } from "./platform/ErrorBoundary";
 
 /*
  * Mehmonlar faqat taklifnoma sahifasini ochadi — platforma sahifalari (landing,
  * wizard, kabinet, admin) alohida yuklanadi, shunda taklifnoma uchun asosiy JS
  * kichik bo'ladi.
  */
-const LandingPage = lazy(() => import("./pages/LandingPage").then((m) => ({ default: m.LandingPage })));
-const AuthPage = lazy(() => import("./pages/AuthPage").then((m) => ({ default: m.AuthPage })));
-const BuilderPage = lazy(() => import("./pages/builder/BuilderPage").then((m) => ({ default: m.BuilderPage })));
-const DashboardPage = lazy(() => import("./pages/dashboard/DashboardPage").then((m) => ({ default: m.DashboardPage })));
-const ManagePage = lazy(() => import("./pages/dashboard/ManagePage").then((m) => ({ default: m.ManagePage })));
-const AdminGate = lazy(() => import("./pages/admin/AdminGate").then((m) => ({ default: m.AdminGate })));
-const ShowcasePage = lazy(() => import("./pages/ShowcasePage").then((m) => ({ default: m.ShowcasePage })));
+const LandingPage = lazyPage(() => import("./pages/LandingPage").then((m) => ({ default: m.LandingPage })));
+const AuthPage = lazyPage(() => import("./pages/AuthPage").then((m) => ({ default: m.AuthPage })));
+const BuilderPage = lazyPage(() => import("./pages/builder/BuilderPage").then((m) => ({ default: m.BuilderPage })));
+const DashboardPage = lazyPage(() => import("./pages/dashboard/DashboardPage").then((m) => ({ default: m.DashboardPage })));
+const ManagePage = lazyPage(() => import("./pages/dashboard/ManagePage").then((m) => ({ default: m.ManagePage })));
+const AdminGate = lazyPage(() => import("./pages/admin/AdminGate").then((m) => ({ default: m.AdminGate })));
+const ShowcasePage = lazyPage(() => import("./pages/ShowcasePage").then((m) => ({ default: m.ShowcasePage })));
 
 /** Kabinet sahifalari — kirmagan foydalanuvchi kirish sahifasiga yo'naltiriladi. */
 function RequireAuth({ children }: { children: ReactNode }) {
@@ -67,10 +69,12 @@ function TitleReset() {
 }
 
 export default function App() {
+  const { pathname } = useLocation();
   return (
     <>
       <TitleReset />
       <ImpersonationBar />
+      <ErrorBoundary resetKey={pathname}>
       <Suspense fallback={<FullPageLoader />}>
       <Routes>
         <Route path="/" element={<LandingPage />} />
@@ -91,6 +95,7 @@ export default function App() {
         <Route path="*" element={<NotFoundPage />} />
       </Routes>
       </Suspense>
+      </ErrorBoundary>
     </>
   );
 }

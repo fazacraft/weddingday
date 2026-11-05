@@ -71,6 +71,10 @@ if (fs.existsSync(WEB_DIST)) {
       },
     })
   );
+  // Eski deploy'ning kod fayli so'ralsa — HTML emas, 404 (brauzer xatoni darhol ko'radi)
+  site.use('/assets', (_req, res) => {
+    res.status(404).end();
+  });
   const renderInvitationPage = createInvitationPageRenderer(WEB_DIST, BASE_PATH);
   // SPA: /feruz-dilfuza, /kabinet va h.k. — marshrutlash React'da. Nashr qilingan
   // taklifnoma sahifasiga ma'lumot, shablon kodi va rasm oldindan qo'shiladi.

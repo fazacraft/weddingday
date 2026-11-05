@@ -1,6 +1,7 @@
-import { lazy, type ComponentType, type LazyExoticComponent } from "react";
+import type { ComponentType, LazyExoticComponent } from "react";
 import type { InvitationData, TemplateKey } from "../types/invitation";
 import { withBase } from "../lib/base";
+import { lazyPage } from "../lib/lazyPage";
 
 export interface TemplateMeta {
   key: TemplateKey;
@@ -29,7 +30,7 @@ export const TEMPLATES: Record<TemplateKey, TemplateMeta> = {
       "Musiqali kirish ekrani, parallaks arka, uchib yurgan kaptarlar va real vaqtdagi tilaklar devori. Lotin va kirill yozuvida.",
     palette: ["#f0ece3", "#30401c", "#e8c4c0"],
     defaultMusic: withBase("/leberch-invitation-wedding-375839.mp3"),
-    Component: lazy(() => import("./bog/BogTemplate")),
+    Component: lazyPage(() => import("./bog/BogTemplate")),
   },
   anor: {
     key: "anor",
@@ -39,7 +40,7 @@ export const TEMPLATES: Record<TemplateKey, TemplateMeta> = {
       "Mehmon avval qizil muhrli konvertni ochadi. Milliy naqshli hoshiya, karnay-surnay, kalendar va qog'oz kartalar.",
     palette: ["#faf5ea", "#6e2323", "#c9a227"],
     defaultMusic: withBase("/templates/anor/music.mp3"),
-    Component: lazy(() => import("./anor/AnorTemplate")),
+    Component: lazyPage(() => import("./anor/AnorTemplate")),
   },
   atirgul: {
     key: "atirgul",
@@ -49,7 +50,7 @@ export const TEMPLATES: Record<TemplateKey, TemplateMeta> = {
       "Pushti muhrli oq konvert ichidan maktub ko'tariladi. Arka shaklidagi rasm, tushayotgan atirgul yaproqlari, yurakli kalendar va gulli dastur.",
     palette: ["#fff5f7", "#f2a9b9", "#b84a68"],
     defaultMusic: withBase("/leberch-invitation-wedding-375839.mp3"),
-    Component: lazy(() => import("./atirgul/AtirgulTemplate")),
+    Component: lazyPage(() => import("./atirgul/AtirgulTemplate")),
   },
   kuz: {
     key: "kuz",
@@ -63,7 +64,7 @@ export const TEMPLATES: Record<TemplateKey, TemplateMeta> = {
     demo: { date: "2027-10-16" },
     // 2026-10-23 dan yangi taklifnomalar uchun yopilgan; mavjudlari (masalan, /somsa) ishlayveradi
     hidden: true,
-    Component: lazy(() => import("./kuz/KuzTemplate")),
+    Component: lazyPage(() => import("./kuz/KuzTemplate")),
   },
   osmon: {
     key: "osmon",
@@ -74,7 +75,7 @@ export const TEMPLATES: Record<TemplateKey, TemplateMeta> = {
     palette: ["#fffdfb", "#64a0bd", "#c8aa78"],
     // "Seni osmonimga olib ketaman" — qisqa qism, shablonda takrorlanib chalinadi
     defaultMusic: withBase("/templates/osmon/music.mp3"),
-    Component: lazy(() => import("./osmon/OsmonTemplate")),
+    Component: lazyPage(() => import("./osmon/OsmonTemplate")),
   },
 };
 
