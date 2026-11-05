@@ -441,7 +441,12 @@ function ReviewBanner({ inv, onChange }: { inv: OwnedInvitation; onChange: (next
       {payment && (
         <div className="mt-5 flex flex-col gap-4 rounded-2xl bg-white/80 p-4 ring-1 ring-amber-200 sm:p-5">
           <PaymentRow label="Karta raqami" value={payment.card} copy={payment.card.replace(/\s/g, "")} />
-          {payment.holder && <PaymentRow label="Karta egasi" value={payment.holder} />}
+          {(payment.holder || payment.bank) && (
+            <div className="flex flex-wrap gap-x-10 gap-y-4">
+              {payment.holder && <PaymentRow label="Karta egasi" value={payment.holder} />}
+              {payment.bank && <PaymentRow label="Bank" value={payment.bank} />}
+            </div>
+          )}
           <div className="border-t border-amber-200" />
           <PaymentRow label="O'tkaziladigan summa" value={price} copy={price.replace(/\D/g, "")} large />
         </div>

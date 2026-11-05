@@ -17,8 +17,9 @@ const PUBLIC_URL = (process.env.PUBLIC_URL ?? '').replace(/\/+$/, '');
 export const PAYMENT_CARD = (process.env.PAYMENT_CARD ?? '9860160141174617').replace(/\s/g, '');
 export const PAYMENT_CONTACT = (process.env.PAYMENT_CONTACT ?? 'belugadotenv').replace(/^@/, '');
 export const PAYMENT_PRICE = process.env.PAYMENT_PRICE ?? "39 000 so'm";
-/** Karta egasi — ixtiyoriy, kabinetdagi to'lov blokida ko'rsatiladi */
+/** Karta egasi va banki — ixtiyoriy, kabinetdagi to'lov blokida ko'rsatiladi */
 export const PAYMENT_HOLDER = process.env.PAYMENT_HOLDER ?? '';
+export const PAYMENT_BANK = process.env.PAYMENT_BANK ?? '';
 
 /** "9860160141174617" → "9860 1601 4117 4617" */
 export function formattedCard(): string {

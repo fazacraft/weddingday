@@ -16,7 +16,7 @@ import { AuthedRequest } from '../middleware/auth';
 import { removeInvitation } from '../services/invitations';
 import { applyPublishRequest, notifyApprovalNeeded } from '../services/review';
 import { deleteReceiptFile, sniffReceipt, storeReceipt } from '../services/receipts';
-import { ADMIN_CHAT_ID, formattedCard, PAYMENT_HOLDER, PAYMENT_PRICE, sendDocument, telegramEnabled } from '../services/telegram';
+import { ADMIN_CHAT_ID, formattedCard, PAYMENT_BANK, PAYMENT_HOLDER, PAYMENT_PRICE, sendDocument, telegramEnabled } from '../services/telegram';
 import { User, isAdminEmail } from '../models/User';
 
 /** Klientdan qabul qilinadigan maydonlar — owner, openCount kabilarni o'zgartirib bo'lmaydi. */
@@ -98,7 +98,7 @@ function ownerView(inv: IInvitation, stats?: Record<string, number>) {
     // To'lov ma'lumoti faqat kutilayotganda: kabinetdagi blok shundan chiziladi
     payment:
       inv.review === 'pending' && inv.status !== 'published'
-        ? { card: formattedCard(), holder: PAYMENT_HOLDER || undefined, price: PAYMENT_PRICE }
+        ? { card: formattedCard(), holder: PAYMENT_HOLDER || undefined, bank: PAYMENT_BANK || undefined, price: PAYMENT_PRICE }
         : undefined,
     // Tasdiq kechiksa foydalanuvchi shu botga yozadi (t.me/<bot>?start=<id>)
     supportBot: process.env.TG_BOT_USERNAME || undefined,
