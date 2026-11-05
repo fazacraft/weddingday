@@ -7,7 +7,7 @@ import { useReveal } from "../shared/useReveal";
 import { useSlotFocus } from "../shared/useSlotFocus";
 import { useDeferredAudioPreload } from "../shared/useDeferredAudioPreload";
 import { mediaUrl, PHOTO_WIDTHS } from "../../lib/api";
-import { Cloud, DoodleHeart, EnvelopeDoodle, GoldSeal, HeartPin, HeartShape } from "./ornaments";
+import { Cloud, DoodleHeart, EnvelopeDoodle, GoldSeal, HeartPin, HeartShape, SealImage } from "./ornaments";
 import { osmonSamples, resolveOsmonPhotos } from "./photos";
 import { useTemplateSettings } from "../../lib/templateSettings";
 import "./osmon.css";
@@ -163,7 +163,7 @@ export default function OsmonTemplate() {
           </div>
 
           <button className="seal-button" type="button" onClick={openInvitation} aria-expanded={phase !== "closed"}>
-            <GoldSeal className="seal-svg" />
+            <SealImage className="seal-svg" />
             <span className="sr-only">Taklifnomani ochish</span>
           </button>
           <p className="intro-hint" aria-hidden="true">

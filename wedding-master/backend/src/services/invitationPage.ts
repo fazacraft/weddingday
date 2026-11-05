@@ -128,6 +128,8 @@ export function createInvitationPageRenderer(webDist: string, basePath: string) 
       hero && `<meta name="twitter:card" content="summary_large_image" />`,
       // Osmon'da rasm birinchi ekranda; boshqalarda konvert ochilgach chiqadi
       hero && `<link rel="preload" as="image" href="${escapeHtml(hero)}"${inv.template === 'osmon' ? ' fetchpriority="high"' : ''} />`,
+      // Konvert muhri birinchi ekranda — kechikib "paydo bo'lmasin"
+      inv.template === 'osmon' && `<link rel="preload" as="image" href="${basePath}/templates/osmon/seal.webp" fetchpriority="high" />`,
       ...css.map((file) => `<link rel="stylesheet" crossorigin href="${asset(file)}" />`),
       ...js.map((file) => `<link rel="modulepreload" crossorigin href="${asset(file)}" />`),
       `<script>window.__INVITATION__=${inlineJson(inv)}</script>`,

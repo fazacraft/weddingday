@@ -1,4 +1,5 @@
 import { CSSProperties, useId } from "react";
+import { withBase } from "../../lib/base";
 
 /*
  * "Osmon" shablonining chizilgan bezaklari — oltin muhr, qo'lda chizilgan
@@ -8,6 +9,11 @@ import { CSSProperties, useId } from "react";
 
 /** Yurak konturi (0..32 × 0..30). */
 const HEART = "M16 29 C6 21 0 15 0 8.5 C0 3.6 3.7 0 8.3 0 C11.4 0 14.3 1.7 16 4.4 C17.7 1.7 20.6 0 23.7 0 C28.3 0 32 3.6 32 8.5 C32 15 26 21 16 29Z";
+
+/** Konvertdagi muhr — haqiqiy oltin mum surati (backend invitationPage uni oldindan yuklaydi). */
+export function SealImage({ className = "" }: { className?: string }) {
+  return <img src={withBase("/templates/osmon/seal.webp")} alt="" draggable={false} decoding="async" className={className} />;
+}
 
 /** Oltin mum muhr — chetlari notekis, o'rtasida bo'rtib chiqqan yurak. */
 export function GoldSeal({ className = "" }: { className?: string }) {

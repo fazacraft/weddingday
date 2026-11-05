@@ -1,6 +1,6 @@
 import type { TemplateKey } from "../types/invitation";
 import { withBase } from "../lib/base";
-import { GoldSeal } from "../templates/osmon/ornaments";
+import { SealImage } from "../templates/osmon/ornaments";
 
 interface Props {
   template: TemplateKey;
@@ -36,7 +36,7 @@ export function TemplateThumb({ template, groom = "Mirodil", bride = "Jasmina", 
             {groom} & {bride}
           </span>
         </div>
-        <GoldSeal className="absolute left-1/2 top-[47%] h-14 w-14 -translate-x-1/2 -translate-y-1/2 drop-shadow-[0_6px_8px_rgba(90,64,20,0.35)]" />
+        <SealImage className="absolute left-1/2 top-[47%] h-14 w-14 -translate-x-1/2 -translate-y-1/2 drop-shadow-[0_6px_8px_rgba(90,64,20,0.35)]" />
         <div className="absolute inset-x-0 top-[62%] flex flex-col items-center gap-1.5">
           <span className="flex items-center gap-2 text-[9px] uppercase tracking-[0.3em] text-[#6f6a64]" style={{ fontFamily: "Rufina, serif" }}>
             <span className="h-1.5 w-1.5 rounded-full bg-[#64a0bd]" />
