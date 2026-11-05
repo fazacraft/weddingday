@@ -64,6 +64,8 @@ if (fs.existsSync(WEB_DIST)) {
       index: false,
       maxAge: '7d',
       setHeaders: (res, filePath) => {
+        // Ochiq oynalar yangi deploy'ni shu fayldan biladi
+        if (path.basename(filePath) === 'version.json') res.setHeader('Cache-Control', 'no-cache');
         // Vite build fayllari nomida hash bor — o'zgarmaydi
         if (/[\\/]assets[\\/].+-[A-Za-z0-9_-]{8}\.(js|css)$/.test(filePath)) {
           res.setHeader('Cache-Control', 'public, max-age=31536000, immutable');

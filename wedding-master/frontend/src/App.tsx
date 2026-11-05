@@ -1,4 +1,4 @@
-import { ReactNode, Suspense, useEffect } from "react";
+import { ReactNode, Suspense, useEffect, useRef } from "react";
 import { Navigate, Route, Routes, useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "./context/AuthContext";
 import {
@@ -11,6 +11,7 @@ import { FullPageLoader } from "./templates/InvitationRenderer";
 import { SITE_NAME } from "./lib/site";
 import { lazyPage } from "./lib/lazyPage";
 import { ErrorBoundary } from "./platform/ErrorBoundary";
+import { isPlatformPath, useNewBuild } from "./lib/buildCheck";
 
 /*
  * Mehmonlar faqat taklifnoma sahifasini ochadi — platforma sahifalari (landing,
@@ -59,6 +60,32 @@ function ImpersonationBar() {
   );
 }
 
+/**
+ * Yangi deploy'dan keyin ochiq oyna eski kodda qolmasin: boshqa sahifaga o'tganda
+ * o'zi yangilanadi (qoralama saqlanadi), shu sahifada qolsa — taklif chiqadi.
+ * Mehmonning taklifnoma sahifasiga tegmaydi.
+ */
+function UpdateBar() {
+  const { pathname } = useLocation();
+  const platform = isPlatformPath(pathname);
+  const stale = useNewBuild(platform);
+  const seenPath = useRef(pathname);
+  useEffect(() => {
+    if (pathname === seenPath.current) return;
+    seenPath.current = pathname;
+    if (stale && platform) window.location.reload();
+  }, [pathname, stale, platform]);
+  if (!stale || !platform) return null;
+  return (
+    <div role="status" className="fixed bottom-3 right-3 z-[10001] flex max-w-[calc(100vw-1.5rem)] items-center gap-3 rounded-full bg-ink py-1.5 pl-4 pr-1.5 text-xs font-semibold text-ivory shadow-xl">
+      <span className="truncate">Sayt yangilandi</span>
+      <button type="button" onClick={() => window.location.reload()} className="h-7 shrink-0 rounded-full bg-ivory px-3 text-ink hover:bg-ivory/85">
+        Yangilash
+      </button>
+    </div>
+  );
+}
+
 /** Platforma sahifalarida sarlavhani tiklaydi (taklifnoma sahifasi o'zinikini qo'yadi). */
 function TitleReset() {
   const { pathname } = useLocation();
@@ -74,6 +101,7 @@ export default function App() {
     <>
       <TitleReset />
       <ImpersonationBar />
+      <UpdateBar />
       <ErrorBoundary resetKey={pathname}>
       <Suspense fallback={<FullPageLoader />}>
       <Routes>

@@ -104,7 +104,8 @@ export function MusicPicker({ data, update }: { data: InvitationData; update: (p
       note: templateTrack ? `«${template.name}»: ${templateTrack.title}` : `«${template.name}» shablonining o'z kuyi`,
       duration: templateTrack?.duration,
     },
-    ...shared.map((t) => ({
+    // Shablonning o'z musiqasi yuqorida bor — ikki marta ko'rsatmaymiz (aynan shu tanlangan bo'lmasa)
+    ...shared.filter((t) => mediaUrl(t.url) !== defaultMusic || t.url === data.musicUrl).map((t) => ({
       value: t.url,
       src: mediaUrl(t.url),
       title: t.title,
