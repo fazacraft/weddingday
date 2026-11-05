@@ -4,7 +4,7 @@ import { Invitation } from '../models/Invitation';
 import { Track, TRACK_STATUSES, TrackStatus } from '../models/Track';
 import { User } from '../models/User';
 import { AuthedRequest } from '../middleware/auth';
-import { deleteTrackFileIfUnused, syncUploadedMusic } from '../services/musicLibrary';
+import { deleteTrackFileIfUnused, isUploadedAudio, syncUploadedMusic } from '../services/musicLibrary';
 
 /** GET /api/music — wizard'dagi ro'yxat uchun tasdiqlangan musiqalar. */
 export async function listApprovedMusic(_req: Request, res: Response, next: NextFunction): Promise<void> {
@@ -51,6 +51,37 @@ export async function adminListMusic(req: AuthedRequest, res: Response, next: Ne
         };
       })
     );
+  } catch (err) {
+    next(err);
+  }
+}
+
+/** POST /api/admin/music { url, title, artist, durationSec } — admin o'zi yuklagan musiqa darhol ro'yxatga tushadi. */
+export async function adminCreateTrack(req: AuthedRequest, res: Response, next: NextFunction): Promise<void> {
+  try {
+    const { url, title, artist, durationSec } = req.body as Record<string, unknown>;
+    if (typeof url !== 'string' || !isUploadedAudio(url) || url.includes('..')) {
+      res.status(422).json({ error: "Musiqa fayli noto'g'ri" });
+      return;
+    }
+    const name = typeof title === 'string' ? title.trim().slice(0, 120) : '';
+    if (!name) {
+      res.status(422).json({ error: "Qo'shiq nomini yozing", field: 'title' });
+      return;
+    }
+    if (await Track.exists({ url })) {
+      res.status(409).json({ error: "Bu musiqa ro'yxatda bor" });
+      return;
+    }
+    const track = await Track.create({
+      url,
+      title: name,
+      artist: typeof artist === 'string' ? artist.trim().slice(0, 120) : '',
+      durationSec: typeof durationSec === 'number' && Number.isFinite(durationSec) && durationSec >= 0 ? Math.round(durationSec) : 0,
+      status: 'approved',
+      decidedAt: new Date(),
+    });
+    res.status(201).json({ id: String(track._id), status: track.status, title: track.title });
   } catch (err) {
     next(err);
   }

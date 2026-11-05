@@ -22,7 +22,7 @@ function formatDuration(seconds: number): string | undefined {
 }
 
 /** "Mening_qoshigim.mp3" → "Mening qoshigim" */
-function titleFromFile(name: string): string {
+export function titleFromFile(name: string): string {
   return name.replace(/\.[^.]+$/, "").replace(/[_]+/g, " ").trim().slice(0, 120);
 }
 

@@ -1,6 +1,6 @@
-import { FormEvent, useCallback, useEffect, useState } from "react";
+import { FormEvent, useCallback, useEffect, useRef, useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
-import { ApiError, mediaUrl, setToken } from "../../lib/api";
+import { ApiError, mediaUrl, setToken, uploadFile } from "../../lib/api";
 import { adminApi } from "../../lib/adminAuth";
 import { withBase } from "../../lib/base";
 import { TEMPLATES } from "../../templates/registry";
@@ -8,6 +8,9 @@ import type { TemplateKey } from "../../types/invitation";
 import { SiteHeader } from "../../platform/SiteChrome";
 import { Eyebrow, Notice, PButton, Spinner } from "../../platform/ui";
 import { inviteUrl } from "../../lib/site";
+import { MUSIC_LIBRARY, type MusicTrack } from "../../lib/music";
+import { AUDIO_ACCEPT } from "../builder/UploadField";
+import { titleFromFile } from "../builder/MusicPicker";
 import { CopyButton, formatDate, formatDateTime } from "../dashboard/shared";
 import { TemplatesTab } from "./TemplatesTab";
 
@@ -511,14 +514,24 @@ const TRACK_STATUS: Record<AdminTrack["status"], { label: string; className: str
   rejected: { label: "Rad etilgan", className: "bg-ink/10 text-ink/60" },
 };
 
+const MUSIC_STATUS_HELP = [
+  { ...TRACK_STATUS.pending, text: "Foydalanuvchi o'z taklifnomasiga yuklagan. Faqat o'sha taklifnomada chalinadi, boshqalarga ko'rinmaydi. Qaroringizni kutmoqda." },
+  { ...TRACK_STATUS.approved, text: "Hamma foydalanuvchiga «Fon musiqasi» ro'yxatida chiqadi." },
+  { ...TRACK_STATUS.rejected, text: "Ro'yxatga kirmaydi, lekin uni yuklagan taklifnomada chalinishda davom etadi. Hech kim ishlatmasa, darhol butunlay o'chadi." },
+  { label: "Saytniki", className: "bg-sky-100 text-sky-800", text: "Saytga o'rnatilgan musiqa: doim ro'yxatda, o'chirib bo'lmaydi." },
+];
+
 /**
- * Foydalanuvchilar yuklagan musiqalar: admin eshitib, nomini tuzatib, umumiy
- * ro'yxatga qo'shadi (wizard'dagi "Fon musiqasi" ro'yxatida hammaga chiqadi).
+ * Barcha musiqalar: saytga o'rnatilganlari (lib/music.ts) va yuklanganlari.
+ * Foydalanuvchi yuklagani "Kutmoqda" bo'lib tushadi; admin eshitib, nomini
+ * tuzatib, ro'yxatga qo'shadi. Admin o'zi yuklagani darhol ro'yxatga tushadi.
  */
 function MusicTab({ onChange }: { onChange: () => void }) {
-  const [status, setStatus] = useState("pending");
+  const [status, setStatus] = useState("");
   const [tracks, setTracks] = useState<AdminTrack[] | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [newFile, setNewFile] = useState<File | null>(null);
+  const fileRef = useRef<HTMLInputElement>(null);
 
   const load = useCallback(() => {
     setError(null);
@@ -528,26 +541,59 @@ function MusicTab({ onChange }: { onChange: () => void }) {
   }, [status]);
   useEffect(load, [load]);
 
+  const showBuiltIn = status === "" || status === "approved";
+
   return (
     <div className="flex flex-col gap-4">
-      <div className="flex flex-col justify-between gap-3 sm:flex-row sm:items-center">
-        <p className="max-w-xl text-sm leading-relaxed text-ink/55">
-          Foydalanuvchilar o'z taklifnomasiga yuklagan musiqalar. Eshitib ko'ring, nomini tuzating va ro'yxatga qo'shing —
-          shundan keyin u hammaga «Fon musiqasi» ro'yxatida chiqadi.
-        </p>
-        <select value={status} onChange={(e) => setStatus(e.target.value)} className="h-11 rounded-xl border border-ink/15 bg-white px-3 text-sm">
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <select value={status} onChange={(e) => setStatus(e.target.value)} aria-label="Holat bo'yicha" className="h-11 rounded-xl border border-ink/15 bg-white px-3 text-sm">
+          <option value="">Hammasi</option>
           <option value="pending">Kutmoqda</option>
           <option value="approved">Ro'yxatda</option>
           <option value="rejected">Rad etilgan</option>
-          <option value="">Hammasi</option>
         </select>
+        <PButton size="sm" onClick={() => fileRef.current?.click()}>
+          + Musiqa qo'shish
+        </PButton>
+        <input
+          ref={fileRef}
+          type="file"
+          hidden
+          accept={AUDIO_ACCEPT}
+          onChange={(e) => {
+            setNewFile(e.target.files?.[0] ?? null);
+            e.target.value = "";
+          }}
+        />
       </div>
+
+      <dl className="grid gap-x-6 gap-y-2 rounded-2xl bg-sand/50 p-4 text-xs leading-relaxed text-ink/60 sm:grid-cols-2">
+        {MUSIC_STATUS_HELP.map(({ label, className, text }) => (
+          <div key={label} className="flex items-start gap-2">
+            <dt className={`shrink-0 whitespace-nowrap rounded-full px-2 py-0.5 text-[11px] font-bold ${className}`}>{label}</dt>
+            <dd>{text}</dd>
+          </div>
+        ))}
+      </dl>
+
+      {newFile && (
+        <NewTrackForm
+          key={`${newFile.name}-${newFile.lastModified}`}
+          file={newFile}
+          onCancel={() => setNewFile(null)}
+          onDone={() => {
+            setNewFile(null);
+            load();
+            onChange();
+          }}
+        />
+      )}
       {error && <Notice>{error}</Notice>}
 
       {!tracks ? (
         <div className="flex justify-center py-10 text-ink/40"><Spinner className="h-6 w-6" /></div>
-      ) : tracks.length === 0 ? (
-        <p className="py-10 text-center text-sm text-ink/45">Bu bo'limda musiqa yo'q.</p>
+      ) : tracks.length === 0 && !showBuiltIn ? (
+        <p className="py-10 text-center text-sm text-ink/45">Bu holatda musiqa yo'q.</p>
       ) : (
         <div className="grid gap-3 lg:grid-cols-2">
           {tracks.map((track) => (
@@ -560,8 +606,85 @@ function MusicTab({ onChange }: { onChange: () => void }) {
               }}
             />
           ))}
+          {showBuiltIn && MUSIC_LIBRARY.map((track) => <BuiltInTrackCard key={track.url} track={track} />)}
         </div>
       )}
+    </div>
+  );
+}
+
+const pauseOtherAudio = (current: HTMLAudioElement) =>
+  document.querySelectorAll("audio").forEach((a) => a !== current && a.pause());
+
+/** Saytga o'rnatilgan musiqa: doim ro'yxatda, bu yerdan o'zgartirilmaydi. */
+function BuiltInTrackCard({ track }: { track: MusicTrack }) {
+  return (
+    <div className="rounded-2xl border border-ink/10 bg-white p-4">
+      <div className="flex items-center justify-between gap-3">
+        <span className="rounded-full bg-sky-100 px-2.5 py-1 text-[11px] font-bold text-sky-800">Saytniki</span>
+        <span className="text-xs text-ink/45">{track.duration}</span>
+      </div>
+      <audio controls preload="none" src={mediaUrl(track.url)} className="mt-3 w-full" onPlay={(e) => pauseOtherAudio(e.currentTarget)} />
+      <p className="mt-3 text-sm font-semibold text-ink">{track.title}</p>
+      <p className="mt-0.5 text-xs text-ink/50">{track.note}</p>
+    </div>
+  );
+}
+
+/** Tanlangan faylni eshitib, nom berib ro'yxatga qo'shish. Fayl faqat saqlanganda yuklanadi. */
+function NewTrackForm({ file, onCancel, onDone }: { file: File; onCancel: () => void; onDone: () => void }) {
+  const [title, setTitle] = useState(() => titleFromFile(file.name));
+  const [artist, setArtist] = useState("");
+  const [duration, setDuration] = useState(0);
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [src, setSrc] = useState("");
+
+  useEffect(() => {
+    const url = URL.createObjectURL(file);
+    setSrc(url);
+    return () => URL.revokeObjectURL(url);
+  }, [file]);
+
+  const save = async () => {
+    setBusy(true);
+    setError(null);
+    try {
+      const url = await uploadFile(file);
+      await adminApi("/admin/music", { method: "POST", body: { url, title, artist, durationSec: duration } });
+      onDone();
+    } catch (err) {
+      setError(err instanceof ApiError ? err.message : "Saqlab bo'lmadi");
+      setBusy(false);
+    }
+  };
+
+  const input = "h-10 w-full rounded-xl border border-ink/15 bg-white px-3 text-sm focus:border-rose/60 focus:outline-none";
+  return (
+    <div className="rounded-2xl border border-rose/30 bg-white p-4">
+      <p className="text-sm font-semibold text-ink">Yangi musiqa</p>
+      {src && (
+        <audio
+          controls
+          src={src}
+          className="mt-3 w-full"
+          onLoadedMetadata={(e) => Number.isFinite(e.currentTarget.duration) && setDuration(Math.round(e.currentTarget.duration))}
+          onPlay={(e) => pauseOtherAudio(e.currentTarget)}
+        />
+      )}
+      <div className="mt-3 grid gap-2 sm:grid-cols-2">
+        <input value={title} onChange={(e) => setTitle(e.target.value)} placeholder="Qo'shiq nomi" aria-label="Qo'shiq nomi" maxLength={120} className={input} />
+        <input value={artist} onChange={(e) => setArtist(e.target.value)} placeholder="Ijrochi (ixtiyoriy)" aria-label="Ijrochi" maxLength={120} className={input} />
+      </div>
+      {error && <p className="mt-2 text-xs text-rose">{error}</p>}
+      <div className="mt-3 flex flex-wrap gap-2">
+        <PButton size="sm" loading={busy} disabled={!title.trim()} onClick={() => void save()}>
+          Ro'yxatga qo'shish
+        </PButton>
+        <PButton size="sm" variant="secondary" disabled={busy} onClick={onCancel}>
+          Bekor qilish
+        </PButton>
+      </div>
     </div>
   );
 }
@@ -612,7 +735,7 @@ function TrackCard({ track, onDone }: { track: AdminTrack; onDone: () => void })
       <div className="flex items-center justify-between gap-3">
         <span className={`rounded-full px-2.5 py-1 text-[11px] font-bold ${status.className}`}>{status.label}</span>
         <span className="text-xs text-ink/45">
-          {track.submittedBy ? track.submittedBy.email : "foydalanuvchi o'chirilgan"} · {formatDateTime(track.createdAt)}
+          {track.submittedBy ? track.submittedBy.email : "Admin yuklagan"} · {formatDateTime(track.createdAt)}
         </span>
       </div>
 
@@ -622,7 +745,7 @@ function TrackCard({ track, onDone }: { track: AdminTrack; onDone: () => void })
         src={mediaUrl(track.url)}
         className="mt-3 w-full"
         onLoadedMetadata={(e) => Number.isFinite(e.currentTarget.duration) && setDuration(Math.round(e.currentTarget.duration))}
-        onPlay={(e) => document.querySelectorAll("audio").forEach((a) => a !== e.currentTarget && a.pause())}
+        onPlay={(e) => pauseOtherAudio(e.currentTarget)}
       />
 
       <div className="mt-3 grid gap-2 sm:grid-cols-2">
