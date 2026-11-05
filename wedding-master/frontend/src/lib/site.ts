@@ -7,6 +7,7 @@ export const SITE_DOMAIN = import.meta.env.VITE_SITE_DOMAIN || "beluga.uz";
 /** To'lov va tasdiq Telegram orqali: karta raqami botda, chek botga yoki admin'ga yuboriladi. */
 export const SUPPORT_BOT = import.meta.env.VITE_SUPPORT_BOT || "ukamheppy_bot";
 export const PAYMENT_CONTACT = import.meta.env.VITE_PAYMENT_CONTACT || "belugadotenv";
+export const PAYMENT_PRICE = import.meta.env.VITE_PAYMENT_PRICE || "39 000 so'm";
 
 /** Mehmonlarga yuboriladigan to'liq havola (joriy origin bo'yicha — lokalda ham ishlaydi). */
 export function inviteUrl(slug: string): string {

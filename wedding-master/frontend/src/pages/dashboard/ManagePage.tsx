@@ -2,7 +2,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { Link, useNavigate, useParams, useSearchParams } from "react-router-dom";
 import { QRCodeCanvas } from "qrcode.react";
 import { api, ApiError } from "../../lib/api";
-import { PAYMENT_CONTACT, SUPPORT_BOT, inviteLabel, inviteUrl } from "../../lib/site";
+import { PAYMENT_CONTACT, PAYMENT_PRICE, SUPPORT_BOT, inviteLabel, inviteUrl } from "../../lib/site";
 import type { OwnedInvitation, Rsvp, Wish } from "../../types/invitation";
 import { TEMPLATES } from "../../templates/registry";
 import { SiteHeader } from "../../platform/SiteChrome";
@@ -414,14 +414,14 @@ function ReviewBanner({ inv }: { inv: OwnedInvitation }) {
   const fallbackBot = `https://t.me/${SUPPORT_BOT}?start=${inv.id}`;
   return (
     <div className="mt-6 rounded-[1.75rem] bg-amber-50 px-6 py-7 text-amber-900 ring-1 ring-amber-200 sm:px-8">
-      <p className="font-display text-3xl font-semibold">💳 Faollashtirish uchun to'lov qiling</p>
+      <p className="font-display text-3xl font-semibold">💳 Faollashtirish uchun to'lov qiling — {PAYMENT_PRICE}</p>
       <p className="mt-1 text-sm text-amber-900/75">
         Taklifnomangiz tayyor. Havola to'lov tasdiqlangach ishlaydi va shu yerda o'zi paydo bo'ladi — sahifani yangilash
         shart emas.
       </p>
       <ol className="mt-4 flex flex-col gap-1.5 text-sm text-amber-900/85">
         <li><b>1.</b> Pastdagi tugma bilan Telegram botimizni oching — u yerda karta raqami chiqadi.</li>
-        <li><b>2.</b> To'lovni amalga oshiring.</li>
+        <li><b>2.</b> Kartaga <b>{PAYMENT_PRICE}</b> o'tkazing.</li>
         <li>
           <b>3.</b> To'lov chekini (skrinshot) botga yoki <b>@{PAYMENT_CONTACT}</b> ga yuboring —{" "}
           <b>chek yuborish majburiy</b>.

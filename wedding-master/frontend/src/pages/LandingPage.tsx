@@ -5,7 +5,7 @@ import { PhoneFrame } from "../platform/PhoneFrame";
 import { TemplateThumb } from "../platform/TemplateThumb";
 import { Eyebrow, PLink } from "../platform/ui";
 import { TEMPLATE_LIST } from "../templates/registry";
-import { PAYMENT_CONTACT, SITE_DOMAIN, SITE_NAME, SUPPORT_BOT } from "../lib/site";
+import { PAYMENT_CONTACT, PAYMENT_PRICE, SITE_DOMAIN, SITE_NAME, SUPPORT_BOT } from "../lib/site";
 import { withBase } from "../lib/base";
 import { ShowcaseGrid, useShowcase } from "../platform/Showcase";
 
@@ -16,7 +16,7 @@ const TEMPLATES_HEADING = `${COUNT_WORDS[TEMPLATE_LIST.length] ?? TEMPLATE_LIST.
 const STEPS = [
   { n: "01", title: "Shablonni tanlang", text: "Har bir shablonni oldindan mehmon ko'zi bilan jonli ko'rib chiqing." },
   { n: "02", title: "Ma'lumotlarni kiriting", text: "Ismlar, sana, to'yxona, dastur, rasm va musiqa. Hammasi o'ng tomonda jonli ko'rinadi." },
-  { n: "03", title: "To'lovni qiling", text: "Telegram botimizda karta raqami chiqadi. To'lov chekini yuborasiz — taklifnoma faollashtiriladi." },
+  { n: "03", title: "To'lovni qiling", text: `Narxi ${PAYMENT_PRICE}. Telegram botimizda karta raqami chiqadi. To'lov chekini yuborasiz — taklifnoma faollashtiriladi.` },
   { n: "04", title: "Havolani yuboring", text: `${SITE_DOMAIN}/sizning-ismingiz — Telegram, Instagram yoki QR kod orqali mehmonlarga.` },
 ];
 
@@ -32,7 +32,7 @@ const FEATURES = [
 const FAQ = [
   {
     q: "To'lov qanday qilinadi?",
-    a: `Taklifnomani to'ldirib "Nashr qilish"ni bosgach, @${SUPPORT_BOT} Telegram botiga yo'naltirilasiz. Botda karta raqami chiqadi. To'lovdan so'ng chekni (skrinshot) botga yoki @${PAYMENT_CONTACT} ga yuborish majburiy — chek tekshirilgach havolangiz faollashtiriladi.`,
+    a: `Narxi ${PAYMENT_PRICE}, bir taklifnoma uchun bir marta to'lanadi. Taklifnomani to'ldirib "Nashr qilish"ni bosgach, @${SUPPORT_BOT} Telegram botiga yo'naltirilasiz. Botda karta raqami chiqadi. To'lovdan so'ng chekni (skrinshot) botga yoki @${PAYMENT_CONTACT} ga yuborish majburiy — chek tekshirilgach havolangiz faollashtiriladi.`,
   },
   {
     q: "To'lovdan oldin ko'rib chiqsa bo'ladimi?",
@@ -217,6 +217,7 @@ export function LandingPage() {
               To'lov Telegram bot orqali
             </h2>
             <ol className="mt-6 flex flex-col gap-3 text-[15px] leading-relaxed text-ink/70">
+              <li>Narxi: <b className="text-ink">{PAYMENT_PRICE}</b>, bir taklifnoma uchun bir marta.</li>
               <li><b className="text-ink">1.</b> Taklifnomani to'ldirib, "Nashr qilish"ni bosing.</li>
               <li><b className="text-ink">2.</b> <b className="text-ink">@{SUPPORT_BOT}</b> botini oching — u yerda karta raqami chiqadi.</li>
               <li><b className="text-ink">3.</b> To'lov chekini botga yoki <b className="text-ink">@{PAYMENT_CONTACT}</b> ga yuboring — <b className="text-ink">bu majburiy</b>.</li>

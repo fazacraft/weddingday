@@ -10,7 +10,7 @@ import {
   clearDraft,
   toInvitationData,
 } from "../../lib/draft";
-import { slugify } from "../../lib/site";
+import { PAYMENT_PRICE, slugify } from "../../lib/site";
 import { EMPTY_INVITATION, type InvitationData, type OwnedInvitation } from "../../types/invitation";
 import { switchTemplate, templateTexts } from "../../lib/templateSettings";
 import { isSelectableTemplate } from "../../templates/registry";
@@ -340,12 +340,12 @@ export function BuilderPage({ mode }: Props) {
             {mode === "create" && step === LAST && !user && (
               <Notice tone="info">
                 Nashr qilish uchun email bilan kirish kerak bo'ladi. Qoralamangiz saqlanib qoladi. Nashrdan so'ng
-                to'lov Telegram bot orqali qilinadi.
+                to'lov ({PAYMENT_PRICE}) Telegram bot orqali qilinadi.
               </Notice>
             )}
             {mode === "create" && step === LAST && user && !user.isAdmin && (
               <Notice tone="info">
-                Nashr qilgach, to'lov Telegram bot orqali qilinadi: karta raqami botda chiqadi, chekni yuborasiz — tasdiqlangach havola mehmonlar uchun ochiladi.
+                Nashr qilgach, to'lov ({PAYMENT_PRICE}) Telegram bot orqali qilinadi: karta raqami botda chiqadi, chekni yuborasiz — tasdiqlangach havola mehmonlar uchun ochiladi.
               </Notice>
             )}
             {mode === "edit" && saved && <Notice tone="success">O'zgarishlar saqlandi — mehmonlar darhol yangisini ko'radi.</Notice>}

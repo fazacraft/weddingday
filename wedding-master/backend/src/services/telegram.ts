@@ -16,6 +16,7 @@ const PUBLIC_URL = (process.env.PUBLIC_URL ?? '').replace(/\/+$/, '');
 /** To'lov: karta raqami botda ko'rsatiladi, chek botga yoki shu kontaktga yuboriladi. */
 export const PAYMENT_CARD = (process.env.PAYMENT_CARD ?? '9860160141174617').replace(/\s/g, '');
 export const PAYMENT_CONTACT = (process.env.PAYMENT_CONTACT ?? 'belugadotenv').replace(/^@/, '');
+export const PAYMENT_PRICE = process.env.PAYMENT_PRICE ?? "39 000 so'm";
 
 /** "9860160141174617" → "9860 1601 4117 4617" */
 export function formattedCard(): string {

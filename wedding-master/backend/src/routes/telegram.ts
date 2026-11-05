@@ -5,6 +5,7 @@ import { decideReview, notifyApprovalNeeded } from '../services/review';
 import {
   ADMIN_CHAT_ID,
   PAYMENT_CONTACT,
+  PAYMENT_PRICE,
   answerCallback,
   copyMessage,
   formattedCard,
@@ -53,7 +54,8 @@ function welcomeText(): string {
   return [
     `Assalomu alaykum! Bu Beluga taklifnomalari boti.`,
     '',
-    `Taklifnomani faollashtirish uchun to'lov kartasi: <code>${formattedCard()}</code>`,
+    `Taklifnomani faollashtirish narxi: <b>${escapeHtml(PAYMENT_PRICE)}</b>`,
+    `To'lov kartasi: <code>${formattedCard()}</code>`,
     `To'lovdan so'ng chekni shu yerga yoki @${PAYMENT_CONTACT} ga yuboring — bu majburiy.`,
     '',
     "Chekni taklifnomangizga bog'lash uchun saytdagi kabinetingizda <b>«Telegram botni ochish»</b> tugmasini bosing.",
@@ -85,7 +87,7 @@ async function handleCallback(cb: NonNullable<TgUpdate['callback_query']>): Prom
 
 function paymentText(names: string): string {
   return [
-    `💳 <b>${names}</b> taklifnomasini faollashtirish uchun to'lov qiling.`,
+    `💳 <b>${names}</b> taklifnomasini faollashtirish uchun <b>${escapeHtml(PAYMENT_PRICE)}</b> to'lov qiling.`,
     '',
     `Karta raqami: <code>${formattedCard()}</code>`,
     '<i>(raqamni bosib nusxalash mumkin)</i>',
