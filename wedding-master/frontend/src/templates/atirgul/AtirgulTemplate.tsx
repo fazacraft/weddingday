@@ -295,7 +295,7 @@ export default function AtirgulTemplate() {
           {gallery.length > 0 && (
             <section className="card gallery-card reveal" aria-label="Fotogalereya">
               <h2 className="card-title">Fotogalereya</h2>
-              <PhotoGallery photos={gallery} />
+              <PhotoGallery photos={gallery} wide />
             </section>
           )}
           {grid && (

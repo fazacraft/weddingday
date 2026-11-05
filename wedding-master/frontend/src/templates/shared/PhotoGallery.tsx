@@ -14,7 +14,16 @@ export interface GalleryPhoto {
  * Ko'rinish `body`'ga chiziladi: shablon bo'limlaridagi transform (.reveal)
  * position: fixed'ni buzmasin. Rangi va burchagi --gallery-* o'zgaruvchilaridan.
  */
-export function PhotoGallery({ photos, itemClassName = "" }: { photos: GalleryPhoto[]; itemClassName?: string }) {
+export function PhotoGallery({
+  photos,
+  itemClassName = "",
+  wide = false,
+}: {
+  photos: GalleryPhoto[];
+  itemClassName?: string;
+  /** Bo'lim keng ekranda to'liq kenglikda: katta ekranda rasmlar soniga qarab joylashadi */
+  wide?: boolean;
+}) {
   const [open, setOpen] = useState<number | null>(null);
   const step = useCallback(
     (delta: number) => setOpen((i) => (i === null ? i : (i + delta + photos.length) % photos.length)),
@@ -34,7 +43,10 @@ export function PhotoGallery({ photos, itemClassName = "" }: { photos: GalleryPh
 
   return (
     <>
-      <div className={`inv-gallery${photos.length % 2 ? " inv-gallery--odd" : ""}`} data-slot="gallery">
+      <div
+        className={`inv-gallery${photos.length % 2 ? " inv-gallery--odd" : ""}${wide ? ` inv-gallery--wide inv-gallery--n${photos.length}` : ""}`}
+        data-slot="gallery"
+      >
         {photos.map((photo, i) => (
           <button key={`${photo.thumb}-${i}`} type="button" className={`inv-gallery-item ${itemClassName}`} onClick={() => setOpen(i)}>
             <img src={photo.thumb} alt={`${i + 1}-rasm`} loading="lazy" decoding="async" />

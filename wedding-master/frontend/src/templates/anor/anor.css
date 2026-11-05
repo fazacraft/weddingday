@@ -887,6 +887,7 @@
   }
 
   /* Kalendar va manzil yonma-yon, qolganlari to'liq kenglikda */
+  .tpl-anor .gallery-section { grid-column: 1 / -1; }
   .tpl-anor .calendar-section { order: 1; }
   .tpl-anor .location-section { order: 2; }
   .tpl-anor .schedule-section { order: 3; grid-column: 1 / -1; }

@@ -1591,6 +1591,7 @@
   }
 
   /* Kalendar va manzil yonma-yon, qolganlari to'liq kenglikda */
+  .tpl-kuz .gallery-card { grid-column: 1 / -1; }
   .tpl-kuz .calendar-card { order: 1; }
   .tpl-kuz .location-card { order: 2; }
   .tpl-kuz .countdown-card { order: 3; grid-column: 1 / -1; }

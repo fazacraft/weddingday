@@ -200,7 +200,7 @@ export default function AnorTemplate() {
           {gallery.length > 0 && (
             <section className="paper-card gallery-section reveal" aria-label="Fotogalereya">
               <h2 className="card-title">Fotogalereya</h2>
-              <PhotoGallery photos={gallery} />
+              <PhotoGallery photos={gallery} wide />
             </section>
           )}
           {grid && (

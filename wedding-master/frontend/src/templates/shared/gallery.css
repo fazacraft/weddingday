@@ -35,6 +35,39 @@
   transform: scale(1.04);
 }
 
+/* Keng ekranda to'liq kenglikdagi bo'lim: oltita ustun, bo'sh joy qolmasin */
+@media (min-width: 768px) {
+  .inv-gallery--wide {
+    grid-template-columns: repeat(6, 1fr);
+    gap: 1rem;
+  }
+
+  .inv-gallery--wide .inv-gallery-item,
+  .inv-gallery--wide.inv-gallery--odd .inv-gallery-item:last-child {
+    grid-column: span 2;
+    aspect-ratio: 4 / 5;
+  }
+
+  .inv-gallery--n1 .inv-gallery-item,
+  .inv-gallery--n1.inv-gallery--odd .inv-gallery-item:last-child {
+    grid-column: 2 / span 4;
+    aspect-ratio: 4 / 3;
+  }
+
+  .inv-gallery--n2 .inv-gallery-item,
+  .inv-gallery--n4 .inv-gallery-item {
+    grid-column: span 3;
+    aspect-ratio: 4 / 3;
+  }
+
+  /* Beshta: yuqorida uchta, pastda ikkita kengroq */
+  .inv-gallery--n5 .inv-gallery-item:nth-last-child(-n + 2),
+  .inv-gallery--n5.inv-gallery--odd .inv-gallery-item:last-child {
+    grid-column: span 3;
+    aspect-ratio: 4 / 3;
+  }
+}
+
 .inv-lightbox {
   position: fixed;
   inset: 0;
