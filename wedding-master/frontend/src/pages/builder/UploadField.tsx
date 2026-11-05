@@ -1,6 +1,7 @@
 import { ChangeEvent, ReactNode, useRef, useState } from "react";
 import { ApiError, mediaUrl, PHOTO_WIDTHS, uploadFile } from "../../lib/api";
 import { PButton } from "../../platform/ui";
+import { GalleryGrid } from "./GalleryGrid";
 
 const IMAGE_ACCEPT = "image/jpeg,image/png,image/webp";
 export const AUDIO_ACCEPT = "audio/mpeg,audio/mp4,audio/x-m4a,.mp3,.m4a";
@@ -127,22 +128,9 @@ export function GalleryField({ label, hint, value, max, onChange, placement, onA
         )}
       </div>
 
-      {value.length > 0 && (
-        <div className="mt-4 grid grid-cols-3 gap-2 sm:grid-cols-4">
-          {value.map((url, i) => (
-            <div key={`${url}-${i}`} className="group relative aspect-[3/4] overflow-hidden rounded-xl bg-sand">
-              <img src={mediaUrl(url, PHOTO_WIDTHS.thumb)} alt="" className="h-full w-full object-cover" />
-              <button
-                type="button"
-                onClick={() => onChange(value.filter((_, idx) => idx !== i))}
-                className="absolute right-1.5 top-1.5 grid h-7 w-7 place-items-center rounded-full bg-ink/70 text-sm text-white hover:bg-ink"
-                aria-label={`${i + 1}-rasmni o'chirish`}
-              >
-                ×
-              </button>
-            </div>
-          ))}
-        </div>
+      {value.length > 0 && <GalleryGrid value={value} onChange={onChange} />}
+      {value.length > 1 && (
+        <p className="mt-2 text-xs leading-relaxed text-ink/50">Tartibni o'zgartirish: ⠿ belgisidan ushlab suring yoki ‹ › ni bosing.</p>
       )}
       {error && <p className="mt-3 text-xs text-rose">{error}</p>}
       {placement}
