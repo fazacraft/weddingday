@@ -1,8 +1,8 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Link, useNavigate, useParams, useSearchParams } from "react-router-dom";
 import { QRCodeCanvas } from "qrcode.react";
-import { api, ApiError } from "../../lib/api";
-import { PAYMENT_CONTACT, PAYMENT_PRICE, SUPPORT_BOT, inviteLabel, inviteUrl } from "../../lib/site";
+import { api, ApiError, uploadReceipt } from "../../lib/api";
+import { PAYMENT_CONTACT, PAYMENT_PRICE, inviteLabel, inviteUrl } from "../../lib/site";
 import type { OwnedInvitation, Rsvp, Wish } from "../../types/invitation";
 import { TEMPLATES } from "../../templates/registry";
 import { SiteHeader } from "../../platform/SiteChrome";
@@ -124,7 +124,7 @@ export function ManagePage() {
       <main className="mx-auto max-w-6xl px-4 py-8 sm:px-6">
         <Link to="/kabinet" className="text-sm font-semibold text-ink/50 hover:text-ink">← Barcha taklifnomalar</Link>
 
-        {inv.status !== "published" && (inv.review === "pending" || inv.review === "rejected") && <ReviewBanner inv={inv} />}
+        {inv.status !== "published" && (inv.review === "pending" || inv.review === "rejected") && <ReviewBanner inv={inv} onChange={setInv} />}
 
         {(isNew || justApproved) && inv.status === "published" && (
           <div className="mt-6 overflow-hidden rounded-[1.75rem] bg-rose px-6 py-7 text-ivory sm:px-8">
@@ -380,78 +380,120 @@ function WishesTab({ inv, onChange }: { inv: OwnedInvitation; onChange: () => vo
   );
 }
 
-const REMIND_AFTER_MS = 5 * 60_000;
+/** Nusxalanadigan qator: karta raqami yoki summa. */
+function PaymentRow({ label, value, copy, large = false }: { label: string; value: string; copy?: string; large?: boolean }) {
+  return (
+    <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-2">
+      <div>
+        <p className="text-xs text-amber-900/60">{label}</p>
+        <p className={`whitespace-nowrap font-semibold tabular-nums text-amber-950 ${large ? "text-2xl" : "text-base sm:text-lg"}`}>{value}</p>
+      </div>
+      {copy && <CopyButton text={copy} />}
+    </div>
+  );
+}
 
-/** To'lov kutilmoqda (bot orqali to'lov va chek) yoki rad etildi. */
-function ReviewBanner({ inv }: { inv: OwnedInvitation }) {
-  const [now, setNow] = useState(() => Date.now());
-  useEffect(() => {
-    const t = window.setInterval(() => setNow(Date.now()), 5_000);
-    return () => window.clearInterval(t);
-  }, []);
+/** Kabinetdagi to'lov: karta, summa va chek yuklash — hammasi saytning o'zida. */
+function ReviewBanner({ inv, onChange }: { inv: OwnedInvitation; onChange: (next: OwnedInvitation) => void }) {
+  const inputRef = useRef<HTMLInputElement>(null);
+  const [progress, setProgress] = useState<number | null>(null);
+  const [error, setError] = useState<string | null>(null);
 
-  const since = inv.reviewRequestedAt ? new Date(inv.reviewRequestedAt).getTime() : now;
-  const waitedMin = Math.max(0, Math.floor((now - since) / 60_000));
-  const late = now - since >= REMIND_AFTER_MS;
-  const botUrl = inv.supportBot ? `https://t.me/${inv.supportBot}?start=${inv.id}` : null;
+  const onFile = async (file: File | undefined) => {
+    if (!file) return;
+    setError(null);
+    setProgress(0);
+    try {
+      onChange(await uploadReceipt<OwnedInvitation>(inv.id, file, setProgress));
+    } catch (err) {
+      setError(err instanceof ApiError ? err.message : "Chekni yuklab bo'lmadi");
+    } finally {
+      setProgress(null);
+    }
+  };
+
+  const contact = (
+    <a href={`https://t.me/${PAYMENT_CONTACT}`} target="_blank" rel="noreferrer" className="font-semibold underline underline-offset-2">
+      @{PAYMENT_CONTACT}
+    </a>
+  );
 
   if (inv.review === "rejected") {
     return (
       <div className="mt-6 rounded-[1.75rem] bg-rose/5 px-6 py-7 text-ink ring-1 ring-rose/20 sm:px-8">
         <p className="font-display text-3xl font-semibold text-rose">Taklifnoma rad etildi</p>
         <p className="mt-1 text-sm text-ink/65">
-          Ma'lumotlarni tekshirib, "Faollashtirish" tugmasi bilan qayta yuboring. Savol bo'lsa, botga yozing.
+          Ma'lumotlarni va to'lovni tekshirib, "Faollashtirish" tugmasi bilan qayta yuboring. Savol bo'lsa: {contact}
         </p>
-        {botUrl && (
-          <a href={botUrl} target="_blank" rel="noreferrer" className="mt-4 inline-flex h-11 items-center gap-2 rounded-full bg-[#229ED9] px-5 text-sm font-semibold text-white hover:opacity-90">
-            Telegram botga yozish
-          </a>
-        )}
       </div>
     );
   }
 
-  const fallbackBot = `https://t.me/${SUPPORT_BOT}?start=${inv.id}`;
+  const payment = inv.payment;
+  const price = payment?.price ?? PAYMENT_PRICE;
   return (
     <div className="mt-6 rounded-[1.75rem] bg-amber-50 px-6 py-7 text-amber-900 ring-1 ring-amber-200 sm:px-8">
-      <p className="font-display text-3xl font-semibold">💳 Faollashtirish uchun to'lov qiling — {PAYMENT_PRICE}</p>
+      <p className="font-display text-3xl font-semibold">💳 Faollashtirish uchun to'lov qiling</p>
       <p className="mt-1 text-sm text-amber-900/75">
-        Taklifnomangiz tayyor. Havola to'lov tasdiqlangach ishlaydi va shu yerda o'zi paydo bo'ladi — sahifani yangilash
-        shart emas.
+        Summani kartaga o'tkazing va chekni shu yerga yuklang. Tasdiqlangach, havola shu sahifada o'zi paydo bo'ladi.
       </p>
-      <ol className="mt-4 flex flex-col gap-1.5 text-sm text-amber-900/85">
-        <li><b>1.</b> Pastdagi tugma bilan Telegram botimizni oching — u yerda karta raqami chiqadi.</li>
-        <li><b>2.</b> Kartaga <b>{PAYMENT_PRICE}</b> o'tkazing.</li>
-        <li>
-          <b>3.</b> To'lov chekini (skrinshot) botga yoki <b>@{PAYMENT_CONTACT}</b> ga yuboring —{" "}
-          <b>chek yuborish majburiy</b>.
-        </li>
-      </ol>
-      <div className="mt-5 flex flex-wrap items-center gap-3">
-        <a
-          href={botUrl ?? fallbackBot}
-          target="_blank"
-          rel="noreferrer"
-          className="inline-flex h-11 items-center gap-2 rounded-full bg-[#229ED9] px-5 text-sm font-semibold text-white hover:opacity-90"
-        >
-          Telegram botni ochish
-        </a>
-        <a
-          href={`https://t.me/${PAYMENT_CONTACT}`}
-          target="_blank"
-          rel="noreferrer"
-          className="inline-flex h-11 items-center rounded-full px-4 text-sm font-semibold text-amber-900/70 ring-1 ring-amber-300 hover:text-amber-900"
-        >
-          @{PAYMENT_CONTACT}
-        </a>
-        {waitedMin > 0 && <span className="text-xs text-amber-900/60">Kutilmoqda: {waitedMin} daqiqa</span>}
-      </div>
-      {late && (
-        <p className="mt-4 rounded-2xl bg-white/70 p-4 text-sm text-amber-900/80 ring-1 ring-amber-200">
-          Chekni yuborganingizga 5 daqiqadan oshgan bo'lsa, botga yana yozing yoki <b>@{PAYMENT_CONTACT}</b> ga murojaat
-          qiling.
-        </p>
+
+      {payment && (
+        <div className="mt-5 flex flex-col gap-4 rounded-2xl bg-white/80 p-4 ring-1 ring-amber-200 sm:p-5">
+          <PaymentRow label="Karta raqami" value={payment.card} copy={payment.card.replace(/\s/g, "")} />
+          {payment.holder && <PaymentRow label="Karta egasi" value={payment.holder} />}
+          <div className="border-t border-amber-200" />
+          <PaymentRow label="O'tkaziladigan summa" value={price} copy={price.replace(/\D/g, "")} large />
+        </div>
       )}
+
+      <p className="mt-5 text-sm font-semibold text-amber-950">To'lov cheki (rasm yoki PDF)</p>
+      <input
+        ref={inputRef}
+        type="file"
+        hidden
+        accept="image/jpeg,image/png,image/webp,application/pdf"
+        aria-label="To'lov cheki"
+        onChange={(e) => {
+          void onFile(e.target.files?.[0]);
+          e.target.value = "";
+        }}
+      />
+      {inv.receipt ? (
+        <div className="mt-2 flex flex-wrap items-center justify-between gap-3 rounded-2xl bg-emerald-50 p-4 text-sm text-emerald-900 ring-1 ring-emerald-200">
+          <span>
+            <b>✅ Chek yuborildi, tekshirilmoqda.</b>
+            <br />
+            Tasdiqlangach, havola shu yerda chiqadi.
+          </span>
+          <button
+            type="button"
+            disabled={progress !== null}
+            onClick={() => inputRef.current?.click()}
+            className="h-9 shrink-0 rounded-lg px-3 text-xs font-semibold ring-1 ring-emerald-300 hover:bg-emerald-100 disabled:opacity-50"
+          >
+            {progress === null ? "Boshqa chek yuklash" : `Yuklanmoqda ${Math.round(progress * 100)}%`}
+          </button>
+        </div>
+      ) : (
+        <button
+          type="button"
+          disabled={progress !== null}
+          onClick={() => inputRef.current?.click()}
+          className="mt-2 flex w-full items-center gap-3 rounded-2xl border-2 border-dashed border-amber-300 bg-white/60 p-4 text-left transition-colors hover:border-amber-500 disabled:opacity-70"
+        >
+          <span aria-hidden="true" className="text-2xl">🧾</span>
+          <span>
+            <span className="block text-sm font-semibold text-amber-950">
+              {progress === null ? "Chekni tanlang" : progress < 1 ? `Yuklanmoqda ${Math.round(progress * 100)}%` : "Saqlanmoqda..."}
+            </span>
+            <span className="block text-xs text-amber-900/60">JPG, PNG, WEBP yoki PDF, 5 MB gacha</span>
+          </span>
+        </button>
+      )}
+      {error && <p className="mt-2 text-sm font-semibold text-rose">{error}</p>}
+
+      <p className="mt-4 text-xs text-amber-900/65">Savol bo'lsa: {contact}</p>
     </div>
   );
 }

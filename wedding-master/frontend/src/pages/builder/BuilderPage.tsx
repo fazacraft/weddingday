@@ -340,12 +340,12 @@ export function BuilderPage({ mode }: Props) {
             {mode === "create" && step === LAST && !user && (
               <Notice tone="info">
                 Nashr qilish uchun email bilan kirish kerak bo'ladi. Qoralamangiz saqlanib qoladi. Nashrdan so'ng
-                to'lov ({PAYMENT_PRICE}) Telegram bot orqali qilinadi.
+                to'lov ({PAYMENT_PRICE}) shu saytda qilinadi.
               </Notice>
             )}
             {mode === "create" && step === LAST && user && !user.isAdmin && (
               <Notice tone="info">
-                Nashr qilgach, to'lov ({PAYMENT_PRICE}) Telegram bot orqali qilinadi: karta raqami botda chiqadi, chekni yuborasiz — tasdiqlangach havola mehmonlar uchun ochiladi.
+                Nashr qilgach, keyingi sahifada karta raqami chiqadi: {PAYMENT_PRICE} o'tkazib, chekni yuklaysiz. Tasdiqlangach havola mehmonlar uchun ochiladi.
               </Notice>
             )}
             {mode === "edit" && saved && <Notice tone="success">O'zgarishlar saqlandi — mehmonlar darhol yangisini ko'radi.</Notice>}

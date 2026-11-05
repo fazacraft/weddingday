@@ -1,3 +1,4 @@
+import crypto from 'crypto';
 import { Response, NextFunction } from 'express';
 import { isValidObjectId } from 'mongoose';
 import {
@@ -14,6 +15,8 @@ import { Rsvp } from '../models/Rsvp';
 import { AuthedRequest } from '../middleware/auth';
 import { removeInvitation } from '../services/invitations';
 import { applyPublishRequest, notifyApprovalNeeded } from '../services/review';
+import { deleteReceiptFile, sniffReceipt, storeReceipt } from '../services/receipts';
+import { ADMIN_CHAT_ID, formattedCard, PAYMENT_HOLDER, PAYMENT_PRICE, sendDocument, telegramEnabled } from '../services/telegram';
 import { User, isAdminEmail } from '../models/User';
 
 /** Klientdan qabul qilinadigan maydonlar — owner, openCount kabilarni o'zgartirib bo'lmaydi. */
@@ -91,6 +94,12 @@ function ownerView(inv: IInvitation, stats?: Record<string, number>) {
     hideFromShowcase: inv.hideFromShowcase,
     review: inv.review,
     reviewRequestedAt: inv.reviewRequestedAt,
+    receipt: inv.receipt ? { contentType: inv.receipt.contentType, uploadedAt: inv.receipt.uploadedAt } : undefined,
+    // To'lov ma'lumoti faqat kutilayotganda: kabinetdagi blok shundan chiziladi
+    payment:
+      inv.review === 'pending' && inv.status !== 'published'
+        ? { card: formattedCard(), holder: PAYMENT_HOLDER || undefined, price: PAYMENT_PRICE }
+        : undefined,
     // Tasdiq kechiksa foydalanuvchi shu botga yozadi (t.me/<bot>?start=<id>)
     supportBot: process.env.TG_BOT_USERNAME || undefined,
     openCount: inv.openCount,
@@ -215,6 +224,44 @@ export async function updateInvitation(req: AuthedRequest, res: Response, next: 
     // O'z musiqasi bo'lsa — kutubxonaga nomzod (admin tasdiqlasa hammaga ko'rinadi)
     rememberUploadedMusic(inv).catch((err) => console.warn('Music library:', (err as Error).message));
     if (notify) void notifyApprovalNeeded(inv);
+    const stats = await statsFor([inv._id]);
+    res.json(ownerView(inv, stats.get(String(inv._id))));
+  } catch (err) {
+    next(err);
+  }
+}
+
+/**
+ * POST /api/invitations/:id/receipt — egasi to'lov chekini saytdan yuklaydi.
+ * Chek admin'ga Telegram orqali tasdiqlash tugmalari bilan ham boradi; u yerga
+ * yetmasa ham saqlangan bo'ladi va admin panelda ko'rinadi.
+ */
+export async function uploadReceipt(req: AuthedRequest, res: Response, next: NextFunction): Promise<void> {
+  try {
+    const inv = await findOwned(req, res);
+    if (!inv) return;
+    if (inv.review !== 'pending' || inv.status === 'published') {
+      res.status(409).json({ error: "Bu taklifnoma uchun to'lov kutilmayapti" });
+      return;
+    }
+    const type = req.file ? sniffReceipt(req.file.buffer) : null;
+    if (!req.file || !type) {
+      res.status(422).json({ error: 'Chek JPG, PNG, WEBP rasm yoki PDF bo\'lishi kerak (5 MB gacha)' });
+      return;
+    }
+    const filename = `${inv.slug}-${crypto.randomUUID()}.${type.ext}`;
+    await storeReceipt(filename, req.file.buffer, type.contentType);
+    const previous = inv.receipt?.filename;
+    inv.receipt = { filename, contentType: type.contentType, size: req.file.size, uploadedAt: new Date() };
+    await inv.save();
+    await deleteReceiptFile(previous);
+
+    if (telegramEnabled()) {
+      const data = req.file.buffer;
+      void sendDocument(ADMIN_CHAT_ID, data, filename, type.contentType, `🧾 ${inv.groomName} & ${inv.brideName} — to'lov cheki`)
+        .then(() => notifyApprovalNeeded(inv, 'receipt'))
+        .catch((err) => console.error('Receipt notification failed:', (err as Error).message));
+    }
     const stats = await statsFor([inv._id]);
     res.json(ownerView(inv, stats.get(String(inv._id))));
   } catch (err) {

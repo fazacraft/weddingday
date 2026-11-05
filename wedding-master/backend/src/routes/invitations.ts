@@ -1,4 +1,5 @@
-import { Router } from 'express';
+import { NextFunction, Request, Response, Router } from 'express';
+import multer from 'multer';
 import { body } from 'express-validator';
 import {
   checkSlug,
@@ -10,12 +11,26 @@ import {
   listInvitationWishes,
   deleteInvitationWish,
   listInvitationRsvps,
+  uploadReceipt,
 } from '../controllers/invitationsController';
 import { GALLERY_MAX, SELECTABLE_TEMPLATE_KEYS, TEMPLATE_KEYS } from '../models/Invitation';
 import { handleValidation } from '../middleware/validate';
 import { requireAuth } from '../middleware/auth';
 
 const router = Router();
+
+const RECEIPT_MAX_BYTES = 5 * 1024 * 1024;
+const receiptUpload = multer({ storage: multer.memoryStorage(), limits: { fileSize: RECEIPT_MAX_BYTES, files: 1 } }).single('file');
+
+function acceptReceipt(req: Request, res: Response, next: NextFunction): void {
+  receiptUpload(req, res, (err: unknown) => {
+    if (err instanceof multer.MulterError && err.code === 'LIMIT_FILE_SIZE') {
+      res.status(413).json({ error: 'Chek 5 MB dan katta' });
+      return;
+    }
+    next(err);
+  });
+}
 
 const DATE_RE = /^\d{4}-\d{2}-\d{2}$/;
 const TIME_RE = /^([01]\d|2[0-3]):[0-5]\d$/;
@@ -59,6 +74,7 @@ router.post('/', invitationRules(false), handleValidation, createInvitation);
 router.get('/:id', getMine);
 router.patch('/:id', invitationRules(true), handleValidation, updateInvitation);
 router.delete('/:id', deleteInvitation);
+router.post('/:id/receipt', acceptReceipt, uploadReceipt);
 router.get('/:id/wishes', listInvitationWishes);
 router.delete('/:id/wishes/:wishId', deleteInvitationWish);
 router.get('/:id/rsvps', listInvitationRsvps);

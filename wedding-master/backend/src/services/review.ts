@@ -4,6 +4,7 @@ import { User } from '../models/User';
 import { TEMPLATE_NAMES } from './templateNames';
 import { sendApprovalRequest, sendToChat, escapeHtml, publicLink, type ApprovalKind } from './telegram';
 import { rememberRelay } from './telegramRelay';
+import { clearReceipt } from './receipts';
 
 /**
  * Egasi taklifnomani nashr qilmoqchi bo'lganda chaqiriladi (saqlashdan oldin).
@@ -57,6 +58,8 @@ export async function decideReview(id: string, decision: 'approve' | 'reject'): 
   } else {
     inv.review = 'rejected';
     inv.status = 'draft';
+    // Qayta yuborganda yangi chek so'raladi
+    await clearReceipt(inv);
   }
   await inv.save();
   // Egasi botga yozgan bo'lsa, natijani unga ham yuboramiz

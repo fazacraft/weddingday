@@ -59,6 +59,8 @@ export interface IInvitation extends Document {
   review: ReviewState;
   /** Oxirgi marta tasdiqlashga yuborilgan vaqt (5 daqiqalik eslatma uchun) */
   reviewRequestedAt?: Date;
+  /** Foydalanuvchi saytda yuklagan to'lov cheki (fayl — services/receipts) */
+  receipt?: { filename: string; contentType: string; size: number; uploadedAt: Date };
   /** Egasi botga yozgan bo'lsa — qaror shu chatga yuboriladi */
   ownerTgChatId?: number;
 
@@ -111,6 +113,12 @@ const invitationSchema = new Schema<IInvitation>(
     status: { type: String, enum: ['draft', 'published'], default: 'draft' },
     review: { type: String, enum: REVIEW_STATES, default: 'none' },
     reviewRequestedAt: { type: Date },
+    receipt: {
+      type: new Schema(
+        { filename: String, contentType: String, size: Number, uploadedAt: Date },
+        { _id: false }
+      ),
+    },
     ownerTgChatId: { type: Number },
 
     groomName: { type: String, required: true, trim: true },

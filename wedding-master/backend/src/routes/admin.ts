@@ -5,6 +5,7 @@ import {
   setInvitationStatus,
   reviewInvitation,
   deleteInvitation,
+  getReceipt,
   listUsers,
   deleteUser,
   impersonateUser,
@@ -26,6 +27,7 @@ router.get('/stats', stats);
 router.get('/invitations', listInvitations);
 router.patch('/invitations/:id', setInvitationStatus);
 router.post('/invitations/:id/review', reviewInvitation);
+router.get('/invitations/:id/receipt', getReceipt);
 router.patch('/invitations/:id/featured', setFeatured);
 router.patch('/invitations/:id/showcase', setShowcaseHidden);
 router.delete('/invitations/:id', deleteInvitation);

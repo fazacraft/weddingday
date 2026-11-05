@@ -1,7 +1,7 @@
 import { FormEvent, useCallback, useEffect, useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
-import { ApiError, setToken } from "../../lib/api";
-import { adminApi } from "../../lib/adminAuth";
+import { API_URL, ApiError, setToken } from "../../lib/api";
+import { adminApi, getAdminToken } from "../../lib/adminAuth";
 import { withBase } from "../../lib/base";
 import { TEMPLATES } from "../../templates/registry";
 import type { TemplateKey } from "../../types/invitation";
@@ -38,6 +38,7 @@ interface AdminInvitation {
   createdAt: string;
   /** Imzolangan kalit: /slug?k=... — tasdiqlanmagan taklifnoma ham ochiladi */
   previewKey: string;
+  hasReceipt?: boolean;
   owner: { id: string; name: string; email: string } | null;
   wishes: number;
   replies: number;
@@ -204,6 +205,25 @@ function InvitationsTab({ ownerFilter, onChange }: { ownerFilter: string | null;
   const [busyId, setBusyId] = useState<string | null>(null);
   const [actionError, setActionError] = useState<string | null>(null);
 
+  // Chek admin tokeni bilan olinadi — oddiy havola ochilmaydi. Oyna oldindan ochiladi,
+  // aks holda brauzer so'rovdan keyingi popup'ni to'sib qo'yadi.
+  const openReceipt = async (inv: AdminInvitation) => {
+    setActionError(null);
+    const tab = window.open("", "_blank");
+    try {
+      const res = await fetch(`${API_URL}/api/admin/invitations/${inv.id}/receipt`, {
+        headers: { Authorization: `Bearer ${getAdminToken() ?? ""}` },
+      });
+      if (!res.ok) throw new Error();
+      const url = URL.createObjectURL(await res.blob());
+      if (tab) tab.location.href = url;
+      window.setTimeout(() => URL.revokeObjectURL(url), 60_000);
+    } catch {
+      tab?.close();
+      setActionError("Chekni ochib bo'lmadi");
+    }
+  };
+
   const act = async (inv: AdminInvitation, kind: "delete" | InvitationState | ShowcaseState) => {
     const names = `"${inv.groomName} & ${inv.brideName}" (/${inv.slug})`;
     const question =
@@ -333,6 +353,15 @@ function InvitationsTab({ ownerFilter, onChange }: { ownerFilter: string | null;
                   <td className="px-4 py-3 text-xs text-ink/45">{formatDateTime(inv.createdAt)}</td>
                   <td className="px-4 py-3">
                     <div className="flex justify-end gap-1.5">
+                      {inv.hasReceipt && (
+                        <button
+                          type="button"
+                          onClick={() => void openReceipt(inv)}
+                          className="h-8 whitespace-nowrap rounded-lg bg-amber-100 px-2.5 text-xs font-semibold text-amber-900 hover:bg-amber-200"
+                        >
+                          🧾 Chek
+                        </button>
+                      )}
                       <a
                         href={inv.status === "published" ? withBase(inv.slug) : `${withBase(inv.slug)}?k=${inv.previewKey}`}
                         target="_blank"

@@ -2,6 +2,7 @@ import { Invitation, IInvitation, invitationMedia } from '../models/Invitation';
 import { Wish } from '../models/Wish';
 import { Rsvp } from '../models/Rsvp';
 import { deleteUploads } from '../storage';
+import { deleteReceiptFile } from './receipts';
 import { libraryMedia } from './musicLibrary';
 import { templateMedia } from './templateSettings';
 
@@ -13,6 +14,7 @@ import { templateMedia } from './templateSettings';
  */
 export async function removeInvitation(inv: IInvitation): Promise<void> {
   const media = invitationMedia(inv);
+  await deleteReceiptFile(inv.receipt?.filename);
   await Promise.all([
     Wish.deleteMany({ invitation: inv._id }),
     Rsvp.deleteMany({ invitation: inv._id }),

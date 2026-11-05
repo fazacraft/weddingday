@@ -8,6 +8,7 @@ import { AuthedRequest, signImpersonationToken } from '../middleware/auth';
 import { previewKey } from '../services/previewKey';
 import { removeInvitation } from '../services/invitations';
 import { decideReview } from '../services/review';
+import { receiptStream } from '../services/receipts';
 import { syncUploadedMusic } from '../services/musicLibrary';
 
 const PAGE_SIZE = 25;
@@ -102,6 +103,7 @@ export async function listInvitations(req: AuthedRequest, res: Response, next: N
         showcaseHidden: inv.showcaseHidden,
         createdAt: inv.createdAt,
         previewKey: previewKey(String(inv._id)),
+        hasReceipt: Boolean(inv.receipt),
         owner: inv.owner ? { id: String(inv.owner._id), name: inv.owner.name, email: inv.owner.email } : null,
         ...counts(inv._id as Types.ObjectId),
       })),
@@ -144,6 +146,23 @@ export async function reviewInvitation(req: AuthedRequest, res: Response, next: 
       return;
     }
     res.json({ id: String(inv._id), status: inv.status, review: inv.review });
+  } catch (err) {
+    next(err);
+  }
+}
+
+/** GET /api/admin/invitations/:id/receipt — to'lov cheki (faqat admin). */
+export async function getReceipt(req: AuthedRequest, res: Response, next: NextFunction): Promise<void> {
+  try {
+    const inv = isValidObjectId(req.params.id) ? await Invitation.findById(req.params.id).select('receipt') : null;
+    if (!inv?.receipt) {
+      res.status(404).json({ error: 'Chek topilmadi' });
+      return;
+    }
+    res.setHeader('Content-Type', inv.receipt.contentType);
+    res.setHeader('X-Content-Type-Options', 'nosniff');
+    res.setHeader('Cache-Control', 'private, no-store');
+    receiptStream(inv.receipt.filename).on('error', next).pipe(res);
   } catch (err) {
     next(err);
   }

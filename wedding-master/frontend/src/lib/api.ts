@@ -90,30 +90,43 @@ export async function api<T>(
 }
 
 /**
- * Faylni yuklaydi. XMLHttpRequest — fetch yuborish jarayonini ko'rsatmaydi, server
+ * Faylni yuboradi. XMLHttpRequest — fetch yuborish jarayonini ko'rsatmaydi, server
  * uzoq bo'lgani uchun esa katta fayl sekin ketadi. onProgress: 0..1; 1 dan keyin
  * server faylni saqlayotgan bo'ladi.
  */
-export function uploadFile(file: File, onProgress?: (fraction: number) => void): Promise<string> {
+function postFile<T>(path: string, file: File, onProgress?: (fraction: number) => void): Promise<T> {
   return new Promise((resolve, reject) => {
     const form = new FormData();
     form.append("file", file);
     const xhr = new XMLHttpRequest();
-    xhr.open("POST", `${API_URL}/api/uploads`);
+    xhr.open("POST", `${API_URL}/api${path}`);
+    const token = getToken();
+    if (token) xhr.setRequestHeader("Authorization", `Bearer ${token}`);
     xhr.upload.onprogress = (e) => {
       if (e.lengthComputable) onProgress?.(e.loaded / e.total);
     };
     xhr.onerror = () => reject(new ApiError("Serverga ulanib bo'lmadi", 0));
     xhr.onload = () => {
-      let data: { url?: string; error?: string } = {};
+      let data: (T & { error?: string }) | null = null;
       try {
-        data = JSON.parse(xhr.responseText) as typeof data;
+        data = JSON.parse(xhr.responseText) as T & { error?: string };
       } catch {
         /* Javob JSON emas — pastda umumiy xato */
       }
-      if (xhr.status >= 200 && xhr.status < 300 && data.url) resolve(data.url);
-      else reject(new ApiError(data.error ?? "Faylni yuklab bo'lmadi", xhr.status));
+      if (xhr.status >= 200 && xhr.status < 300 && data) resolve(data);
+      else reject(new ApiError(data?.error ?? "Faylni yuklab bo'lmadi", xhr.status));
     };
     xhr.send(form);
   });
+}
+
+export async function uploadFile(file: File, onProgress?: (fraction: number) => void): Promise<string> {
+  const { url } = await postFile<{ url?: string }>("/uploads", file, onProgress);
+  if (!url) throw new ApiError("Faylni yuklab bo'lmadi", 0);
+  return url;
+}
+
+/** To'lov chekini yuklaydi; yangilangan taklifnomani qaytaradi. */
+export function uploadReceipt<T>(invitationId: string, file: File, onProgress?: (fraction: number) => void): Promise<T> {
+  return postFile<T>(`/invitations/${invitationId}/receipt`, file, onProgress);
 }

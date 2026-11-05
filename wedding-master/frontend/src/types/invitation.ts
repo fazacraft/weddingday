@@ -69,6 +69,10 @@ export interface OwnedInvitation extends PublicInvitation {
   /** Nashr uchun admin tasdig'i */
   review?: ReviewState;
   reviewRequestedAt?: string;
+  /** Saytda yuklangan to'lov cheki */
+  receipt?: { contentType: string; uploadedAt: string };
+  /** To'lov kutilayotganda: karta va summa */
+  payment?: { card: string; holder?: string; price: string };
   /** Tasdiq kechiksa yoziladigan Telegram bot (username) */
   supportBot?: string;
   openCount: number;
