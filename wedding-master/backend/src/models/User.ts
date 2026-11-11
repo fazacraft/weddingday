@@ -7,6 +7,8 @@ export interface IUser extends Document {
   passwordHash?: string;
   /** Google hisobi (sub) — bog'langan bo'lsa */
   googleId?: string;
+  /** Oxirgi kirgan vaqti: login va saqlangan sessiya bilan qaytish (10 daqiqada bir yangilanadi) */
+  lastLoginAt?: Date;
   createdAt: Date;
 }
 
@@ -16,6 +18,7 @@ const userSchema = new Schema<IUser>(
     email: { type: String, required: true, unique: true, lowercase: true, trim: true },
     passwordHash: { type: String },
     googleId: { type: String, unique: true, sparse: true },
+    lastLoginAt: { type: Date },
   },
   { timestamps: { createdAt: true, updatedAt: false } }
 );

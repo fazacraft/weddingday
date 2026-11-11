@@ -4,6 +4,9 @@ import { User, publicUser } from '../models/User';
 import { AuthedRequest, isImpersonated, signToken } from '../middleware/auth';
 import { googleClientId, verifyGoogleCredential } from '../services/googleAuth';
 
+/** Saqlangan sessiya bilan qaytganda "oxirgi kirgan" vaqti shundan siyrakroq yoziladi */
+const LAST_SEEN_EVERY_MS = 10 * 60_000;
+
 /** Bir xil javob — hisob bor-yo'qligi va qanday ochilgani bilinmasin */
 const WRONG_LOGIN = "Email yoki parol noto'g'ri. Hisobingiz Google orqali ochilgan bo'lsa, «Google bilan kirish»ni bosing.";
 
@@ -19,6 +22,7 @@ export async function register(req: AuthedRequest, res: Response, next: NextFunc
       name,
       email,
       passwordHash: await bcrypt.hash(password, 10),
+      lastLoginAt: new Date(),
     });
     res.status(201).json({ token: signToken(String(user._id)), user: publicUser(user) });
   } catch (err) {
@@ -34,6 +38,8 @@ export async function login(req: AuthedRequest, res: Response, next: NextFunctio
       res.status(401).json({ error: WRONG_LOGIN });
       return;
     }
+    user.lastLoginAt = new Date();
+    await user.save();
     res.json({ token: signToken(String(user._id)), user: publicUser(user) });
   } catch (err) {
     next(err);
@@ -64,9 +70,10 @@ export async function googleLogin(req: AuthedRequest, res: Response, next: NextF
     }
     let user = (await User.findOne({ googleId: profile.sub })) ?? (await User.findOne({ email: profile.email }));
     if (!user) {
-      user = await User.create({ name: profile.name, email: profile.email, googleId: profile.sub });
-    } else if (!user.googleId) {
-      user.googleId = profile.sub;
+      user = await User.create({ name: profile.name, email: profile.email, googleId: profile.sub, lastLoginAt: new Date() });
+    } else {
+      user.googleId ??= profile.sub;
+      user.lastLoginAt = new Date();
       await user.save();
     }
     res.json({ token: signToken(String(user._id)), user: publicUser(user) });
@@ -82,7 +89,12 @@ export async function me(req: AuthedRequest, res: Response, next: NextFunction):
       res.status(401).json({ error: 'Foydalanuvchi topilmadi' });
       return;
     }
-    res.json({ user: { ...publicUser(user), ...(isImpersonated(req) ? { impersonated: true } : {}) } });
+    const impersonated = isImpersonated(req);
+    // Saqlangan sessiya bilan qaytish ham "kirish" — admin uning nomidan kirgani hisoblanmaydi
+    if (!impersonated && Date.now() - (user.lastLoginAt?.getTime() ?? 0) > LAST_SEEN_EVERY_MS) {
+      User.updateOne({ _id: user._id }, { $set: { lastLoginAt: new Date() } }).catch(() => {});
+    }
+    res.json({ user: { ...publicUser(user), ...(impersonated ? { impersonated: true } : {}) } });
   } catch (err) {
     next(err);
   }

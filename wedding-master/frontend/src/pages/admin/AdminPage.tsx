@@ -50,6 +50,7 @@ interface AdminUser {
   email: string;
   isAdmin: boolean;
   createdAt: string;
+  lastLoginAt: string | null;
   invitations: number;
 }
 
@@ -178,7 +179,7 @@ function SearchBar({ value, onSearch, placeholder }: { value: string; onSearch: 
 
 function Pager({ page, total, pageSize, onPage }: { page: number; total: number; pageSize: number; onPage: (p: number) => void }) {
   const pages = Math.max(1, Math.ceil(total / pageSize));
-  if (pages === 1) return null;
+  if (pages === 1) return <p className="mt-5 text-sm text-ink/45">Jami: {total} ta</p>;
   return (
     <div className="mt-5 flex items-center justify-between text-sm text-ink/55">
       <span>
@@ -456,12 +457,13 @@ function UsersTab({ onChange }: { onChange: () => void }) {
         <p className="py-10 text-center text-sm text-ink/45">Hech kim topilmadi.</p>
       ) : (
         <div className="overflow-x-auto rounded-3xl border border-ink/10 bg-white">
-          <table className="w-full min-w-[640px] text-left text-sm">
+          <table className="w-full min-w-[760px] text-left text-sm">
             <thead className="bg-sand/40 text-[11px] uppercase tracking-wider text-ink/45">
               <tr>
                 <th className="px-4 py-3 font-bold">Foydalanuvchi</th>
                 <th className="px-4 py-3 font-bold">Taklifnomalar</th>
                 <th className="px-4 py-3 font-bold">Ro'yxatdan o'tgan</th>
+                <th className="px-4 py-3 font-bold">Oxirgi kirgan</th>
                 <th className="px-4 py-3 text-right font-bold">Amallar</th>
               </tr>
             </thead>
@@ -487,6 +489,9 @@ function UsersTab({ onChange }: { onChange: () => void }) {
                     )}
                   </td>
                   <td className="px-4 py-3 text-xs text-ink/45">{formatDateTime(u.createdAt)}</td>
+                  <td className="px-4 py-3 text-xs text-ink/60" title={u.lastLoginAt ? undefined : "Bu ma'lumot 11-noyabrdan beri yoziladi"}>
+                    {u.lastLoginAt ? formatDateTime(u.lastLoginAt) : <span className="text-ink/35">—</span>}
+                  </td>
                   <td className="px-4 py-3">
                     <div className="flex justify-end gap-1.5">
                       <button

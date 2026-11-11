@@ -206,6 +206,7 @@ export async function listUsers(req: AuthedRequest, res: Response, next: NextFun
         email: u.email,
         isAdmin: isAdminEmail(u.email),
         createdAt: u.createdAt,
+        lastLoginAt: u.lastLoginAt ?? null,
         invitations: byOwner.get(String(u._id)) ?? 0,
       })),
     });
