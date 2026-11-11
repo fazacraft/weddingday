@@ -1492,18 +1492,6 @@
   opacity: 0.85;
 }
 
-.tpl-kuz .wish-list {
-  list-style: none;
-  margin: 1.8rem 0 0;
-  padding: 0;
-  display: flex;
-  flex-direction: column;
-  gap: 0.8rem;
-  max-height: 460px;
-  overflow-y: auto;
-  text-align: left;
-}
-
 .tpl-kuz .wish-item {
   position: relative;
   padding: 0.9rem 2.6rem 0.9rem 1.1rem;

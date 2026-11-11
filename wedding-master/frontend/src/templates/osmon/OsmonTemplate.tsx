@@ -2,6 +2,7 @@ import { FormEvent, PointerEvent, useCallback, useEffect, useMemo, useRef, useSt
 import { useInvitation } from "../shared/InvitationContext";
 import { useCountOpen, useRsvp } from "../shared/useRsvp";
 import { useWishes } from "../shared/useWishes";
+import { WishesCarousel } from "../shared/WishesCarousel";
 import { UZ_MONTHS, useCountdown } from "../shared/calendar";
 import { useReveal } from "../shared/useReveal";
 import { useSlotFocus } from "../shared/useSlotFocus";
@@ -621,14 +622,14 @@ function OsmonWishes() {
       ) : wishes.length === 0 ? (
         <p className="wish-empty">Hali tilaklar yo'q. Birinchi bo'ling!</p>
       ) : (
-        <ul className="wish-list">
-          {wishes.map((w) => (
-            <li className="wish-item" key={w._id}>
+        <WishesCarousel wishes={wishes}>
+          {(w) => (
+            <>
               <p className="wish-name">{w.name}</p>
               <p className="wish-text">{w.message}</p>
-            </li>
-          ))}
-        </ul>
+            </>
+          )}
+        </WishesCarousel>
       )}
     </section>
   );

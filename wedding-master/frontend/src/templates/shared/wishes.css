@@ -1,0 +1,68 @@
+/* Tilaklar karuseli — barcha shablonlar uchun umumiy. Kartaning ko'rinishi
+   har bir shablonning .wish-item / .wish-name / .wish-text uslubidan olinadi. */
+
+.wish-carousel {
+  margin-top: 1.8rem;
+  overflow-x: auto;
+  overflow-y: hidden;
+  overscroll-behavior-x: contain;
+  scrollbar-width: none;
+  -webkit-overflow-scrolling: touch;
+}
+
+.wish-carousel::-webkit-scrollbar {
+  display: none;
+}
+
+.wish-carousel.is-looping {
+  -webkit-mask-image: linear-gradient(to right, transparent, #000 7%, #000 93%, transparent);
+  mask-image: linear-gradient(to right, transparent, #000 7%, #000 93%, transparent);
+}
+
+.wish-track {
+  display: flex;
+  align-items: stretch;
+  width: max-content;
+  margin: 0 auto;
+  padding: 0;
+  list-style: none;
+  text-align: left;
+}
+
+.wish-slide {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  flex: 0 0 min(var(--wish-card-w, 270px), 74vw);
+  margin-right: var(--wish-gap, 0.9rem);
+  cursor: pointer;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.wish-carousel:not(.is-looping) .wish-slide:last-child {
+  margin-right: 0;
+}
+
+.wish-slide:focus-visible {
+  outline: 2px solid currentColor;
+  outline-offset: 2px;
+}
+
+/* Karta ochilganda qolganlari bir xil cho'zilmasin — o'z balandligiga qaytadi */
+.wish-track.has-open {
+  align-items: flex-start;
+}
+
+/* Uzun tilak qisqartiriladi — kartani bosganda to'liq ochiladi */
+.wish-slide .wish-text {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 4;
+  overflow: hidden;
+}
+
+.wish-slide.is-open .wish-text {
+  display: block;
+  -webkit-line-clamp: unset;
+}

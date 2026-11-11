@@ -2,6 +2,7 @@ import { CSSProperties, FormEvent, useEffect, useMemo, useRef, useState } from "
 import { useInvitation } from "../shared/InvitationContext";
 import { useCountOpen, useRsvp } from "../shared/useRsvp";
 import { useWishes } from "../shared/useWishes";
+import { WishesCarousel } from "../shared/WishesCarousel";
 import { UZ_MONTHS, UZ_WEEKDAYS, envelopeLines, monthGrid, useCountdown } from "../shared/calendar";
 import { useReveal } from "../shared/useReveal";
 import { useSlotFocus } from "../shared/useSlotFocus";
@@ -601,15 +602,15 @@ function KuzWishes() {
       ) : wishes.length === 0 ? (
         <p className="wish-empty">Hali tilaklar yo'q. Birinchi bo'ling!</p>
       ) : (
-        <ul className="wish-list">
-          {wishes.map((w) => (
-            <li className="wish-item" key={w._id}>
+        <WishesCarousel wishes={wishes}>
+          {(w) => (
+            <>
               <LeafIcon kind="maple" color={(["rust", "amber", "olive", "crimson"] as const)[w.name.length % 4]} className="wish-leaf" />
               <p className="wish-name">{w.name}</p>
               <p className="wish-text">{w.message}</p>
-            </li>
-          ))}
-        </ul>
+            </>
+          )}
+        </WishesCarousel>
       )}
     </section>
   );
