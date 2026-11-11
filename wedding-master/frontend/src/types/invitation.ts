@@ -86,6 +86,8 @@ export interface Wish {
   name: string;
   message: string;
   createdAt: string;
+  /** Faqat egasi/admin ro'yxatida: admin mehmonlardan yashirgan */
+  hidden?: boolean;
 }
 
 export interface Rsvp {

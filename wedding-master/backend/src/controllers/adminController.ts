@@ -10,6 +10,7 @@ import { removeInvitation } from '../services/invitations';
 import { decideReview } from '../services/review';
 import { receiptStream } from '../services/receipts';
 import { syncUploadedMusic } from '../services/musicLibrary';
+import { emitWishCreated, emitWishRemoved } from '../socket';
 
 const PAGE_SIZE = 25;
 
@@ -236,6 +237,93 @@ export async function impersonateUser(req: AuthedRequest, res: Response, next: N
     }
     console.info(`Admin impersonation: ${user.email} (ip ${req.ip})`);
     res.json({ token: signImpersonationToken(String(user._id)) });
+  } catch (err) {
+    next(err);
+  }
+}
+
+/** GET /api/admin/wishes — barcha taklifnomalardagi tilaklar, yangilari birinchi. */
+export async function listWishes(req: AuthedRequest, res: Response, next: NextFunction): Promise<void> {
+  try {
+    const q = String(req.query.q ?? '').trim();
+    const filter: Record<string, unknown> = {};
+    if (req.query.status === 'hidden') filter.hidden = true;
+    if (req.query.status === 'visible') filter.hidden = { $ne: true };
+    if (isValidObjectId(req.query.invitation)) filter.invitation = req.query.invitation;
+    if (q) {
+      const re = new RegExp(escapeRegex(q), 'i');
+      const invitations = await Invitation.find({ $or: [{ slug: re }, { groomName: re }, { brideName: re }] }).select('_id');
+      filter.$or = [{ name: re }, { message: re }, { invitation: { $in: invitations.map((i) => i._id) } }];
+    }
+    const page = pageOf(req);
+    const [total, list] = await Promise.all([
+      Wish.countDocuments(filter),
+      Wish.find(filter)
+        .sort({ createdAt: -1 })
+        .skip((page - 1) * PAGE_SIZE)
+        .limit(PAGE_SIZE)
+        .populate<{
+          invitation: { _id: Types.ObjectId; slug: string; groomName: string; brideName: string; status: string } | null;
+        }>('invitation', 'slug groomName brideName status'),
+    ]);
+    res.json({
+      total,
+      page,
+      pageSize: PAGE_SIZE,
+      items: list.map((w) => ({
+        id: String(w._id),
+        name: w.name,
+        message: w.message,
+        hidden: Boolean(w.hidden),
+        createdAt: w.createdAt,
+        invitation: w.invitation
+          ? {
+              id: String(w.invitation._id),
+              slug: w.invitation.slug,
+              groomName: w.invitation.groomName,
+              brideName: w.invitation.brideName,
+              status: w.invitation.status,
+            }
+          : null,
+      })),
+    });
+  } catch (err) {
+    next(err);
+  }
+}
+
+/** PATCH /api/admin/wishes/:id { hidden } — tilakni mehmonlardan yashirish yoki qaytarish. */
+export async function setWishHidden(req: AuthedRequest, res: Response, next: NextFunction): Promise<void> {
+  try {
+    const hidden = (req.body as { hidden?: unknown }).hidden;
+    if (!isValidObjectId(req.params.id) || typeof hidden !== 'boolean') {
+      res.status(422).json({ error: "Noto'g'ri so'rov" });
+      return;
+    }
+    const wish = await Wish.findByIdAndUpdate(req.params.id, { hidden }, { new: true });
+    if (!wish) {
+      res.status(404).json({ error: 'Tilak topilmadi' });
+      return;
+    }
+    // Ochiq sahifalar darhol yangilanadi: yashirilsa yo'qoladi, qaytarilsa o'z o'rnida chiqadi
+    if (hidden) emitWishRemoved(String(wish.invitation), String(wish._id));
+    else emitWishCreated(String(wish.invitation), { _id: wish._id, name: wish.name, message: wish.message, createdAt: wish.createdAt });
+    res.json({ id: String(wish._id), hidden: wish.hidden });
+  } catch (err) {
+    next(err);
+  }
+}
+
+/** DELETE /api/admin/wishes/:id — tilakni butunlay o'chiradi. */
+export async function deleteWish(req: AuthedRequest, res: Response, next: NextFunction): Promise<void> {
+  try {
+    const wish = isValidObjectId(req.params.id) ? await Wish.findByIdAndDelete(req.params.id) : null;
+    if (!wish) {
+      res.status(404).json({ error: 'Tilak topilmadi' });
+      return;
+    }
+    emitWishRemoved(String(wish.invitation), String(wish._id));
+    res.status(204).end();
   } catch (err) {
     next(err);
   }

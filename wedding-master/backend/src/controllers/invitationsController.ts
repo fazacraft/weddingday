@@ -11,6 +11,7 @@ import {
 } from '../models/Invitation';
 import { rememberUploadedMusic } from '../services/musicLibrary';
 import { Wish } from '../models/Wish';
+import { emitWishRemoved } from '../socket';
 import { Rsvp } from '../models/Rsvp';
 import { AuthedRequest } from '../middleware/auth';
 import { removeInvitation } from '../services/invitations';
@@ -304,7 +305,8 @@ export async function deleteInvitationWish(req: AuthedRequest, res: Response, ne
       res.status(404).json({ error: 'Tilak topilmadi' });
       return;
     }
-    await Wish.deleteOne({ _id: req.params.wishId, invitation: inv._id });
+    const { deletedCount } = await Wish.deleteOne({ _id: req.params.wishId, invitation: inv._id });
+    if (deletedCount) emitWishRemoved(String(inv._id), String(req.params.wishId));
     res.status(204).end();
   } catch (err) {
     next(err);

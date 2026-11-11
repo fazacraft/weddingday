@@ -40,18 +40,27 @@ export function useWishes(): UseWishesReturn {
     if (!live || !id) return;
     const socket = getSocket();
     const join = () => socket.emit("join", id);
+    // Admin yashirgan tilakni qaytarsa ham shu hodisa keladi — vaqt bo'yicha o'z o'rniga qo'yamiz
     const onWishCreated = (wish: Wish) => {
       setWishes((prev) =>
-        prev.some((w) => w._id === wish._id) ? prev : [wish, ...prev]
+        prev.some((w) => w._id === wish._id)
+          ? prev
+          : [wish, ...prev].sort((a, b) => b.createdAt.localeCompare(a.createdAt))
       );
+    };
+    // O'chirilgan yoki admin yashirgan tilak ochiq sahifadan darhol yo'qoladi
+    const onWishRemoved = (wishId: string) => {
+      setWishes((prev) => prev.filter((w) => w._id !== wishId));
     };
     join();
     // Ulanish uzilib qayta tiklansa, xonaga qaytadan qo'shilamiz
     socket.on("connect", join);
     socket.on("wish:created", onWishCreated);
+    socket.on("wish:removed", onWishRemoved);
     return () => {
       socket.off("connect", join);
       socket.off("wish:created", onWishCreated);
+      socket.off("wish:removed", onWishRemoved);
     };
   }, [live, id]);
 

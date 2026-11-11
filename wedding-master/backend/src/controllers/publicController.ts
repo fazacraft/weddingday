@@ -78,7 +78,7 @@ export async function getWishes(req: AuthedRequest, res: Response, next: NextFun
     const snapshot = await getPublishedSnapshot(String(req.params.slug ?? ''));
     const invitationId = snapshot ? snapshot.id : (await findVisible(req, res))?._id;
     if (!invitationId) return;
-    const wishes = await Wish.find({ invitation: invitationId })
+    const wishes = await Wish.find({ invitation: invitationId, hidden: { $ne: true } })
       .select('name message createdAt')
       .sort({ createdAt: -1 })
       .lean();

@@ -33,3 +33,8 @@ export function initSocket(httpServer: HttpServer): Server {
 export function emitWishCreated(invitationId: string, wish: unknown): void {
   io?.to(room(invitationId)).emit('wish:created', wish);
 }
+
+/** Tilak o'chirilsa yoki yashirilsa — ochiq sahifalardan darhol olib tashlanadi. */
+export function emitWishRemoved(invitationId: string, wishId: string): void {
+  io?.to(room(invitationId)).emit('wish:removed', wishId);
+}

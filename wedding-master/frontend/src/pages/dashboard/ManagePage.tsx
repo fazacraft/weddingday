@@ -366,7 +366,10 @@ function WishesTab({ inv, onChange }: { inv: OwnedInvitation; onChange: () => vo
             <div className="flex items-start justify-between gap-3">
               <div>
                 <p className="font-semibold text-ink">{w.name}</p>
-                <p className="text-xs text-ink/40">{formatDateTime(w.createdAt)}</p>
+                <p className="text-xs text-ink/40">
+                  {formatDateTime(w.createdAt)}
+                  {w.hidden && <span className="ml-2 font-semibold text-rose">· mehmonlarga ko'rinmaydi</span>}
+                </p>
               </div>
               <button onClick={() => void remove(w)} className="text-xs font-semibold text-ink/40 hover:text-rose">
                 O'chirish

@@ -57,6 +57,15 @@ interface AdminUser {
   invitations: number;
 }
 
+interface AdminWish {
+  id: string;
+  name: string;
+  message: string;
+  hidden: boolean;
+  createdAt: string;
+  invitation: { id: string; slug: string; groomName: string; brideName: string; status: "draft" | "published" } | null;
+}
+
 interface Paged<T> {
   total: number;
   page: number;
@@ -64,8 +73,8 @@ interface Paged<T> {
   items: T[];
 }
 
-type Tab = "taklifnomalar" | "foydalanuvchilar" | "musiqalar" | "shablonlar";
-const TABS: Tab[] = ["taklifnomalar", "foydalanuvchilar", "musiqalar", "shablonlar"];
+type Tab = "taklifnomalar" | "tilaklar" | "foydalanuvchilar" | "musiqalar" | "shablonlar";
+const TABS: Tab[] = ["taklifnomalar", "tilaklar", "foydalanuvchilar", "musiqalar", "shablonlar"];
 
 export function AdminPage({ onLogout }: { onLogout?: () => void } = {}) {
   const [params, setParams] = useSearchParams();
@@ -132,6 +141,8 @@ export function AdminPage({ onLogout }: { onLogout?: () => void } = {}) {
         <div className="py-6">
           {tab === "taklifnomalar" ? (
             <InvitationsTab ownerFilter={params.get("owner")} onChange={loadStats} />
+          ) : tab === "tilaklar" ? (
+            <WishesTab invitationFilter={params.get("invitation")} onChange={loadStats} />
           ) : tab === "musiqalar" ? (
             <MusicTab />
           ) : tab === "shablonlar" ? (
@@ -377,7 +388,14 @@ function InvitationsTab({ ownerFilter, onChange }: { ownerFilter: string | null;
                     <ShowcaseSelect inv={inv} disabled={busyId === inv.id} onSelect={(state) => void act(inv, state)} />
                   </td>
                   <td className="px-4 py-3 text-xs text-ink/55">
-                    {inv.openCount} ochildi · {inv.replies} javob · {inv.wishes} tilak
+                    {inv.openCount} ochildi · {inv.replies} javob ·{" "}
+                    {inv.wishes > 0 ? (
+                      <Link to={`/admin?tab=tilaklar&invitation=${inv.id}`} className="font-semibold text-ink underline-offset-2 hover:underline">
+                        {inv.wishes} tilak
+                      </Link>
+                    ) : (
+                      "0 tilak"
+                    )}
                     {(inv.refVisits || inv.referred) ? (
                       <span className="mt-1 block font-semibold text-emerald-700" title="Taklifnoma ostidagi «Shunday taklifnoma yaratish» orqali">
                         ↗ {inv.refVisits ?? 0} kelgan · {inv.referred ?? 0} yaratgan
@@ -553,6 +571,161 @@ function UsersTab({ onChange }: { onChange: () => void }) {
                           O'chirish
                         </button>
                       )}
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
+      {data && <Pager page={data.page} total={data.total} pageSize={data.pageSize} onPage={setPage} />}
+    </div>
+  );
+}
+
+type WishState = "visible" | "hidden";
+
+const WISH_OPTIONS: { value: WishState; label: string }[] = [
+  { value: "visible", label: "Ko'rinadi" },
+  { value: "hidden", label: "🚫 Yashirilgan" },
+];
+
+/** Barcha taklifnomalardagi tilaklar: nomaqbulini yashirish yoki o'chirish. */
+function WishesTab({ invitationFilter, onChange }: { invitationFilter: string | null; onChange: () => void }) {
+  const [q, setQ] = useState("");
+  const [status, setStatus] = useState("");
+  const [page, setPage] = useState(1);
+  const { data, error, reload } = useAdminList<AdminWish>("/admin/wishes", {
+    q,
+    status,
+    page: String(page),
+    invitation: invitationFilter ?? "",
+  });
+  const [busyId, setBusyId] = useState<string | null>(null);
+  const [actionError, setActionError] = useState<string | null>(null);
+
+  const act = async (wish: AdminWish, kind: WishState | "delete") => {
+    if (kind === "delete" && !window.confirm(`${wish.name}ning tilagi butunlay o'chirilsinmi? Qaytarib bo'lmaydi.`)) return;
+    setBusyId(wish.id);
+    setActionError(null);
+    try {
+      if (kind === "delete") {
+        await adminApi(`/admin/wishes/${wish.id}`, { method: "DELETE" });
+        onChange();
+      } else {
+        await adminApi(`/admin/wishes/${wish.id}`, { method: "PATCH", body: { hidden: kind === "hidden" } });
+      }
+      reload();
+    } catch (err) {
+      setActionError(err instanceof ApiError ? err.message : "Xatolik yuz berdi");
+    } finally {
+      setBusyId(null);
+    }
+  };
+
+  return (
+    <div className="flex flex-col gap-4">
+      <div className="flex flex-col gap-3 sm:flex-row">
+        <div className="flex-1">
+          <SearchBar
+            value={q}
+            onSearch={(v) => {
+              setQ(v);
+              setPage(1);
+            }}
+            placeholder="Ism, tilak matni yoki taklifnoma havolasi"
+          />
+        </div>
+        <select
+          value={status}
+          onChange={(e) => {
+            setStatus(e.target.value);
+            setPage(1);
+          }}
+          className="h-11 rounded-xl border border-ink/15 bg-white px-3 text-sm"
+        >
+          <option value="">Hammasi</option>
+          <option value="visible">Ko'rinadi</option>
+          <option value="hidden">Yashirilgan</option>
+        </select>
+      </div>
+
+      {invitationFilter && (
+        <Notice tone="info">
+          Bitta taklifnomaning tilaklari ko'rsatilmoqda.{" "}
+          <Link to="/admin?tab=tilaklar" className="font-semibold underline">Hammasini ko'rsatish</Link>
+        </Notice>
+      )}
+      {error && <Notice>{error}</Notice>}
+      {actionError && <Notice>{actionError}</Notice>}
+
+      {!data ? (
+        <div className="flex justify-center py-10 text-ink/40"><Spinner className="h-6 w-6" /></div>
+      ) : data.items.length === 0 ? (
+        <p className="py-10 text-center text-sm text-ink/45">Hech narsa topilmadi.</p>
+      ) : (
+        <div className="overflow-x-auto rounded-3xl border border-ink/10 bg-white">
+          <table className="w-full min-w-[760px] text-left text-sm">
+            <thead className="bg-sand/40 text-[11px] uppercase tracking-wider text-ink/45">
+              <tr>
+                <th className="px-4 py-3 font-bold">Tilak</th>
+                <th className="px-4 py-3 font-bold">Taklifnoma</th>
+                <th className="px-4 py-3 font-bold">Yozilgan</th>
+                <th className="px-4 py-3 font-bold">Holat</th>
+                <th className="px-4 py-3 text-right font-bold">Amallar</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-ink/5">
+              {data.items.map((w) => (
+                <tr key={w.id} className={busyId === w.id ? "opacity-50" : ""}>
+                  <td className={`max-w-md px-4 py-3 ${w.hidden ? "text-ink/40" : ""}`}>
+                    <p className={`font-semibold ${w.hidden ? "" : "text-ink"}`}>{w.name}</p>
+                    <p className={`mt-0.5 whitespace-pre-wrap break-words ${w.hidden ? "" : "text-ink/70"}`}>{w.message}</p>
+                  </td>
+                  <td className="px-4 py-3">
+                    {w.invitation ? (
+                      <>
+                        <p className="text-ink/80">
+                          {w.invitation.groomName} & {w.invitation.brideName}
+                        </p>
+                        {w.invitation.status === "published" ? (
+                          <a
+                            href={withBase(w.invitation.slug)}
+                            target="_blank"
+                            rel="noreferrer"
+                            className="text-xs text-ink/45 hover:text-ink hover:underline"
+                          >
+                            /{w.invitation.slug} ↗
+                          </a>
+                        ) : (
+                          <p className="text-xs text-ink/45">/{w.invitation.slug}</p>
+                        )}
+                      </>
+                    ) : (
+                      <span className="text-xs text-ink/40">o'chirilgan</span>
+                    )}
+                  </td>
+                  <td className="whitespace-nowrap px-4 py-3 text-xs text-ink/45">{formatDateTime(w.createdAt)}</td>
+                  <td className="px-4 py-3">
+                    <StateSelect
+                      label="Tilak"
+                      value={w.hidden ? "hidden" : "visible"}
+                      options={WISH_OPTIONS}
+                      tone={w.hidden ? "rose" : "green"}
+                      disabled={busyId === w.id}
+                      onSelect={(state) => void act(w, state)}
+                    />
+                  </td>
+                  <td className="px-4 py-3">
+                    <div className="flex justify-end">
+                      <button
+                        disabled={busyId === w.id}
+                        onClick={() => void act(w, "delete")}
+                        className="h-8 rounded-lg px-2.5 text-xs font-semibold text-rose ring-1 ring-rose/25 hover:bg-rose hover:text-white"
+                      >
+                        O'chirish
+                      </button>
                     </div>
                   </td>
                 </tr>

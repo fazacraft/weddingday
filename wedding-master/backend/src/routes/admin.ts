@@ -9,6 +9,9 @@ import {
   listUsers,
   deleteUser,
   impersonateUser,
+  listWishes,
+  setWishHidden,
+  deleteWish,
 } from '../controllers/adminController';
 import { requireAdmin } from '../middleware/auth';
 import { adminLogin } from '../controllers/adminAuthController';
@@ -31,6 +34,9 @@ router.get('/invitations/:id/receipt', getReceipt);
 router.patch('/invitations/:id/featured', setFeatured);
 router.patch('/invitations/:id/showcase', setShowcaseHidden);
 router.delete('/invitations/:id', deleteInvitation);
+router.get('/wishes', listWishes);
+router.patch('/wishes/:id', setWishHidden);
+router.delete('/wishes/:id', deleteWish);
 router.get('/users', listUsers);
 router.delete('/users/:id', deleteUser);
 router.post('/users/:id/impersonate', impersonateUser);
