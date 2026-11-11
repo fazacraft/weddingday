@@ -211,6 +211,31 @@ function InvitationsTab({ ownerFilter, onChange }: { ownerFilter: string | null;
 
   // Chek admin tokeni bilan olinadi — oddiy havola ochilmaydi. Oyna oldindan ochiladi,
   // aks holda brauzer so'rovdan keyingi popup'ni to'sib qo'yadi.
+  /**
+   * Taklifnomani tahrirlash: egasining hisobidan (2 soatlik token, "Kirish →" kabi)
+   * yangi oynada tahrirlash sahifasi ochiladi — admin panel shu oynada qoladi.
+   */
+  const editInvitation = async (inv: AdminInvitation) => {
+    if (!inv.owner) return;
+    const ok = window.confirm(
+      `"${inv.groomName} & ${inv.brideName}" tahrirlash uchun ${inv.owner.name} (${inv.owner.email}) hisobidan yangi oynada ochiladi (2 soat).\nSaytdagi o'z hisobingizdan chiqasiz — admin panel ochiq qoladi.`
+    );
+    if (!ok) return;
+    setActionError(null);
+    // Oyna oldindan ochiladi, aks holda brauzer so'rovdan keyingi popup'ni to'sadi
+    const tab = window.open("", "_blank");
+    try {
+      const { token } = await adminApi<{ token: string }>(`/admin/users/${inv.owner.id}/impersonate`, { method: "POST" });
+      setToken(token);
+      const url = withBase(`/kabinet/${inv.id}/tahrirlash`);
+      if (tab) tab.location.href = url;
+      else window.location.assign(url);
+    } catch (err) {
+      tab?.close();
+      setActionError(err instanceof ApiError ? err.message : "Tahrirlashni ochib bo'lmadi");
+    }
+  };
+
   const openReceipt = async (inv: AdminInvitation) => {
     setActionError(null);
     const tab = window.open("", "_blank");
@@ -369,6 +394,15 @@ function InvitationsTab({ ownerFilter, onChange }: { ownerFilter: string | null;
                           className="h-8 whitespace-nowrap rounded-lg bg-amber-100 px-2.5 text-xs font-semibold text-amber-900 hover:bg-amber-200"
                         >
                           🧾 Chek
+                        </button>
+                      )}
+                      {inv.owner && (
+                        <button
+                          type="button"
+                          onClick={() => void editInvitation(inv)}
+                          className="h-8 whitespace-nowrap rounded-lg px-2.5 text-xs font-semibold text-ink/60 ring-1 ring-ink/10 hover:text-ink"
+                        >
+                          ✎ Tahrirlash
                         </button>
                       )}
                       <a
