@@ -59,6 +59,7 @@ function invitationRules(partial: boolean) {
     body('gallery').optional().isArray({ max: GALLERY_MAX }).withMessage(`Galereyaga ko'pi bilan ${GALLERY_MAX} ta rasm`),
     body('gallery.*').isString().isLength({ max: 500 }),
     body('hideFromShowcase').optional().isBoolean(),
+    body('ref').optional({ values: 'falsy' }).isString().isLength({ max: 60 }),
     body('features.wishes').optional().isBoolean(),
     body('features.rsvp').optional().isBoolean(),
     body('features.gift').optional().isBoolean(),

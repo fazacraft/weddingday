@@ -62,6 +62,17 @@ export async function countOpen(req: AuthedRequest, res: Response, next: NextFun
   }
 }
 
+/** POST /api/public/:slug/ref-visit — imzo orqali yaratish sahifasiga kelish (brauzer bir marta yuboradi). */
+export async function countRefVisit(req: AuthedRequest, res: Response, next: NextFunction): Promise<void> {
+  try {
+    const slug = String(req.params.slug ?? '').toLowerCase();
+    const updated = await Invitation.updateOne({ slug, status: 'published' }, { $inc: { refVisits: 1 } });
+    res.json({ ok: updated.modifiedCount > 0 });
+  } catch (err) {
+    next(err);
+  }
+}
+
 export async function getWishes(req: AuthedRequest, res: Response, next: NextFunction): Promise<void> {
   try {
     const snapshot = await getPublishedSnapshot(String(req.params.slug ?? ''));

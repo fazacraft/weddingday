@@ -2,6 +2,7 @@ import { Suspense } from "react";
 import type { InvitationData } from "../types/invitation";
 import { InvitationProvider, type TemplateMode } from "./shared/InvitationContext";
 import { TEMPLATES } from "./registry";
+import { MadeWithBeluga } from "./shared/MadeWithBeluga";
 import { templateMusic, useTemplateSettings } from "../lib/templateSettings";
 
 interface Props {
@@ -26,6 +27,7 @@ export function InvitationRenderer({ data, id, mode, basePath }: Props) {
     >
       <Suspense fallback={<FullPageLoader />}>
         <Component />
+        <MadeWithBeluga />
       </Suspense>
     </InvitationProvider>
   );

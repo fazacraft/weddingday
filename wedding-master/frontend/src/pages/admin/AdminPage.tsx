@@ -32,6 +32,9 @@ interface AdminInvitation {
   date: string;
   venueName: string;
   openCount: number;
+  /** Imzo orqali kelganlar va ulardan yangi taklifnoma yaratganlar */
+  refVisits?: number;
+  referred?: number;
   featured?: boolean;
   hideFromShowcase?: boolean;
   showcaseHidden?: boolean;
@@ -350,6 +353,11 @@ function InvitationsTab({ ownerFilter, onChange }: { ownerFilter: string | null;
                   </td>
                   <td className="px-4 py-3 text-xs text-ink/55">
                     {inv.openCount} ochildi · {inv.replies} javob · {inv.wishes} tilak
+                    {(inv.refVisits || inv.referred) ? (
+                      <span className="mt-1 block font-semibold text-emerald-700" title="Taklifnoma ostidagi «Shunday taklifnoma yaratish» orqali">
+                        ↗ {inv.refVisits ?? 0} kelgan · {inv.referred ?? 0} yaratgan
+                      </span>
+                    ) : null}
                   </td>
                   <td className="px-4 py-3 text-xs text-ink/45">{formatDateTime(inv.createdAt)}</td>
                   <td className="px-4 py-3">

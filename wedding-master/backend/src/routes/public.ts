@@ -3,6 +3,7 @@ import { body } from 'express-validator';
 import {
   getPublicInvitation,
   countOpen,
+  countRefVisit,
   getWishes,
   createWish,
   createRsvp,
@@ -16,6 +17,7 @@ router.use(optionalAuth);
 
 router.get('/:slug', getPublicInvitation);
 router.post('/:slug/open', countOpen);
+router.post('/:slug/ref-visit', countRefVisit);
 router.get('/:slug/wishes', getWishes);
 
 router.post(

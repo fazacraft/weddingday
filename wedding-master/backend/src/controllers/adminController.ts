@@ -82,7 +82,12 @@ export async function listInvitations(req: AuthedRequest, res: Response, next: N
         .limit(PAGE_SIZE)
         .populate<{ owner: { _id: Types.ObjectId; name: string; email: string } | null }>('owner', 'name email'),
     ]);
-    const counts = await countsFor(list.map((i) => i._id as Types.ObjectId));
+    const ids = list.map((i) => i._id as Types.ObjectId);
+    const [counts, referred] = await Promise.all([
+      countsFor(ids),
+      Invitation.aggregate([{ $match: { referredBy: { $in: ids } } }, { $group: { _id: '$referredBy', n: { $sum: 1 } } }]),
+    ]);
+    const referredBy = new Map(referred.map((r) => [String(r._id), r.n as number]));
     res.json({
       total,
       page,
@@ -98,6 +103,8 @@ export async function listInvitations(req: AuthedRequest, res: Response, next: N
         date: inv.date,
         venueName: inv.venueName,
         openCount: inv.openCount,
+        refVisits: inv.refVisits ?? 0,
+        referred: referredBy.get(String(inv._id)) ?? 0,
         featured: inv.featured,
         hideFromShowcase: inv.hideFromShowcase,
         showcaseHidden: inv.showcaseHidden,

@@ -13,6 +13,7 @@ import {
 import { PAYMENT_PRICE, slugify } from "../../lib/site";
 import { EMPTY_INVITATION, type InvitationData, type OwnedInvitation } from "../../types/invitation";
 import { switchTemplate, templateTexts } from "../../lib/templateSettings";
+import { activeReferral, rememberReferral } from "../../lib/referral";
 import { isSelectableTemplate } from "../../templates/registry";
 import { FullPageLoader } from "../../templates/InvitationRenderer";
 import { Logo } from "../../platform/SiteChrome";
@@ -119,6 +120,11 @@ export function BuilderPage({ mode }: Props) {
     return isSelectableTemplate(base.template) ? base : { ...base, ...switchTemplate(base, EMPTY_INVITATION.template) };
   });
   const [step, setStep] = useState(() => (mode === "create" ? loadDraft(CREATE_DRAFT_KEY)?.step ?? 0 : 0));
+
+  // Boshqa taklifnoma ostidagi "Shunday taklifnoma yaratish" orqali kelgan
+  useEffect(() => {
+    if (mode === "create") rememberReferral(params.get("ref"));
+  }, [mode, params]);
   const [loadError, setLoadError] = useState<string | null>(null);
   const [originalSlug, setOriginalSlug] = useState<string | null>(null);
   const [slugStatus, setSlugStatus] = useState<SlugStatus>("idle");
@@ -231,7 +237,7 @@ export function BuilderPage({ mode }: Props) {
     try {
       const inv = await api<OwnedInvitation>("/invitations", {
         method: "POST",
-        body: { ...data, status: "published" },
+        body: { ...data, status: "published", ref: activeReferral() },
       });
       clearDraft(CREATE_DRAFT_KEY);
       navigate(`/kabinet/${inv.id}?yangi=1`);

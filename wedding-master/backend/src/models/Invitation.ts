@@ -94,6 +94,8 @@ export interface IInvitation extends Document {
 
   features: InvitationFeatures;
   openCount: number;
+  refVisits: number;
+  referredBy?: Types.ObjectId;
   /** Admin ko'rgazmada (saytdagi "Namunalar") boshiga mahkamlagan */
   featured: boolean;
   featuredAt?: Date;
@@ -157,6 +159,10 @@ const invitationSchema = new Schema<IInvitation>(
       gift: { type: Boolean, default: false },
     },
     openCount: { type: Number, default: 0 },
+    /** Ostidagi "Shunday taklifnoma yaratish" orqali yaratish sahifasiga kelganlar */
+    refVisits: { type: Number, default: 0 },
+    /** Shu taklifnoma imzosi orqali kelib yaratilgan bo'lsa — manba taklifnoma */
+    referredBy: { type: Schema.Types.ObjectId, ref: 'Invitation', index: true },
     featured: { type: Boolean, default: false, index: true },
     featuredAt: { type: Date },
     hideFromShowcase: { type: Boolean, default: false },

@@ -1,6 +1,6 @@
 import crypto from 'crypto';
 import { Response, NextFunction } from 'express';
-import { isValidObjectId } from 'mongoose';
+import { isValidObjectId, Types } from 'mongoose';
 import {
   HIDDEN_TEMPLATE_KEYS,
   Invitation,
@@ -185,6 +185,12 @@ export async function createInvitation(req: AuthedRequest, res: Response, next: 
     }
     const { status, ...rest } = data;
     const inv = new Invitation({ ...rest, owner: req.userId, status: 'draft' });
+    // Boshqa taklifnoma ostidagi imzo orqali kelgan bo'lsa (o'ziniki emas)
+    const ref = (req.body as { ref?: unknown }).ref;
+    if (typeof ref === 'string' && SLUG_PATTERN.test(ref)) {
+      const source = await Invitation.findOne({ slug: ref }).select('owner');
+      if (source && String(source.owner) !== req.userId) inv.referredBy = source._id as Types.ObjectId;
+    }
     const notify = await handlePublish(req, inv, status === 'published');
     await inv.save();
     // O'z musiqasi bo'lsa — kutubxonaga nomzod (admin tasdiqlasa hammaga ko'rinadi)
