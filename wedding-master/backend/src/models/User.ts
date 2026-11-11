@@ -3,7 +3,10 @@ import { Schema, model, Document } from 'mongoose';
 export interface IUser extends Document {
   name: string;
   email: string;
-  passwordHash: string;
+  /** Google orqali ochilgan hisobda bo'lmaydi */
+  passwordHash?: string;
+  /** Google hisobi (sub) — bog'langan bo'lsa */
+  googleId?: string;
   createdAt: Date;
 }
 
@@ -11,7 +14,8 @@ const userSchema = new Schema<IUser>(
   {
     name: { type: String, required: true, trim: true },
     email: { type: String, required: true, unique: true, lowercase: true, trim: true },
-    passwordHash: { type: String, required: true },
+    passwordHash: { type: String },
+    googleId: { type: String, unique: true, sparse: true },
   },
   { timestamps: { createdAt: true, updatedAt: false } }
 );

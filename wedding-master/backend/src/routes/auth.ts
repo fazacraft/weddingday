@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import { body } from 'express-validator';
-import { register, login, me } from '../controllers/authController';
+import { register, login, me, authConfig, googleLogin } from '../controllers/authController';
 import { handleValidation } from '../middleware/validate';
 import { requireAuth } from '../middleware/auth';
 
@@ -28,5 +28,7 @@ router.post(
 );
 
 router.get('/me', requireAuth, me);
+router.get('/config', authConfig);
+router.post('/google', body('credential').isString().isLength({ min: 10, max: 4096 }), handleValidation, googleLogin);
 
 export default router;

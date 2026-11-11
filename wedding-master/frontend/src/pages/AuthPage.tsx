@@ -1,7 +1,8 @@
-import { FormEvent, useEffect, useState } from "react";
+import { FormEvent, useEffect, useRef, useState } from "react";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { ApiError } from "../lib/api";
+import { googleClientId, loadGoogle } from "../lib/googleSignIn";
 import { Logo } from "../platform/SiteChrome";
 import { TemplateThumb } from "../platform/TemplateThumb";
 import { Field, Notice, PButton } from "../platform/ui";
@@ -16,7 +17,7 @@ function safeNext(value: string | null): string {
 }
 
 export function AuthPage({ mode }: Props) {
-  const { user, login, register } = useAuth();
+  const { user, login, register, loginWithGoogle } = useAuth();
   const navigate = useNavigate();
   const [params] = useSearchParams();
   const next = safeNext(params.get("next"));
@@ -66,7 +67,22 @@ export function AuthPage({ mode }: Props) {
                 : "Taklifnomani nashr qilish va mehmonlar javobini kuzatish uchun."}
           </p>
 
-          <form onSubmit={(e) => void onSubmit(e)} className="mt-8 flex flex-col gap-4">
+          <GoogleButton
+            mode={mode}
+            onCredential={async (credential) => {
+              setError(null);
+              setBusy(true);
+              try {
+                await loginWithGoogle(credential);
+              } catch (err) {
+                setError(err instanceof ApiError ? err.message : "Google orqali kirib bo'lmadi");
+              } finally {
+                setBusy(false);
+              }
+            }}
+          />
+
+          <form onSubmit={(e) => void onSubmit(e)} className="mt-6 flex flex-col gap-4">
             {mode === "register" && (
               <Field label="Ismingiz" value={name} onChange={(e) => setName(e.target.value)} autoComplete="name" required />
             )}
@@ -105,6 +121,60 @@ export function AuthPage({ mode }: Props) {
 
       <div className="relative hidden overflow-hidden lg:block">
         <TemplateThumb template="anor" groom="Feruz" bride="Dilfuza" date="29.10.2026" className="absolute inset-0 h-full w-full" />
+      </div>
+    </div>
+  );
+}
+
+/**
+ * Google'ning rasmiy tugmasi (ularning dizayn qoidalari shuni talab qiladi).
+ * Sozlanmagan yoki Google yuklanmasa, hech narsa chizilmaydi — email bilan kirish qoladi.
+ */
+function GoogleButton({ mode, onCredential }: { mode: Props["mode"]; onCredential: (credential: string) => void }) {
+  const holderRef = useRef<HTMLDivElement>(null);
+  const callbackRef = useRef(onCredential);
+  callbackRef.current = onCredential;
+  const [ready, setReady] = useState(false);
+
+  useEffect(() => {
+    let cancelled = false;
+    void googleClientId().then(async (clientId) => {
+      if (!clientId || cancelled) return;
+      const google = await loadGoogle().catch(() => null);
+      const holder = holderRef.current;
+      if (!google || !holder || cancelled) return;
+      google.initialize({ client_id: clientId, ux_mode: "popup", callback: ({ credential }) => callbackRef.current(credential) });
+      google.renderButton(holder, {
+        type: "standard",
+        theme: "outline",
+        size: "large",
+        shape: "pill",
+        text: mode === "login" ? "signin_with" : "signup_with",
+        locale: "uz",
+        width: Math.min(400, Math.round(holder.getBoundingClientRect().width)),
+      });
+      // Google tugmani rad etsa (masalan, sayt manzili ruxsat etilmagan), uning oynasi
+      // bo'sh qoladi — ajratgich ham chiqmasin. Haqiqatan chizilgandagina ko'rsatamiz.
+      observer = new ResizeObserver(() => {
+        if (holder.getBoundingClientRect().height > 0) setReady(true);
+      });
+      observer.observe(holder);
+    });
+    let observer: ResizeObserver | null = null;
+    return () => {
+      cancelled = true;
+      observer?.disconnect();
+    };
+  }, [mode]);
+
+  return (
+    // Tayyor bo'lguncha ko'rinmaydi, lekin kengligi o'lchanadi (tugma shu kenglikda chiziladi)
+    <div className={ready ? "mt-8" : "pointer-events-none h-0 overflow-hidden opacity-0"} aria-hidden={!ready}>
+      <div ref={holderRef} className="flex w-full justify-center" />
+      <div className="mt-6 flex items-center gap-3 text-xs text-ink/40">
+        <span className="h-px flex-1 bg-ink/10" />
+        yoki email bilan
+        <span className="h-px flex-1 bg-ink/10" />
       </div>
     </div>
   );
