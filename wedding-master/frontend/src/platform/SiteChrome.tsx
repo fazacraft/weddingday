@@ -1,8 +1,8 @@
 import { useState } from "react";
 import { Link, NavLink, useLocation } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
-import { SITE_NAME } from "../lib/site";
-import { PLink } from "./ui";
+import { PAYMENT_CONTACT, SITE_NAME } from "../lib/site";
+import { buttonClass, PLink } from "./ui";
 import { withBase } from "../lib/base";
 
 export function Logo({ className = "" }: { className?: string }) {
@@ -17,6 +17,9 @@ export function Logo({ className = "" }: { className?: string }) {
     </Link>
   );
 }
+
+/** "Buyurtma berish" — taklifnomani biz tayyorlab beramiz: Telegram'da bizga yoziladi. */
+const ORDER_URL = `https://t.me/${PAYMENT_CONTACT}`;
 
 export function SiteHeader() {
   const { user, logout } = useAuth();
@@ -78,7 +81,13 @@ export function SiteHeader() {
               Kirish
             </Link>
           )}
-          <PLink to="/yaratish" size="sm">
+          {/* Admin o'ziga buyurtma bermaydi — tor ekranda sarlavha sig'masin */}
+          {!user?.isAdmin && (
+            <a href={ORDER_URL} target="_blank" rel="noreferrer" className={buttonClass("secondary", "sm", "whitespace-nowrap")}>
+              Buyurtma berish
+            </a>
+          )}
+          <PLink to="/yaratish" size="sm" className="whitespace-nowrap">
             Taklifnoma yaratish
           </PLink>
         </div>
@@ -113,6 +122,9 @@ export function SiteHeader() {
             <Link to={loginTo} className="py-2.5 text-[15px] font-semibold text-ink">Kirish</Link>
           )}
           <PLink to="/yaratish" className="mt-2 w-full">Taklifnoma yaratish</PLink>
+          <a href={ORDER_URL} target="_blank" rel="noreferrer" className={buttonClass("secondary", "md", "w-full")}>
+            Buyurtma berish
+          </a>
         </div>
       )}
     </header>
