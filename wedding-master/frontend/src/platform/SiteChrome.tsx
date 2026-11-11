@@ -20,9 +20,11 @@ export function Logo({ className = "" }: { className?: string }) {
 
 export function SiteHeader() {
   const { user, logout } = useAuth();
-  const { pathname } = useLocation();
+  const { pathname, search, hash } = useLocation();
   const [open, setOpen] = useState(false);
   const onLanding = pathname === "/";
+  // Kirgandan keyin shu sahifaga qaytadi (kirish sahifasining o'zi kabinetga yuboradi)
+  const loginTo = `/kirish?next=${encodeURIComponent(pathname + search + hash)}`;
 
   const nav = [
     { href: withBase("/#shablonlar"), label: "Shablonlar" },
@@ -72,7 +74,7 @@ export function SiteHeader() {
               </button>
             </>
           ) : (
-            <Link to="/kirish" className="px-3 text-sm font-semibold text-ink/70 hover:text-ink">
+            <Link to={loginTo} className="px-3 text-sm font-semibold text-ink/70 hover:text-ink">
               Kirish
             </Link>
           )}
@@ -108,7 +110,7 @@ export function SiteHeader() {
               <button onClick={logout} className="py-2.5 text-left text-[15px] text-ink/50">Chiqish</button>
             </>
           ) : (
-            <Link to="/kirish" className="py-2.5 text-[15px] font-semibold text-ink">Kirish</Link>
+            <Link to={loginTo} className="py-2.5 text-[15px] font-semibold text-ink">Kirish</Link>
           )}
           <PLink to="/yaratish" className="mt-2 w-full">Taklifnoma yaratish</PLink>
         </div>
